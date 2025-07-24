@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  # Base de datos MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: danilore_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: danilore_rifas
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_USER: danilore
+      MYSQL_PASSWORD: danilore123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/database/init:/docker-entrypoint-initdb.d
+    networks:
+      - danilore_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Backend Laravel
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: danilore_backend
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+      - ./backend/storage/logs:/var/www/storage/logs
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=danilore_rifas
+      - DB_USERNAME=danilore
+      - DB_PASSWORD=danilore123
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - danilore_network
+    command: php artisan serve --host=0.0.0.0 --port=8000
+
+  # Frontend Vue.js
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: danilore_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - VITE_API_URL=http://localhost:8000/api
+    networks:
+      - danilore_network
+    command: npm run dev -- --host 0.0.0.0 --port 3000
+
+  # PhpMyAdmin para gestión de BD
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: danilore_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: danilore
+      PMA_PASSWORD: danilore123
+    ports:
+      - "8080:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - danilore_network
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  danilore_network:
+    driver: bridge

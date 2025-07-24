@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Rifa - Danilore Rifas</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .rifa-detail-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .breadcrumb {
+            margin-bottom: 2rem;
+            font-size: 0.875rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-purple);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .rifa-detail-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .rifa-main {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .rifa-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .rifa-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .rifa-price-display {
+            text-align: right;
+        }
+
+        .rifa-price-amount {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--success-green);
+        }
+
+        .rifa-price-label {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+        }
+
+        .rifa-detail-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .rifa-image-container {
+            position: relative;
+        }
+
+        .rifa-detail-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-md);
+        }
+
+        .rifa-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-card {
+            background: var(--gray-50);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-purple);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+
+        .date-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: #fef3c7;
+            border-radius: var(--border-radius);
+        }
+
+        .date-info i {
+            color: #f59e0b;
+        }
+
+        .date-title {
+            font-weight: 600;
+            color: #92400e;
+        }
+
+        .date-value {
+            font-size: 0.875rem;
+            color: #78350f;
+        }
+
+        .progress-section {
+            margin-bottom: 1rem;
+        }
+
+        .progress-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .progress-header i {
+            color: var(--primary-blue);
+        }
+
+        .progress-current {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-tickets {
+            font-weight: 700;
+            font-size: 1.125rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fcd34d;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #6ee7b7;
+        }
+
+        .prizes-section {
+            margin-bottom: 1rem;
+        }
+
+        .prizes-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .prizes-header i {
+            color: var(--warning-yellow);
+        }
+
+        .prize-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--border-radius);
+            margin-bottom: 0.75rem;
+        }
+
+        .prize-item.unlocked {
+            border-color: #6ee7b7;
+            background: #d1fae5;
+        }
+
+        .prize-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .prize-number {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--white);
+            background: var(--gray-400);
+        }
+
+        .prize-number.unlocked {
+            background: var(--success-green);
+        }
+
+        .prize-details h4 {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .prize-details p {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+
+        .participate-card {
+            background: linear-gradient(135deg, var(--primary-purple), var(--primary-pink));
+            color: var(--white);
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .participate-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .participate-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .participate-subtitle {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 1rem;
+        }
+
+        .participate-btn {
+            background: var(--white);
+            color: var(--primary-purple);
+            font-weight: 700;
+            padding: 0.75rem 1.5rem;
+            width: 100%;
+        }
+
+        .info-card {
+            padding: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .info-item i {
+            color: var(--gray-500);
+            width: 1rem;
+        }
+
+        .participants-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .participant-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .participant-avatar {
+            width: 1.5rem;
+            height: 1.5rem;
+            background: linear-gradient(135deg, var(--primary-purple), var(--primary-pink));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .participants-more {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-top: 0.5rem;
+        }
+
+        /* Modal de pago */
+        .payment-modal {
+            max-width: 600px;
+        }
+
+        .payment-step {
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+        }
+
+        .step-blue {
+            background: #dbeafe;
+        }
+
+        .step-green {
+            background: #d1fae5;
+        }
+
+        .step-yellow {
+            background: #fef3c7;
+        }
+
+        .step-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .code-display {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: var(--white);
+            border: 1px solid var(--gray-300);
+            border-radius: var(--border-radius);
+            margin: 0.5rem 0;
+        }
+
+        .code-text {
+            flex: 1;
+            font-family: monospace;
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .copy-btn {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .payment-info {
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .payment-warning {
+            font-size: 0.875rem;
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .rifa-detail-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .rifa-detail-content {
+                grid-template-columns: 1fr;
+            }
+
+            .rifa-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .rifa-price-display {
+                text-align: left;
+            }
+
+            .rifa-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header (mismo que index.html) -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <span class="logo-text">Danilore Rifas</span>
+                </a>
+
+                <nav class="nav-desktop">
+                    <a href="index.html">Inicio</a>
+                    <a href="index.html#rifas">Rifas Activas</a>
+                    <a href="ganadores.html">Ganadores</a>
+                    <a href="como-funciona.html">Cómo Funciona</a>
+                </nav>
+
+                <div class="header-actions">
+                    <div class="auth-buttons" id="authButtons">
+                        <a href="login.html" class="btn btn-ghost">Iniciar Sesión</a>
+                        <a href="register.html" class="btn btn-primary">Registrarse</a>
+                    </div>
+                    
+                    <button class="mobile-menu-btn" id="mobileMenuBtn">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="rifa-detail-container">
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb">
+            <a href="index.html">Inicio</a>
+            <span> / </span>
+            <span id="rifaBreadcrumb">Cargando...</span>
+        </nav>
+
+        <div class="rifa-detail-grid">
+            <!-- Columna principal -->
+            <div class="rifa-main">
+                <!-- Información principal -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="rifa-header">
+                            <div>
+                                <h1 id="rifaTitle">Cargando...</h1>
+                                <div id="rifaStatus"></div>
+                            </div>
+                            <div class="rifa-price-display">
+                                <div class="rifa-price-amount" id="rifaPrice">S/2</div>
+                                <div class="rifa-price-label">por ticket</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div class="rifa-detail-content">
+                            <div class="rifa-image-container">
+                                <img id="rifaImage" src="/placeholder.svg" alt="" class="rifa-detail-image">
+                            </div>
+                            <div>
+                                <p id="rifaDescription">Cargando descripción...</p>
+                                
+                                <div class="rifa-stats">
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="ticketsVendidos">0</div>
+                                        <div class="stat-label">Tickets Vendidos</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-value" id="participantesCount">0</div>
+                                        <div class="stat-label">Participantes</div>
+                                    </div>
+                                </div>
+
+                                <div class="date-info">
+                                    <i class="fas fa-calendar"></i>
+                                    <div>
+                                        <div class="date-title">Fecha de Sorteo</div>
+                                        <div class="date-value" id="fechaSorteo">Cargando...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progreso -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="progress-header">
+                            <i class="fas fa-target"></i>
+                            <h2>Progreso del Sorteo</h2>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div class="progress-current">
+                            <span>Progreso actual</span>
+                            <span class="progress-tickets" id="progressText">0/50 tickets</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                        </div>
+                        <div id="progressAlert"></div>
+                    </div>
+                </div>
+
+                <!-- Premios por desbloquear -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="prizes-header">
+                            <i class="fas fa-star"></i>
+                            <h2>Premios por Desbloquear</h2>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div id="prizesList">
+                            <!-- Los premios se cargarán dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="rifa-sidebar">
+                <!-- Botón de participar -->
+                <div class="card participate-card">
+                    <div class="participate-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <h3 class="participate-title">¡Participa Ahora!</h3>
+                    <p class="participate-subtitle">Solo S/2 por ticket</p>
+                    <button class="btn participate-btn" onclick="showPaymentModal()">
+                        🎫 Comprar Ticket
+                    </button>
+                </div>
+
+                <!-- Información adicional -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Información del Sorteo</h3>
+                    </div>
+                    <div class="card-content info-card">
+                        <div class="info-item">
+                            <i class="fas fa-clock"></i>
+                            <span>Sorteo: <span id="infoFechaSorteo">Cargando...</span></span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-users"></i>
+                            <span><span id="infoParticipantes">0</span> participantes</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-bolt"></i>
+                            <span>Validación automática</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de participantes -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Participantes Recientes</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="participants-list" id="participantsList">
+                            <!-- Los participantes se cargarán dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de pago -->
+    <div class="modal-overlay" id="paymentModal">
+        <div class="modal payment-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Comprar Ticket - <span id="modalRifaTitle"></span></h2>
+                <p class="modal-description">Sigue estos pasos para participar en la rifa</p>
+            </div>
+            <div class="modal-content">
+                <!-- Paso 1: Código de pago -->
+                <div class="payment-step step-blue">
+                    <h4 class="step-title">Paso 1: Tu código de pago</h4>
+                    <div class="code-display">
+                        <span class="code-text" id="paymentCode">RIFA1-ABC</span>
+                        <button class="btn btn-outline copy-btn" onclick="copyPaymentCode()">
+                            <i class="fas fa-copy" id="copyIcon"></i>
+                            <span id="copyText">Copiar</span>
+                        </button>
+                    </div>
+                    <p class="payment-warning">
+                        ⚠️ <strong>Importante:</strong> Debes incluir este código en el mensaje de tu pago Yape o Plin
+                    </p>
+                </div>
+
+                <!-- Paso 2: Realizar pago -->
+                <div class="payment-step step-green">
+                    <h4 class="step-title">Paso 2: Realizar pago</h4>
+                    <div class="payment-info">• Monto: <strong>S/2.00</strong></div>
+                    <div class="payment-info">• Yape: <strong>999-888-777</strong></div>
+                    <div class="payment-info">• Plin: <strong>999-888-777</strong></div>
+                    <div class="payment-warning">• <strong>Mensaje obligatorio:</strong> <span id="paymentCodeDisplay">RIFA1-ABC</span></div>
+                </div>
+
+                <!-- Paso 3: Subir comprobante -->
+                <div class="payment-step step-yellow">
+                    <h4 class="step-title">Paso 3: Subir comprobante (opcional)</h4>
+                    <div class="form-group">
+                        <label class="form-label">Captura de pantalla del pago</label>
+                        <input type="file" class="form-input" accept="image/*" id="comprobanteFile">
+                        <p style="font-size: 0.75rem; color: var(--gray-600); margin-top: 0.25rem;">
+                            Como respaldo en caso de que el sistema automático no detecte tu pago
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="confirmPayment()">
+                    ✅ Confirmar Pago Realizado
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer (mismo que index.html) -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-main">
+                    <div class="footer-logo">
+                        <div class="logo-icon">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <span class="logo-text">Danilore Rifas</span>
+                    </div>
+                    <p class="footer-description">
+                        La plataforma de rifas más confiable del Perú. Participa desde S/2 y gana premios increíbles con total transparencia.
+                    </p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-links">
+                    <h3>Enlaces Rápidos</h3>
+                    <ul>
+                        <li><a href="index.html">Inicio</a></li>
+                        <li><a href="como-funciona.html">Cómo Funciona</a></li>
+                        <li><a href="ganadores.html">Ganadores</a></li>
+                        <li><a href="terminos.html">Términos y Condiciones</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-contact">
+                    <h3>Contacto</h3>
+                    <ul>
+                        <li><i class="fas fa-envelope"></i> info@danilorerifas.com</li>
+                        <li><i class="fas fa-phone"></i> +51 999 888 777</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Lima, Perú</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2025 Danilore Rifas. Todos los derechos reservados.</p>
+                <p>RUC: 10XXXXXXXX | Rifas realizadas con total transparencia</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script src="rifa-detalle.js"></script>
+</body>
+</html>
