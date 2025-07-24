@@ -28,6 +28,9 @@ WORKDIR /var/www
 # Copiar archivos del proyecto
 COPY . /var/www
 
+# Limpiar vendor y node_modules si existen
+RUN rm -rf /var/www/vendor /var/www/node_modules
+
 # Instalar dependencias de PHP
 RUN composer install --no-dev --optimize-autoloader
 

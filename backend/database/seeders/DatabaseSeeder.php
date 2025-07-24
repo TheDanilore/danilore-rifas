@@ -13,11 +13,31 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        echo "🚀 Iniciando seeders del sistema de rifas...\n\n";
 
+        // Crear usuario de prueba
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        User::factory()->create([
+            'name' => 'Admin User',
+            'email' => 'admin@danilore.com',
+            'email_verified_at' => now(),
+        ]);
+
+        echo "✅ Usuarios creados\n\n";
+
+        // Seeders del sistema de rifas progresivas
+        $this->call([
+            RifasSeeder::class,
+            PremiosSeeder::class,
+            NivelesSeeder::class,
+            ProgresoSeeder::class,
+        ]);
+
+        echo "\n🎉 Todos los seeders ejecutados correctamente!\n";
+        echo "Sistema de rifas progresivas listo para usar.\n";
     }
 }
