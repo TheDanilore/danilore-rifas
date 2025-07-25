@@ -20,14 +20,25 @@ Sistema completo de rifas online con **premios progresivos** usando Laravel + Vu
 
 ## 🗄️ Estructura de la Base de Datos
 
-### 👤 **Tabla: `users`**
+### � **Tipos de Documento Soportados**
+
+El sistema soporta múltiples tipos de documentos para hacerlo internacional y flexible:
+
+- **DNI**: Documento Nacional de Identidad (Perú) - 8 dígitos
+- **CE**: Carné de Extranjería (Perú) - Hasta 20 caracteres
+- **Passport**: Pasaporte internacional - Hasta 20 caracteres  
+- **RUC**: Registro Único de Contribuyentes (empresas) - 11 dígitos
+- **Otros**: Otros tipos de documento no especificados
+
+### �👤 **Tabla: `users`**
 ```sql
 - id (BIGINT, PK)
 - name (VARCHAR)
 - email (VARCHAR, UNIQUE)
 - password (VARCHAR)
 - telefono (VARCHAR, 15)
-- dni (VARCHAR, 8)
+- tipo_documento (ENUM: dni, ce, passport, ruc, otros) DEFAULT 'dni'
+- numero_documento (VARCHAR, 20)
 - fecha_nacimiento (DATE)
 - genero (ENUM: masculino, femenino, otro)
 - direccion (VARCHAR)
@@ -129,7 +140,8 @@ Sistema completo de rifas online con **premios progresivos** usando Laravel + Vu
 - comprador_nombre (VARCHAR)
 - comprador_email (VARCHAR)
 - comprador_telefono (VARCHAR)
-- comprador_dni (VARCHAR, 8)
+- comprador_tipo_documento (ENUM: dni, ce, passport, ruc, otros) DEFAULT 'dni'
+- comprador_numero_documento (VARCHAR, 20)
 - referencia_pago (VARCHAR)
 - fecha_pago (DATETIME)
 - monto_pagado (DECIMAL 12,2)
@@ -158,37 +170,42 @@ Sistema completo de rifas online con **premios progresivos** usando Laravel + Vu
 ```sql
 - id (BIGINT, PK)
 - venta_id (BIGINT, FK)
-- metodo (ENUM: yape, plin, transferencia, efectivo)
+- metodo_pago (VARCHAR) # yape, plin, transferencia, efectivo
 - monto (DECIMAL 12,2)
-- referencia (VARCHAR)
+- referencia_externa (VARCHAR) # ID de transacción del banco/app
+- numero_operacion (VARCHAR)
+- fecha_transaccion (DATETIME)
 - estado (ENUM: pendiente, verificado, rechazado) DEFAULT 'pendiente'
-- comprobante (VARCHAR) # URL del comprobante
-- fecha_pago (DATETIME)
+- comprobante_url (VARCHAR) # URL del comprobante subido
+- notas_verificacion (TEXT)
 - verificado_por (BIGINT, FK) # Admin que verificó
 - fecha_verificacion (DATETIME)
-- notas_verificacion (TEXT)
+- datos_pago (JSON) # Datos específicos según el método
 - timestamps
 ```
 
 ### 🏷️ **Tabla: `categorias`**
 ```sql
 - id (BIGINT, PK)
-- nombre (VARCHAR)
+- nombre (VARCHAR, 100)
+- slug (VARCHAR, 100, UNIQUE)
 - descripcion (TEXT)
-- icono (VARCHAR)
-- color (VARCHAR)
+- icono (VARCHAR, 50)
+- color (VARCHAR, 7) DEFAULT '#8B5CF6'
 - activa (BOOLEAN) DEFAULT true
+- orden (INT) DEFAULT 0
 - timestamps
 ```
 
 ### 🔧 **Tabla: `configuraciones`**
 ```sql
 - id (BIGINT, PK)
-- clave (VARCHAR, UNIQUE)
+- clave (VARCHAR, 100, UNIQUE)
 - valor (TEXT)
-- tipo (ENUM: string, number, boolean, json)
+- tipo (VARCHAR, 50) DEFAULT 'string' # string, number, boolean, json
+- grupo (VARCHAR, 50) # general, pagos, notificaciones, etc.
 - descripcion (TEXT)
-- grupo (VARCHAR) # general, pagos, notificaciones, etc.
+- editable (BOOLEAN) DEFAULT true
 - timestamps
 ```
 

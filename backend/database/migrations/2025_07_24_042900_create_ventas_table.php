@@ -30,7 +30,8 @@ return new class extends Migration
             $table->string('comprador_nombre');
             $table->string('comprador_email');
             $table->string('comprador_telefono');
-            $table->string('comprador_dni', 8)->nullable();
+            $table->enum('comprador_tipo_documento', ['dni', 'ce', 'passport', 'ruc', 'otros'])->default('dni');
+            $table->string('comprador_numero_documento', 20)->nullable();
             
             // Datos de pago
             $table->string('referencia_pago')->nullable();

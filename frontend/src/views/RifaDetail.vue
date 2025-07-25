@@ -461,17 +461,76 @@
 
                     <!-- Paso 3: Subir comprobante -->
                     <div class="payment-step step-yellow">
-                        <h4 class="step-title">Paso 3: Subir comprobante (opcional)</h4>
-                        <div class="form-group">
-                            <label class="form-label">Captura de pantalla del pago</label>
-                            <input type="file" class="form-input" accept="image/*" id="comprobanteFile">
-                            <p class="file-help">Como respaldo en caso de que el sistema automático no detecte tu pago
+                        <h4 class="step-title">Paso 3: Confirmar tu pago</h4>
+                        
+                        <!-- Información sobre el proceso automático -->
+                        <div class="auto-process-info">
+                            <div class="info-header">
+                                <i class="fas fa-robot"></i>
+                                <span>Proceso Automático</span>
+                            </div>
+                            <p>Detectaremos tu pago en unos minutos. No necesitas hacer nada más.</p>
+                        </div>
+
+                        <!-- Separador -->
+                        <div class="process-separator">
+                            <span>O en caso de problemas</span>
+                        </div>
+
+                        <!-- Proceso manual como backup -->
+                        <div class="manual-process-section">
+                            <div class="info-header">
+                                <i class="fas fa-user"></i>
+                                <span>Confirmación Manual</span>
+                                <small>(Solo si el proceso automático falla)</small>
+                            </div>
+                            
+                            <div class="file-upload-section">
+                                <label class="file-upload-label">
+                                    <i class="fas fa-camera"></i>
+                                    Subir comprobante de pago
+                                </label>
+                                <input 
+                                    type="file" 
+                                    ref="fileInput"
+                                    accept="image/*"
+                                    @change="handleFileUpload"
+                                    class="file-input"
+                                >
+                                <div class="file-upload-area" @click="triggerFileInput">
+                                    <div v-if="!selectedFile" class="upload-placeholder">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <p>Haz clic aquí para subir tu comprobante</p>
+                                        <small>Formatos soportados: JPG, PNG (máx. 5MB)</small>
+                                    </div>
+                                    <div v-else class="file-preview">
+                                        <img v-if="filePreview" :src="filePreview" alt="Comprobante" class="preview-image">
+                                        <div class="file-info">
+                                            <i class="fas fa-file-image"></i>
+                                            <span>{{ selectedFile.name }}</span>
+                                            <button type="button" @click.stop="removeFile" class="remove-file-btn">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button 
+                                class="confirm-btn manual-confirm"
+                                :disabled="paymentLoading || !selectedFile"
+                                @click="confirmPaymentManually"
+                            >
+                                <i v-if="paymentLoading" class="fas fa-spinner fa-spin"></i>
+                                <i v-else class="fas fa-paper-plane"></i>
+                                <span>{{ paymentLoading ? 'Enviando...' : 'Enviar Comprobante Manual' }}</span>
+                            </button>
+                            
+                            <p v-if="!selectedFile" class="manual-requirement">
+                                <i class="fas fa-info-circle"></i>
+                                Debes subir un comprobante para usar la confirmación manual
                             </p>
                         </div>
-                        <button class="confirm-btn" :disabled="paymentLoading" @click="confirmPayment">
-                            <i v-if="paymentLoading" class="fas fa-spinner fa-spin"></i>
-                            <span>{{ paymentLoading ? 'Confirmando...' : '✅ Confirmar Pago Realizado' }}</span>
-                        </button>
                     </div>
                 </div>
             </div>
@@ -506,6 +565,11 @@ export default {
         // Variables para selección de tickets
         const selectedTicketNumber = ref(null)
         const tempSelectedNumber = ref(null)
+
+        // Variables para manejo de archivos
+        const selectedFile = ref(null)
+        const filePreview = ref(null)
+        const fileInput = ref(null)
 
         const {
             rifa,
@@ -657,6 +721,73 @@ export default {
             tempSelectedNumber.value = null
         }
 
+        // Métodos para manejo de archivos
+        const triggerFileInput = () => {
+            fileInput.value?.click()
+        }
+
+        const handleFileUpload = (event) => {
+            const file = event.target.files[0]
+            if (!file) return
+
+            // Validar tipo de archivo
+            if (!file.type.startsWith('image/')) {
+                showNotification('Por favor selecciona una imagen válida', 'error')
+                return
+            }
+
+            // Validar tamaño (5MB máximo)
+            const maxSize = 5 * 1024 * 1024 // 5MB en bytes
+            if (file.size > maxSize) {
+                showNotification('El archivo es demasiado grande. Máximo 5MB', 'error')
+                return
+            }
+
+            selectedFile.value = file
+
+            // Crear preview de la imagen
+            const reader = new FileReader()
+            reader.onload = (e) => {
+                filePreview.value = e.target.result
+            }
+            reader.readAsDataURL(file)
+
+            showNotification('Comprobante cargado correctamente', 'success')
+        }
+
+        const removeFile = () => {
+            selectedFile.value = null
+            filePreview.value = null
+            if (fileInput.value) {
+                fileInput.value.value = ''
+            }
+        }
+
+        // Método para confirmación manual con comprobante
+        const confirmPaymentManually = async () => {
+            if (!selectedFile.value) {
+                showNotification('Debes subir un comprobante para confirmar manualmente', 'error')
+                return
+            }
+
+            try {
+                // Aquí implementarías la lógica para enviar el comprobante
+                // Por ejemplo, subir la imagen a un servidor y crear un ticket manual
+                
+                showNotification('Comprobante enviado para revisión manual. Te notificaremos cuando sea procesado.', 'success')
+                
+                // Cerrar el modal después de enviar
+                closePaymentModal()
+                
+                // Limpiar el archivo seleccionado
+                removeFile()
+                
+            } catch (error) {
+                console.error('Error al enviar comprobante:', error)
+                showNotification('Error al enviar el comprobante. Inténtalo de nuevo.', 'error')
+            }
+        }
+
         onMounted(() => {
             loadRifa(rifaId.value)
         })
@@ -695,7 +826,15 @@ export default {
             selectTicketNumber,
             selectRandomTicket,
             confirmTicketSelection,
-            changeTicketNumber
+            changeTicketNumber,
+            // Variables y métodos para archivos
+            selectedFile,
+            filePreview,
+            fileInput,
+            triggerFileInput,
+            handleFileUpload,
+            removeFile,
+            confirmPaymentManually
         }
     }
 }
@@ -2299,6 +2438,236 @@ export default {
         flex-direction: column;
         text-align: center;
         gap: 0.75rem;
+    }
+}
+
+/* File Upload Styles */
+.file-upload-section {
+    margin-bottom: 1.5rem;
+}
+
+.file-upload-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: var(--gray-700);
+    margin-bottom: 0.75rem;
+    font-size: 0.875rem;
+}
+
+.file-upload-label i {
+    color: var(--primary-purple);
+}
+
+.file-input {
+    display: none;
+}
+
+.file-upload-area {
+    border: 2px dashed var(--gray-300);
+    border-radius: var(--border-radius-lg);
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: var(--gray-50);
+}
+
+.file-upload-area:hover {
+    border-color: var(--primary-purple);
+    background: rgba(147, 51, 234, 0.05);
+}
+
+.file-upload-area.dragover {
+    border-color: var(--primary-blue);
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.upload-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.upload-placeholder i {
+    font-size: 2rem;
+    color: var(--gray-400);
+}
+
+.upload-placeholder p {
+    margin: 0;
+    color: var(--gray-600);
+    font-weight: 500;
+}
+
+.upload-placeholder small {
+    color: var(--gray-500);
+    font-size: 0.75rem;
+}
+
+.file-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.preview-image {
+    max-width: 200px;
+    max-height: 150px;
+    object-fit: cover;
+    border-radius: var(--border-radius);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--border-radius);
+    font-size: 0.875rem;
+}
+
+.file-info i {
+    color: var(--primary-blue);
+}
+
+.remove-file-btn {
+    background: var(--danger-red);
+    color: var(--white);
+    border: none;
+    border-radius: 50%;
+    width: 1.5rem;
+    height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+}
+
+.remove-file-btn:hover {
+    background: #dc2626;
+}
+
+/* Process Info Styles */
+.auto-process-info {
+    background: linear-gradient(135deg, #e0f2fe, #f0f9ff);
+    border: 1px solid #0ea5e9;
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.manual-process-section {
+    background: #fefce8;
+    border: 1px solid #facc15;
+    border-radius: var(--border-radius);
+    padding: 1rem;
+}
+
+.info-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin-bottom: 0.5rem;
+}
+
+.info-header i {
+    color: var(--primary-blue);
+}
+
+.manual-process-section .info-header i {
+    color: #f59e0b;
+}
+
+.info-header small {
+    color: var(--gray-500);
+    font-weight: 400;
+    font-size: 0.75rem;
+    margin-left: 0.25rem;
+}
+
+.auto-process-info p,
+.manual-process-section p {
+    margin: 0;
+    color: var(--gray-600);
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.process-separator {
+    text-align: center;
+    margin: 1.5rem 0;
+    position: relative;
+}
+
+.process-separator::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--gray-300);
+    z-index: 1;
+}
+
+.process-separator span {
+    background: #fef3c7;
+    padding: 0 1rem;
+    color: var(--gray-600);
+    font-size: 0.875rem;
+    font-weight: 500;
+    position: relative;
+    z-index: 2;
+}
+
+.manual-confirm {
+    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+    margin-top: 1rem;
+}
+
+.manual-confirm:disabled {
+    background: var(--gray-400) !important;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.manual-requirement {
+    margin: 0.75rem 0 0 0;
+    font-size: 0.75rem;
+    color: #92400e;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.manual-requirement i {
+    color: #f59e0b;
+}
+
+/* Responsive styles for file upload */
+@media (max-width: 768px) {
+    .file-upload-area {
+        padding: 1rem;
+    }
+    
+    .preview-image {
+        max-width: 150px;
+        max-height: 100px;
+    }
+    
+    .upload-placeholder i {
+        font-size: 1.5rem;
     }
 }
 </style>

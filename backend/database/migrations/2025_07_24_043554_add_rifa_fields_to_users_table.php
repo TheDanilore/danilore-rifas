@@ -14,8 +14,9 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             // Campos adicionales para el sistema de rifas
             $table->string('telefono', 15)->nullable()->after('email');
-            $table->string('dni', 8)->nullable()->after('telefono');
-            $table->date('fecha_nacimiento')->nullable()->after('dni');
+            $table->enum('tipo_documento', ['dni', 'ce', 'passport', 'ruc', 'otros'])->default('dni')->after('telefono');
+            $table->string('numero_documento', 20)->nullable()->after('tipo_documento');
+            $table->date('fecha_nacimiento')->nullable()->after('numero_documento');
             $table->enum('genero', ['masculino', 'femenino', 'otro'])->nullable()->after('fecha_nacimiento');
             $table->string('direccion')->nullable()->after('genero');
             $table->string('ciudad', 100)->nullable()->after('direccion');
@@ -40,7 +41,7 @@ return new class extends Migration
             
             // Índices
             $table->index(['rol', 'activo']);
-            $table->index('dni');
+            $table->index(['tipo_documento', 'numero_documento']);
             $table->index('telefono');
         });
     }
@@ -49,7 +50,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->dropColumn([
-                'telefono', 'dni', 'fecha_nacimiento', 'genero', 'direccion',
+                'telefono', 'tipo_documento', 'numero_documento', 'fecha_nacimiento', 'genero', 'direccion',
                 'ciudad', 'departamento', 'codigo_postal', 'rol', 'activo',
                 'ultimo_acceso', 'avatar', 'notif_email', 'notif_sms', 
                 'notif_whatsapp', 'total_boletos_comprados', 'total_gastado', 
