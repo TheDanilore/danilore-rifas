@@ -306,7 +306,84 @@
                     </button>
                 </div>
                 <div class="modal-content">
-                    <!-- Reutilizar el contenido del modal de pago de RifaDetail -->
+                    <!-- Paso 0: Selección de Número de Ticket -->
+                    <div v-if="!selectedTicketNumber" class="payment-step step-purple">
+                        <h4 class="step-title">Paso 0: Selecciona tu número de la suerte</h4>
+                        
+                        <div class="ticket-selection-section">
+                            <div class="selection-options">
+                                <button 
+                                    class="random-btn"
+                                    @click="selectRandomTicket"
+                                >
+                                    <i class="fas fa-dice"></i>
+                                    Número Aleatorio
+                                </button>
+                                <span class="separator">o</span>
+                                <span class="manual-text">Elige tu número de la suerte:</span>
+                            </div>
+                            
+                            <div class="tickets-grid">
+                                <button
+                                    v-for="numero in availableTickets"
+                                    :key="numero"
+                                    class="ticket-number"
+                                    :class="{ 
+                                        'sold': soldTickets.includes(numero),
+                                        'selected': numero === tempSelectedNumber 
+                                    }"
+                                    :disabled="soldTickets.includes(numero)"
+                                    @click="selectTicketNumber(numero)"
+                                >
+                                    {{ numero }}
+                                </button>
+                            </div>
+                            
+                            <div class="ticket-info">
+                                <div class="info-item">
+                                    <span class="legend available"></span>
+                                    <span>Disponible</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="legend sold"></span>
+                                    <span>Vendido</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="legend selected"></span>
+                                    <span>Tu selección</span>
+                                </div>
+                            </div>
+                            
+                            <div v-if="tempSelectedNumber" class="selected-ticket-info">
+                                <div class="selected-display">
+                                    <i class="fas fa-ticket-alt"></i>
+                                    <span>Número seleccionado: <strong>{{ tempSelectedNumber }}</strong></span>
+                                </div>
+                                <button 
+                                    class="confirm-selection-btn"
+                                    @click="confirmTicketSelection"
+                                >
+                                    ✓ Confirmar y Continuar con el Pago
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pasos de pago (solo se muestran después de seleccionar número) -->
+                    <div v-if="selectedTicketNumber">
+                        <!-- Mostrar número seleccionado -->
+                        <div class="selected-ticket-banner">
+                            <div class="ticket-banner-content">
+                                <i class="fas fa-ticket-alt"></i>
+                                <span>Tu ticket: <strong>{{ selectedTicketNumber }}</strong></span>
+                                <button class="change-ticket-btn" @click="changeTicketNumber">
+                                    <i class="fas fa-edit"></i>
+                                    Cambiar
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Reutilizar el contenido del modal de pago de RifaDetail -->
                     <div class="payment-step step-blue">
                         <h4 class="step-title">Paso 1: Tu código de pago</h4>
                         <div class="code-display">
@@ -358,16 +435,78 @@
                     </div>
 
                     <div class="payment-step step-yellow">
-                        <h4 class="step-title">Paso 3: Confirmar pago</h4>
-                        <button 
-                            class="confirm-btn"
-                            :disabled="paymentLoading"
-                            @click="confirmPayment"
-                        >
-                            <i v-if="paymentLoading" class="fas fa-spinner fa-spin"></i>
-                            <span>{{ paymentLoading ? 'Confirmando...' : '✅ Confirmar Pago Realizado' }}</span>
-                        </button>
+                        <h4 class="step-title">Paso 3: Confirmar tu pago</h4>
+                        
+                        <!-- Información sobre el proceso automático -->
+                        <div class="auto-process-info">
+                            <div class="info-header">
+                                <i class="fas fa-robot"></i>
+                                <span>Proceso Automático</span>
+                            </div>
+                            <p>Detectaremos tu pago en unos minutos. No necesitas hacer nada más.</p>
+                        </div>
+
+                        <!-- Separador -->
+                        <div class="process-separator">
+                            <span>O en caso de problemas</span>
+                        </div>
+
+                        <!-- Proceso manual como backup -->
+                        <div class="manual-process-section">
+                            <div class="info-header">
+                                <i class="fas fa-user"></i>
+                                <span>Confirmación Manual</span>
+                                <small>(Solo si el proceso automático falla)</small>
+                            </div>
+                            
+                            <div class="file-upload-section">
+                                <label class="file-upload-label">
+                                    <i class="fas fa-camera"></i>
+                                    Subir comprobante de pago
+                                </label>
+                                <input 
+                                    type="file" 
+                                    ref="fileInput"
+                                    accept="image/*"
+                                    @change="handleFileUpload"
+                                    class="file-input"
+                                >
+                                <div class="file-upload-area" @click="triggerFileInput">
+                                    <div v-if="!selectedFile" class="upload-placeholder">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <p>Haz clic aquí para subir tu comprobante</p>
+                                        <small>Formatos soportados: JPG, PNG (máx. 5MB)</small>
+                                    </div>
+                                    <div v-else class="file-preview">
+                                        <img v-if="filePreview" :src="filePreview" alt="Comprobante" class="preview-image">
+                                        <div class="file-info">
+                                            <i class="fas fa-file-image"></i>
+                                            <span>{{ selectedFile.name }}</span>
+                                            <button type="button" @click.stop="removeFile" class="remove-file-btn">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button 
+                                class="confirm-btn manual-confirm"
+                                :disabled="paymentLoading || !selectedFile"
+                                @click="confirmPaymentManually"
+                            >
+                                <i v-if="paymentLoading" class="fas fa-spinner fa-spin"></i>
+                                <i v-else class="fas fa-paper-plane"></i>
+                                <span>{{ paymentLoading ? 'Enviando...' : 'Enviar Comprobante Manual' }}</span>
+                            </button>
+                            
+                            <p v-if="!selectedFile" class="manual-requirement">
+                                <i class="fas fa-info-circle"></i>
+                                Debes subir un comprobante para usar la confirmación manual
+                            </p>
+                        </div>
                     </div>
+                    </div> <!-- Cierre de v-if="selectedTicketNumber" -->
                 </div>
             </div>
         </div>
@@ -375,7 +514,7 @@
 </template>
 
 <script>
-import { onMounted, computed } from 'vue'
+import { onMounted, computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
 import AppFooter from '@/components/AppFooter.vue'
@@ -416,6 +555,15 @@ export default {
             confirmPayment,
             getPremiosProgresivos
         } = useRifaDetail()
+
+        // Variables para manejo de archivos
+        const selectedFile = ref(null)
+        const filePreview = ref(null)
+        const fileInput = ref(null)
+
+        // Variables para selección de tickets
+        const selectedTicketNumber = ref(null)
+        const tempSelectedNumber = ref(null)
 
         const premio = computed(() => {
             if (!rifaActual.value) {
@@ -464,6 +612,20 @@ export default {
             return allTickets || []
         })
 
+        // Computed para tickets disponibles y vendidos
+        const availableTickets = computed(() => {
+            if (!rifaActual.value) return []
+            const totalTickets = rifaActual.value.ticketsMinimos || 100
+            return Array.from({ length: totalTickets }, (_, i) => String(i + 1).padStart(3, '0'))
+        })
+
+        const soldTickets = computed(() => {
+            if (!rifaActual.value) return []
+            // Simular tickets vendidos basado en el número total vendido
+            const ticketsVendidos = rifaActual.value.ticketsVendidos || 0
+            return Array.from({ length: ticketsVendidos }, (_, i) => String(i + 1).padStart(3, '0'))
+        })
+
         const loadPremio = () => {
             console.log('Loading premio for rifaId:', rifaId.value)
             loadRifa(rifaId.value)
@@ -504,6 +666,100 @@ export default {
             return Math.min((actual / objetivo) * 100, 100)
         }
 
+        // Métodos para manejo de archivos
+        const triggerFileInput = () => {
+            fileInput.value?.click()
+        }
+
+        const handleFileUpload = (event) => {
+            const file = event.target.files[0]
+            if (!file) return
+
+            // Validar tipo de archivo
+            if (!file.type.startsWith('image/')) {
+                showNotification('Por favor selecciona una imagen válida', 'error')
+                return
+            }
+
+            // Validar tamaño (5MB máximo)
+            const maxSize = 5 * 1024 * 1024 // 5MB en bytes
+            if (file.size > maxSize) {
+                showNotification('El archivo es demasiado grande. Máximo 5MB', 'error')
+                return
+            }
+
+            selectedFile.value = file
+
+            // Crear preview de la imagen
+            const reader = new FileReader()
+            reader.onload = (e) => {
+                filePreview.value = e.target.result
+            }
+            reader.readAsDataURL(file)
+
+            showNotification('Comprobante cargado correctamente', 'success')
+        }
+
+        const removeFile = () => {
+            selectedFile.value = null
+            filePreview.value = null
+            if (fileInput.value) {
+                fileInput.value.value = ''
+            }
+        }
+
+        // Método para confirmación manual con comprobante
+        const confirmPaymentManually = async () => {
+            if (!selectedFile.value) {
+                showNotification('Debes subir un comprobante para confirmar manualmente', 'error')
+                return
+            }
+
+            try {
+                // Aquí implementarías la lógica para enviar el comprobante
+                // Por ejemplo, subir la imagen a un servidor y crear un ticket manual
+                
+                showNotification('Comprobante enviado para revisión manual. Te notificaremos cuando sea procesado.', 'success')
+                
+                // Cerrar el modal después de enviar
+                closePaymentModal()
+                
+                // Limpiar el archivo seleccionado
+                removeFile()
+                
+            } catch (error) {
+                console.error('Error al enviar comprobante:', error)
+                showNotification('Error al enviar el comprobante. Inténtalo de nuevo.', 'error')
+            }
+        }
+
+        // Métodos para selección de tickets
+        const selectTicketNumber = (numero) => {
+            if (!soldTickets.value.includes(numero)) {
+                tempSelectedNumber.value = numero
+            }
+        }
+
+        const selectRandomTicket = () => {
+            const availableNumbers = availableTickets.value.filter(
+                num => !soldTickets.value.includes(num)
+            )
+            if (availableNumbers.length > 0) {
+                const randomIndex = Math.floor(Math.random() * availableNumbers.length)
+                tempSelectedNumber.value = availableNumbers[randomIndex]
+            }
+        }
+
+        const confirmTicketSelection = () => {
+            selectedTicketNumber.value = tempSelectedNumber.value
+            showNotification(`¡Número ${tempSelectedNumber.value} seleccionado!`, 'success')
+        }
+
+        const changeTicketNumber = () => {
+            selectedTicketNumber.value = null
+            tempSelectedNumber.value = null
+        }
+
         onMounted(() => {
             console.log('PremioDetail mounted - rifaId:', rifaId.value, 'premioId:', premioId.value)
             loadPremio()
@@ -530,7 +786,24 @@ export default {
             confirmPayment: handleConfirmPayment,
             copyPaymentCode,
             formatDate,
-            getProgressPercentage
+            getProgressPercentage,
+            // Variables y métodos para archivos
+            selectedFile,
+            filePreview,
+            fileInput,
+            triggerFileInput,
+            handleFileUpload,
+            removeFile,
+            confirmPaymentManually,
+            // Variables y métodos para selección de tickets
+            selectedTicketNumber,
+            tempSelectedNumber,
+            availableTickets,
+            soldTickets,
+            selectTicketNumber,
+            selectRandomTicket,
+            confirmTicketSelection,
+            changeTicketNumber
         }
     }
 }
@@ -1480,6 +1753,137 @@ export default {
     transform: none;
 }
 
+/* File Upload Styles */
+.file-upload-section {
+    margin-bottom: 1.5rem;
+}
+
+.file-upload-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: var(--gray-700);
+    margin-bottom: 0.75rem;
+    font-size: 0.875rem;
+}
+
+.file-upload-label i {
+    color: var(--primary-purple);
+}
+
+.file-input {
+    display: none;
+}
+
+.file-upload-area {
+    border: 2px dashed var(--gray-300);
+    border-radius: var(--border-radius-lg);
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: var(--gray-50);
+}
+
+.file-upload-area:hover {
+    border-color: var(--primary-purple);
+    background: rgba(147, 51, 234, 0.05);
+}
+
+.file-upload-area.dragover {
+    border-color: var(--primary-blue);
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.upload-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.upload-placeholder i {
+    font-size: 2rem;
+    color: var(--gray-400);
+}
+
+.upload-placeholder p {
+    margin: 0;
+    color: var(--gray-600);
+    font-weight: 500;
+}
+
+.upload-placeholder small {
+    color: var(--gray-500);
+    font-size: 0.75rem;
+}
+
+.file-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.preview-image {
+    max-width: 200px;
+    max-height: 150px;
+    object-fit: cover;
+    border-radius: var(--border-radius);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--border-radius);
+    font-size: 0.875rem;
+}
+
+.file-info i {
+    color: var(--primary-blue);
+}
+
+.remove-file-btn {
+    background: var(--danger-red);
+    color: var(--white);
+    border: none;
+    border-radius: 50%;
+    width: 1.5rem;
+    height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+}
+
+.remove-file-btn:hover {
+    background: #dc2626;
+}
+
+/* Responsive styles for file upload */
+@media (max-width: 768px) {
+    .file-upload-area {
+        padding: 1rem;
+    }
+    
+    .preview-image {
+        max-width: 150px;
+        max-height: 100px;
+    }
+    
+    .upload-placeholder i {
+        font-size: 1.5rem;
+    }
+}
+
 .btn {
     display: inline-flex;
     align-items: center;
@@ -1501,6 +1905,356 @@ export default {
 .btn-primary:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(147, 51, 234, 0.4);
+}
+
+/* Process Info Styles */
+.auto-process-info {
+    background: linear-gradient(135deg, #e0f2fe, #f0f9ff);
+    border: 1px solid #0ea5e9;
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.manual-process-section {
+    background: #fefce8;
+    border: 1px solid #facc15;
+    border-radius: var(--border-radius);
+    padding: 1rem;
+}
+
+.info-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin-bottom: 0.5rem;
+}
+
+.info-header i {
+    color: var(--primary-blue);
+}
+
+.manual-process-section .info-header i {
+    color: #f59e0b;
+}
+
+.info-header small {
+    color: var(--gray-500);
+    font-weight: 400;
+    font-size: 0.75rem;
+    margin-left: 0.25rem;
+}
+
+.auto-process-info p,
+.manual-process-section p {
+    margin: 0;
+    color: var(--gray-600);
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.process-separator {
+    text-align: center;
+    margin: 1.5rem 0;
+    position: relative;
+}
+
+.process-separator::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--gray-300);
+    z-index: 1;
+}
+
+.process-separator span {
+    background: #fef3c7;
+    padding: 0 1rem;
+    color: var(--gray-600);
+    font-size: 0.875rem;
+    font-weight: 500;
+    position: relative;
+    z-index: 2;
+}
+
+.manual-confirm {
+    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+    margin-top: 1rem;
+}
+
+.manual-confirm:disabled {
+    background: var(--gray-400) !important;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.manual-requirement {
+    margin: 0.75rem 0 0 0;
+    font-size: 0.75rem;
+    color: #92400e;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.manual-requirement i {
+    color: #f59e0b;
+}
+
+/* Ticket Selection Styles */
+.step-purple {
+    background: linear-gradient(135deg, #f3e8ff, #e9d5ff);
+    border: 1px solid #a855f7;
+}
+
+.ticket-selection-section {
+    margin-top: 1rem;
+}
+
+.selection-options {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.random-btn {
+    background: linear-gradient(135deg, var(--primary-purple), var(--primary-blue));
+    color: var(--white);
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.random-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(147, 51, 234, 0.4);
+}
+
+.separator {
+    color: var(--gray-500);
+    font-weight: 500;
+    padding: 0 0.5rem;
+}
+
+.manual-text {
+    color: var(--gray-700);
+    font-weight: 500;
+}
+
+.tickets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 1rem;
+    background: var(--white);
+    border-radius: var(--border-radius);
+    border: 2px dashed var(--gray-200);
+}
+
+.ticket-number {
+    width: 60px;
+    height: 60px;
+    border: 2px solid var(--gray-300);
+    border-radius: var(--border-radius);
+    background: var(--white);
+    color: var(--gray-700);
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ticket-number:hover:not(:disabled) {
+    border-color: var(--primary-purple);
+    background: #f3e8ff;
+    transform: translateY(-2px);
+}
+
+.ticket-number.selected {
+    border-color: var(--primary-purple);
+    background: var(--primary-purple);
+    color: var(--white);
+    font-weight: 700;
+}
+
+.ticket-number.sold {
+    border-color: var(--gray-300);
+    background: var(--gray-100);
+    color: var(--gray-400);
+    cursor: not-allowed;
+    position: relative;
+}
+
+.ticket-number.sold::after {
+    content: '✗';
+    position: absolute;
+    color: var(--danger-red);
+    font-weight: 700;
+}
+
+.ticket-info {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.legend {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 2px solid;
+}
+
+.legend.available {
+    border-color: var(--gray-300);
+    background: var(--white);
+}
+
+.legend.sold {
+    border-color: var(--gray-300);
+    background: var(--gray-100);
+    position: relative;
+}
+
+.legend.sold::after {
+    content: '✗';
+    position: absolute;
+    top: -2px;
+    left: 2px;
+    color: var(--danger-red);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.legend.selected {
+    border-color: var(--primary-purple);
+    background: var(--primary-purple);
+}
+
+.selected-ticket-info {
+    text-align: center;
+}
+
+.selected-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, #f3e8ff, #e9d5ff);
+    border-radius: var(--border-radius);
+    color: var(--primary-purple);
+    font-size: 1.125rem;
+}
+
+.confirm-selection-btn {
+    background: var(--success-green);
+    color: var(--white);
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.confirm-selection-btn:hover {
+    background: #16a34a;
+    transform: translateY(-1px);
+}
+
+.selected-ticket-banner {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    border: 2px solid var(--success-green);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.ticket-banner-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--success-green);
+    font-weight: 600;
+}
+
+.ticket-banner-content i {
+    font-size: 1.25rem;
+}
+
+.change-ticket-btn {
+    background: transparent;
+    border: 1px solid var(--success-green);
+    color: var(--success-green);
+    border-radius: var(--border-radius);
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.change-ticket-btn:hover {
+    background: var(--success-green);
+    color: var(--white);
+}
+
+/* Responsive styles for ticket selection */
+@media (max-width: 768px) {
+    .tickets-grid {
+        grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+        gap: 0.375rem;
+        padding: 0.75rem;
+    }
+
+    .ticket-number {
+        width: 50px;
+        height: 50px;
+        font-size: 0.75rem;
+    }
+
+    .selection-options {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+
+    .random-btn {
+        justify-content: center;
+    }
+
+    .ticket-info {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
 }
 
 /* Responsive */

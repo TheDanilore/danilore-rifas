@@ -16,6 +16,8 @@ Sistema completo de rifas online con **premios progresivos** usando Laravel + Vu
 - **Notificaciones en Tiempo Real**: Email, SMS y WhatsApp
 - **Sistema de Auditoría**: Registro completo de todas las acciones
 
+
+
 ## 🗄️ Estructura de la Base de Datos
 
 ### 👤 **Tabla: `users`**
