@@ -98,4 +98,76 @@ class Premio extends Model
         }
         return true;
     }
+
+    /**
+     * Obtener todas las imágenes del premio (principal + galería)
+     */
+    public function getTodasLasImagenesAttribute()
+    {
+        $imagenes = [];
+        
+        if ($this->imagen_principal) {
+            $imagenes[] = [
+                'tipo' => 'principal',
+                'url' => $this->imagen_principal,
+                'alt' => $this->titulo
+            ];
+        }
+        
+        if ($this->media_gallery && is_array($this->media_gallery)) {
+            foreach ($this->media_gallery as $index => $media) {
+                if (is_string($media)) {
+                    $imagenes[] = [
+                        'tipo' => 'galeria',
+                        'url' => $media,
+                        'alt' => $this->titulo . ' - Imagen ' . ($index + 1)
+                    ];
+                } elseif (is_array($media) && isset($media['url'])) {
+                    $imagenes[] = [
+                        'tipo' => $media['tipo'] ?? 'galeria',
+                        'url' => $media['url'],
+                        'alt' => $media['alt'] ?? $this->titulo . ' - Imagen ' . ($index + 1)
+                    ];
+                }
+            }
+        }
+        
+        return $imagenes;
+    }
+
+    /**
+     * Agregar imagen a la galería
+     */
+    public function agregarImagenGaleria($url, $tipo = 'imagen', $alt = null)
+    {
+        $gallery = $this->media_gallery ?? [];
+        
+        $gallery[] = [
+            'url' => $url,
+            'tipo' => $tipo, // imagen, video, etc.
+            'alt' => $alt ?? $this->titulo,
+            'orden' => count($gallery) + 1
+        ];
+        
+        $this->media_gallery = $gallery;
+        $this->save();
+        
+        return $this;
+    }
+
+    /**
+     * Eliminar imagen de la galería por índice
+     */
+    public function eliminarImagenGaleria($indice)
+    {
+        $gallery = $this->media_gallery ?? [];
+        
+        if (isset($gallery[$indice])) {
+            unset($gallery[$indice]);
+            $this->media_gallery = array_values($gallery); // Reindexar
+            $this->save();
+        }
+        
+        return $this;
+    }
 }

@@ -247,6 +247,10 @@ export class RifaService {
   calcularEstadosPremios(rifa) {
     if (!rifa || !rifa.premios) return []
 
+    console.log('Calculando estados de premios para rifa:', rifa.nombre)
+    console.log('Tickets vendidos:', rifa.ticketsVendidos)
+    console.log('Premios originales:', rifa.premios)
+
     // Primero calculamos los estados básicos sin dependencias
     const premiosConEstado = rifa.premios.map(premio => {
       // Calcular estados de niveles
@@ -266,33 +270,58 @@ export class RifaService {
         completado,
         activo: false, // Se calculará después
         bloqueado: true, // Se calculará después
+        desbloqueado: false, // Se calculará después
         niveles: nivelesConEstado
       }
     })
 
     // Ahora calculamos las dependencias (bloqueado/activo)
-    return premiosConEstado.map(premio => {
+    const premiosFinales = premiosConEstado.map(premio => {
+      let desbloqueado = false
       let bloqueado = true
       
       // Verificar si el premio requerido está completado
       if (!premio.premio_requerido_id) {
-        // Es el primer premio, no está bloqueado
+        // Es el primer premio, siempre está desbloqueado
+        desbloqueado = true
         bloqueado = false
+        console.log(`Premio ${premio.titulo} - Es el primer premio, desbloqueado por defecto`)
       } else {
         // Buscar el premio requerido en la lista ya calculada
         const premioRequerido = premiosConEstado.find(p => p.id === premio.premio_requerido_id)
-        bloqueado = !premioRequerido?.completado
+        if (premioRequerido?.completado) {
+          desbloqueado = true
+          bloqueado = false
+          console.log(`Premio ${premio.titulo} - Desbloqueado porque ${premioRequerido.titulo} está completado`)
+        } else {
+          desbloqueado = false
+          bloqueado = true
+          console.log(`Premio ${premio.titulo} - Bloqueado porque ${premioRequerido?.titulo || 'premio requerido'} no está completado`)
+        }
       }
 
-      // El premio está activo si no está bloqueado y no está completado
-      const activo = !bloqueado && !premio.completado
+      // El premio está activo si está desbloqueado y no está completado
+      const activo = desbloqueado && !premio.completado
 
-      return {
+      const premioFinal = {
         ...premio,
         activo,
-        bloqueado
+        bloqueado,
+        desbloqueado
       }
+
+      console.log(`Premio ${premio.titulo}:`, {
+        completado: premioFinal.completado,
+        desbloqueado: premioFinal.desbloqueado,
+        bloqueado: premioFinal.bloqueado,
+        activo: premioFinal.activo
+      })
+
+      return premioFinal
     })
+
+    console.log('Premios finales calculados:', premiosFinales)
+    return premiosFinales
   }
 
   // =================== MÉTODOS SIMULADOS (PARA DESARROLLO) ===================

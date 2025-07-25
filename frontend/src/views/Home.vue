@@ -244,7 +244,7 @@
                         'btn-disabled': !premio.desbloqueado
                       }"
                       :disabled="!premio.desbloqueado"
-                      @click.stop="handlePremioAction(rifa.id, premio)"
+                      @click.stop="handlePremioAction(rifa.id, premio.codigo)"
                     >
                       <i v-if="premio.desbloqueado" class="fas fa-eye"></i>
                       <i v-else class="fas fa-lock"></i>

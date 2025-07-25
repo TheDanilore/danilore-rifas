@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\RifaController;
 use App\Http\Controllers\Api\PremioController;
 use App\Http\Controllers\Api\VentaController;
 use App\Http\Controllers\Api\CategoriaController;
+use App\Http\Controllers\Api\MediaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -60,6 +61,14 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
         Route::post('/', [VentaController::class, 'store']);
         Route::post('/{codigo}/confirmar-pago', [VentaController::class, 'confirmarPago']);
         Route::get('/mis-ventas', [VentaController::class, 'misVentas']);
+    });
+
+    // Media/Imágenes (admin only)
+    Route::prefix('media')->group(function () {
+        Route::post('/premios/{premioId}/images', [MediaController::class, 'uploadPremioImage']);
+        Route::delete('/premios/{premioId}/images', [MediaController::class, 'deletePremioImage']);
+        Route::get('/premios/{premioId}/images', [MediaController::class, 'getPremioImages']);
+        Route::put('/premios/{premioId}/images/reorder', [MediaController::class, 'reorderPremioImages']);
     });
 });
 
