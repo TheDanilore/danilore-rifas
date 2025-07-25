@@ -213,12 +213,17 @@ El sistema soporta múltiples tipos de documentos para hacerlo internacional y f
 ```sql
 - id (BIGINT, PK)
 - user_id (BIGINT, FK)
-- tipo (ENUM: email, sms, whatsapp, sistema)
 - titulo (VARCHAR)
 - mensaje (TEXT)
+- tipo (ENUM: info, success, warning, error) DEFAULT 'info'
+- canal (ENUM: sistema, email, sms, whatsapp) DEFAULT 'sistema'
+- datos_adicionales (JSON) # Para datos específicos como rifa_id, venta_id, etc.
 - leida (BOOLEAN) DEFAULT false
 - fecha_leida (DATETIME)
-- datos_adicionales (JSON)
+- enviada (BOOLEAN) DEFAULT false
+- fecha_envio (DATETIME)
+- error_envio (TEXT)
+- referencia_externa (VARCHAR) # ID del servicio de envío
 - timestamps
 ```
 
@@ -226,24 +231,29 @@ El sistema soporta múltiples tipos de documentos para hacerlo internacional y f
 ```sql
 - id (BIGINT, PK)
 - premio_id (BIGINT, FK)
-- tickets_vendidos (INT) DEFAULT 0
-- porcentaje_completado (DECIMAL 5,2) DEFAULT 0
-- nivel_actual_id (BIGINT, FK)
-- fecha_ultimo_ticket (DATETIME)
+- nivel_id (BIGINT, FK) # NULL si es progreso general del premio
+- tickets_actuales (INT) DEFAULT 0
+- tickets_objetivo (INT)
+- porcentaje_completado (DECIMAL 5,2) DEFAULT 0 # 0.00 - 100.00
+- objetivo_alcanzado (BOOLEAN) DEFAULT false
+- fecha_alcanzado (DATETIME)
+- ultimo_ticket (DATETIME) # Fecha del último ticket que contribuyó
+- tickets_restantes (VIRTUAL) # tickets_objetivo - tickets_actuales
 - timestamps
 ```
 
 ### 🕵️ **Tabla: `auditoria`**
 ```sql
 - id (BIGINT, PK)
-- user_id (BIGINT, FK)
-- accion (VARCHAR)
-- tabla (VARCHAR)
-- registro_id (BIGINT)
-- datos_anteriores (JSON)
-- datos_nuevos (JSON)
-- ip_address (VARCHAR)
-- user_agent (TEXT)
+- tabla_afectada (VARCHAR) # Nombre de la tabla
+- accion (VARCHAR) # INSERT, UPDATE, DELETE
+- registro_id (BIGINT) # ID del registro afectado
+- user_id (BIGINT, FK) # Usuario que realizó la acción
+- datos_anteriores (JSON) # Datos antes del cambio
+- datos_nuevos (JSON) # Datos después del cambio
+- ip_address (VARCHAR, 45) # IP del usuario
+- user_agent (VARCHAR) # Navegador del usuario
+- observaciones (TEXT) # Comentarios adicionales
 - timestamps
 ```
 
@@ -277,7 +287,7 @@ frontend/
 │       └── helpers.js
 ```
 
-### **Backend (Laravel 11)**
+### **Backend (Laravel 12)**
 ```
 backend/
 ├── app/
@@ -338,6 +348,201 @@ graph TD
 - ✅ **PremioDetail**: Vista individual de cada premio
 - ✅ **MediaGallery**: Galería multimedia responsiva
 - ✅ **Sistema de Pagos**: Integración con Yape/Plin
+
+### **Backend API**
+- ✅ **Autenticación**: Login/registro con Laravel Sanctum
+- ✅ **Gestión de Rifas**: CRUD completo con filtros
+- ✅ **Sistema de Ventas**: Reserva y compra de boletos
+- ✅ **Progreso de Premios**: Tracking en tiempo real
+- ✅ **Categorías**: Organización de rifas
+
+## 🚀 API Endpoints
+
+### **Base URL**: `http://localhost:8000/api/v1`
+
+### 🔓 **Endpoints Públicos**
+
+#### **Autenticación**
+```http
+POST /auth/register          # Registro de usuario
+POST /auth/login             # Iniciar sesión
+```
+
+**Ejemplo de registro:**
+```json
+POST /api/v1/auth/register
+{
+  "name": "Juan Pérez",
+  "email": "juan@email.com",
+  "password": "12345678",
+  "password_confirmation": "12345678",
+  "telefono": "+51987654321",
+  "tipo_documento": "dni",
+  "numero_documento": "12345678"
+}
+```
+
+**Respuesta:**
+```json
+{
+  "success": true,
+  "message": "Usuario registrado correctamente",
+  "data": {
+    "user": { ... },
+    "token": "1|abc123..."
+  }
+}
+```
+
+#### **Rifas**
+```http
+GET /rifas                   # Listar todas las rifas
+GET /rifas/actuales         # Rifas en venta
+GET /rifas/futuras          # Rifas por venir  
+GET /rifas/destacadas       # Rifas destacadas
+GET /rifas/{codigo}         # Detalle de rifa
+GET /rifas/{codigo}/progreso # Progreso de premios
+```
+
+**Parámetros de consulta:**
+- `categoria_id`: Filtrar por categoría
+- `tipo`: `actual` o `futura`
+- `estado`: `en_venta`, `confirmada`, etc.
+- `destacadas`: `true` para rifas destacadas
+- `per_page`: Número de resultados por página
+
+**Ejemplo:**
+```http
+GET /api/v1/rifas/actuales?categoria_id=1&per_page=10
+```
+
+**Respuesta:**
+```json
+{
+  "success": true,
+  "data": {
+    "current_page": 1,
+    "data": [
+      {
+        "id": 1,
+        "titulo": "iPhone 15 Pro Max",
+        "codigo_unico": "IPHONE15PM001",
+        "precio_boleto": "10.00",
+        "boletos_vendidos": 35,
+        "categoria": { ... },
+        "premios": [
+          {
+            "titulo": "AirPods Pro",
+            "niveles": [ ... ]
+          }
+        ]
+      }
+    ],
+    "total": 2
+  }
+}
+```
+
+#### **Categorías**
+```http
+GET /categorias             # Listar categorías activas
+```
+
+#### **Consulta de Ventas**
+```http
+GET /ventas/{codigo}        # Consultar venta por código
+```
+
+### 🔐 **Endpoints Autenticados**
+*Requieren header: `Authorization: Bearer {token}`*
+
+#### **Perfil de Usuario**
+```http
+POST /auth/logout           # Cerrar sesión
+GET /auth/profile          # Obtener perfil
+PUT /auth/profile          # Actualizar perfil
+```
+
+#### **Ventas**
+```http
+POST /ventas               # Crear nueva venta (reservar boletos)
+POST /ventas/{codigo}/confirmar-pago # Subir comprobante
+GET /ventas/mis-ventas     # Mis compras
+```
+
+**Ejemplo de compra:**
+```json
+POST /api/v1/ventas
+{
+  "rifa_codigo": "IPHONE15PM001",
+  "numeros_boletos": ["0001", "0025", "0100"],
+  "comprador_nombre": "Juan Pérez",
+  "comprador_email": "juan@email.com", 
+  "comprador_telefono": "+51987654321",
+  "comprador_tipo_documento": "dni",
+  "comprador_numero_documento": "12345678",
+  "metodo_pago": "yape"
+}
+```
+
+**Respuesta:**
+```json
+{
+  "success": true,
+  "message": "Venta creada correctamente",
+  "data": {
+    "codigo_venta": "VT20250725ABC123",
+    "total": "30.00",
+    "fecha_expiracion": "2025-07-25T10:15:00Z",
+    "boletos": [
+      {
+        "numero": "0001",
+        "codigo_verificacion": "A1B2C3D4E5"
+      }
+    ]
+  }
+}
+```
+
+**Confirmar pago:**
+```http
+POST /api/v1/ventas/VT20250725ABC123/confirmar-pago
+Content-Type: multipart/form-data
+
+numero_operacion: "123456789"
+monto_pagado: "30.00"
+comprobante: [archivo imagen]
+```
+
+### 📊 **Códigos de Respuesta**
+
+- `200` - OK: Operación exitosa
+- `201` - Created: Recurso creado
+- `401` - Unauthorized: Token inválido o expirado
+- `403` - Forbidden: Sin permisos
+- `404` - Not Found: Recurso no encontrado
+- `409` - Conflict: Números ya ocupados
+- `410` - Gone: Venta expirada
+- `422` - Validation Error: Datos incorrectos
+- `500` - Server Error: Error interno
+
+### 🔒 **Autenticación**
+
+El sistema usa **Laravel Sanctum** para autenticación API:
+
+1. **Registro/Login** → Recibir token
+2. **Incluir en headers**: `Authorization: Bearer {token}`
+3. **Token expira** cuando el usuario hace logout
+
+### ⚡ **Características Avanzadas**
+
+- **Reserva temporal**: Números reservados por 15 minutos
+- **Verificación en tiempo real**: Disponibilidad de números
+- **Upload de archivos**: Comprobantes de pago
+- **Paginación automática**: En listados
+- **Filtros avanzados**: Por categoría, estado, etc.
+- **Relaciones optimizadas**: Carga eager loading
+- **Validaciones robustas**: En todos los endpoints
 - ✅ **Autenticación**: Login/Register con persistencia
 - ✅ **Dashboard**: Panel de usuario con historial
 - ✅ **Responsive Design**: Optimizado para móviles

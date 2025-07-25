@@ -15,23 +15,23 @@ class Rifa extends Model
         'titulo',
         'descripcion',
         'precio_boleto',
-        'total_boletos',
+        'boletos_minimos',
         'boletos_vendidos',
         'imagen_principal',
         'imagenes_adicionales',
-        'premio_valor',
-        'premio_descripcion',
+        'media_gallery',
         'fecha_inicio',
         'fecha_fin',
         'fecha_sorteo',
         'estado',
+        'tipo',
         'categoria_id',
         'codigo_unico',
         'es_destacada',
         'max_boletos_por_persona',
         'terminos_condiciones',
-        'ganador_user_id',
-        'numero_ganador',
+        'orden',
+        'rifa_requerida_id',
         'notas_admin'
     ];
 
@@ -40,18 +40,24 @@ class Rifa extends Model
         'fecha_fin' => 'date',
         'fecha_sorteo' => 'datetime',
         'precio_boleto' => 'decimal:2',
-        'premio_valor' => 'decimal:2',
         'imagenes_adicionales' => 'json',
+        'media_gallery' => 'json',
         'es_destacada' => 'boolean',
         'boletos_vendidos' => 'integer',
-        'total_boletos' => 'integer',
-        'max_boletos_por_persona' => 'integer'
+        'boletos_minimos' => 'integer',
+        'max_boletos_por_persona' => 'integer',
+        'orden' => 'integer'
     ];
 
     // Relaciones
     public function categoria(): BelongsTo
     {
         return $this->belongsTo(Categoria::class);
+    }
+
+    public function premios(): HasMany
+    {
+        return $this->hasMany(Premio::class);
     }
 
     public function boletos(): HasMany
@@ -64,17 +70,30 @@ class Rifa extends Model
         return $this->hasMany(Venta::class);
     }
 
-    public function ganador(): BelongsTo
+    public function rifaRequerida(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'ganador_user_id');
+        return $this->belongsTo(Rifa::class, 'rifa_requerida_id');
+    }
+
+    public function rifasDependientes(): HasMany
+    {
+        return $this->hasMany(Rifa::class, 'rifa_requerida_id');
     }
 
     // Scopes
-    public function scopeActivas($query)
+    public function scopeActuales($query)
     {
-        return $query->where('estado', 'activa')
-                    ->where('fecha_inicio', '<=', now())
-                    ->where('fecha_fin', '>=', now());
+        return $query->where('tipo', 'actual');
+    }
+
+    public function scopeFuturas($query)
+    {
+        return $query->where('tipo', 'futura')->orderBy('orden');
+    }
+
+    public function scopeEnVenta($query)
+    {
+        return $query->where('estado', 'en_venta');
     }
 
     public function scopeDestacadas($query)
@@ -90,25 +109,27 @@ class Rifa extends Model
     // Métodos auxiliares
     public function getPorcentajeVendidoAttribute()
     {
-        if ($this->total_boletos == 0) return 0;
-        return round(($this->boletos_vendidos / $this->total_boletos) * 100, 2);
+        if ($this->boletos_minimos == 0) return 0;
+        return round(($this->boletos_vendidos / $this->boletos_minimos) * 100, 2);
     }
 
     public function getBoletosDisponiblesAttribute()
     {
-        return $this->total_boletos - $this->boletos_vendidos;
+        return max(0, $this->boletos_minimos - $this->boletos_vendidos);
     }
 
-    public function getEstadoActivaAttribute()
+    public function getEstaConfirmadaAttribute()
     {
-        return $this->estado === 'activa' && 
-               $this->fecha_inicio <= now() && 
-               $this->fecha_fin >= now();
+        return $this->boletos_vendidos >= $this->boletos_minimos;
     }
 
-    public function getEstaFinalizadaAttribute()
+    public function getPuedeEjecutarseAttribute()
     {
-        return $this->estado === 'finalizada' || $this->fecha_fin < now();
+        if ($this->rifa_requerida_id) {
+            $rifaRequerida = $this->rifaRequerida;
+            return $rifaRequerida && $rifaRequerida->estado === 'confirmada';
+        }
+        return true;
     }
 
     // Generar código único
