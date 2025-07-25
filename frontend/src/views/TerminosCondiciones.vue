@@ -583,13 +583,13 @@
                     <h2>¿Tienes Dudas sobre nuestros Términos?</h2>
                     <p>Estamos aquí para ayudarte. Contáctanos si necesitas aclaraciones.</p>
                     <div class="contact-methods">
-                        <div class="contact-method">
+                        <!-- <div class="contact-method">
                             <i class="fas fa-envelope"></i>
                             <div>
                                 <h4>Email</h4>
                                 <p>info@danilorerifas.com</p>
                             </div>
-                        </div>
+                        </div> -->
                         <div class="contact-method">
                             <i class="fab fa-whatsapp"></i>
                             <div>

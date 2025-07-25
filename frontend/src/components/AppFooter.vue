@@ -4,11 +4,12 @@
       <div class="footer-content">
         <div class="footer-main">
           <div class="footer-logo">
-            
+
             <img src="@/assets/logo-sin-fondo.png" alt="Logo" height="100px">
           </div>
           <p class="footer-description">
-            La plataforma de rifas más confiable del Perú. Participa desde S/2 y gana premios increíbles con total transparencia.
+            La plataforma de rifas más confiable del Perú. Participa desde S/2 y gana premios increíbles con total
+            transparencia.
           </p>
           <div class="social-links">
             <a href="#">
@@ -27,18 +28,22 @@
           <h3>Enlaces Rápidos</h3>
           <ul>
             <li><router-link to="/">Inicio</router-link></li>
-            <li><a href="#como-funciona">Cómo Funciona</a></li>
-            <li><a href="#ganadores">Ganadores</a></li>
-            <li><a href="#terminos">Términos y Condiciones</a></li>
+            <li><router-link to="/como-funciona">Cómo Funciona</router-link></li>
+            <li><router-link to="/ganadores">Ganadores</router-link></li>
+            <li><router-link to="/terminos-condiciones">Términos y Condiciones</router-link></li>
           </ul>
         </div>
 
         <div class="footer-contact">
           <h3>Contacto</h3>
           <ul>
-            <li>
+            <!-- <li>
               <i class="fas fa-envelope"></i>
               info@danilorerifas.com
+            </li> -->
+            <li>
+              <i class="fab fa-whatsapp"></i>
+              +51 936 081 881
             </li>
             <li>
               <i class="fas fa-map-marker-alt"></i>
