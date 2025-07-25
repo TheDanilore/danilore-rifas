@@ -11,6 +11,12 @@
 
       <div class="register-content">
         <form @submit.prevent="handleRegister">
+          <!-- Mensaje de error -->
+          <div v-if="errorMessage" class="error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            {{ errorMessage }}
+          </div>
+
           <!-- Información Personal -->
           <div class="form-section">
             <h3 class="section-title">Información Personal</h3>
@@ -174,7 +180,7 @@
 </template>
 
 <script>
-import { ref, reactive } from 'vue'
+import { ref, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 
@@ -182,11 +188,12 @@ export default {
   name: 'Register',
   setup() {
     const router = useRouter()
-    const { login } = useAuthStore()
+    const { login, register } = useAuthStore()
     
     const showPassword = ref(false)
     const showConfirmPassword = ref(false)
     const isLoading = ref(false)
+    const errorMessage = ref('')
     
     const form = reactive({
       nombres: '',
@@ -196,7 +203,11 @@ export default {
       password: '',
       confirmPassword: '',
       acceptTerms: false,
-      acceptMarketing: false
+      acceptMarketing: false,
+      tipoDocumento: 'dni', // Valor en minúsculas para coincidir con el backend
+      numeroDocumento: '',
+      fechaNacimiento: '',
+      genero: ''
     })
 
     const togglePassword = () => {
@@ -207,35 +218,98 @@ export default {
       showConfirmPassword.value = !showConfirmPassword.value
     }
 
+    // Limpiar error cuando el usuario escriba
+    watch([() => form.nombres, () => form.apellidos, () => form.celular, () => form.email, () => form.password, () => form.confirmPassword], () => {
+      if (errorMessage.value) {
+        errorMessage.value = ''
+      }
+    })
+
     const handleRegister = async () => {
+      // Limpiar mensaje de error previo
+      errorMessage.value = ''
+
+      // Validaciones del frontend
+      if (!form.nombres.trim()) {
+        errorMessage.value = 'Por favor ingresa tus nombres'
+        return
+      }
+
+      if (!form.apellidos.trim()) {
+        errorMessage.value = 'Por favor ingresa tus apellidos'
+        return
+      }
+
+      if (!form.celular.trim()) {
+        errorMessage.value = 'Por favor ingresa tu número de celular'
+        return
+      }
+
+      if (!form.password) {
+        errorMessage.value = 'Por favor ingresa una contraseña'
+        return
+      }
+
+      if (form.password.length < 8) {
+        errorMessage.value = 'La contraseña debe tener al menos 8 caracteres'
+        return
+      }
+
       if (form.password !== form.confirmPassword) {
-        alert('Las contraseñas no coinciden')
+        errorMessage.value = 'Las contraseñas no coinciden'
         return
       }
 
       if (!form.acceptTerms) {
-        alert('Debes aceptar los términos y condiciones')
+        errorMessage.value = 'Debes aceptar los términos y condiciones'
         return
       }
 
       try {
         isLoading.value = true
         
-        // Simulación de registro
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
-        // Simular datos de usuario después del registro
+        // Registrar usando el servicio real
         const userData = {
-          id: Date.now(),
           nombre: `${form.nombres} ${form.apellidos}`,
           email: form.email || form.celular,
-          avatar: null
+          password: form.password,
+          password_confirmation: form.confirmPassword,
+          telefono: form.celular,
+          tipo_documento: (form.tipoDocumento || 'DNI').toLowerCase(), // Convertir a minúsculas
+          numero_documento: form.numeroDocumento || form.celular, // Usar el celular como número de documento si no se proporciona
+          fecha_nacimiento: form.fechaNacimiento || null,
+          genero: form.genero ? form.genero.toLowerCase() : null // También convertir género a minúsculas
         }
         
-        login(userData)
+        console.log('Registrando usuario:', userData)
+        await register(userData)
+        
+        // Después del registro exitoso, hacer login automático
+        await login({
+          email: userData.email,
+          password: userData.password
+        })
+        
         router.push('/')
       } catch (error) {
         console.error('Error al registrar:', error)
+        
+        // Mostrar mensajes de error específicos
+        if (error.message.includes('email') && error.message.includes('already')) {
+          errorMessage.value = 'Este email ya está registrado. Intenta con otro email'
+        } else if (error.message.includes('telefono') && error.message.includes('already')) {
+          errorMessage.value = 'Este número de teléfono ya está registrado'
+        } else if (error.message.includes('The selected tipo documento is invalid')) {
+          errorMessage.value = 'Tipo de documento inválido'
+        } else if (error.message.includes('validation') || error.message.includes('validación')) {
+          errorMessage.value = 'Por favor verifica que todos los datos sean correctos'
+        } else if (error.message.includes('conexión') || error.message.includes('Network')) {
+          errorMessage.value = 'Error de conexión. Verifica tu internet e intenta nuevamente'
+        } else if (error.message.includes('servidor') || error.message.includes('500')) {
+          errorMessage.value = 'Error del servidor. Intenta nuevamente más tarde'
+        } else {
+          errorMessage.value = error.message || 'Error al crear la cuenta. Intenta nuevamente'
+        }
       } finally {
         isLoading.value = false
       }
@@ -253,6 +327,7 @@ export default {
       showPassword,
       showConfirmPassword,
       isLoading,
+      errorMessage,
       form,
       togglePassword,
       toggleConfirmPassword,
@@ -331,6 +406,35 @@ export default {
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--gray-200);
+}
+
+.error-message {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  animation: slideDown 0.3s ease-out;
+}
+
+.error-message i {
+  flex-shrink: 0;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .form-row {

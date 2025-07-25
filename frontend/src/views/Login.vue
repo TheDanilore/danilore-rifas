@@ -24,6 +24,12 @@
 
         <!-- Formulario -->
         <form @submit.prevent="handleLogin">
+          <!-- Mensaje de error -->
+          <div v-if="errorMessage" class="error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            {{ errorMessage }}
+          </div>
+
           <!-- Tab Email -->
           <div class="tab-content" :class="{ active: currentTab === 'email' }">
             <div class="input-group">
@@ -34,6 +40,7 @@
                 placeholder="tu@email.com"
                 v-model="form.email"
                 :required="currentTab === 'email'"
+                autocomplete="email"
               >
             </div>
           </div>
@@ -48,6 +55,7 @@
                 placeholder="999 888 777"
                 v-model="form.phone"
                 :required="currentTab === 'phone'"
+                autocomplete="tel"
               >
             </div>
           </div>
@@ -61,6 +69,7 @@
               placeholder="Tu contraseña"
               v-model="form.password"
               required
+              autocomplete="current-password"
             >
             <button type="button" class="password-toggle" @click="togglePassword">
               <i class="fas" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
@@ -114,7 +123,7 @@
 </template>
 
 <script>
-import { ref, reactive } from 'vue'
+import { ref, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 
@@ -127,6 +136,7 @@ export default {
     const currentTab = ref('email')
     const showPassword = ref(false)
     const isLoading = ref(false)
+    const errorMessage = ref('')
     
     const form = reactive({
       email: '',
@@ -137,13 +147,24 @@ export default {
 
     const switchTab = (tab) => {
       currentTab.value = tab
+      errorMessage.value = '' // Limpiar error al cambiar tab
     }
 
     const togglePassword = () => {
       showPassword.value = !showPassword.value
     }
 
+    // Limpiar error cuando el usuario escriba
+    watch([() => form.email, () => form.phone, () => form.password], () => {
+      if (errorMessage.value) {
+        errorMessage.value = ''
+      }
+    })
+
     const handleLogin = async () => {
+      // Limpiar mensaje de error previo
+      errorMessage.value = ''
+      
       try {
         isLoading.value = true
         
@@ -153,15 +174,41 @@ export default {
         }
 
         if (currentTab.value === 'email') {
+          if (!form.email) {
+            errorMessage.value = 'Por favor ingresa tu email'
+            return
+          }
           loginData.email = form.email
         } else {
-          loginData.phone = form.phone
+          if (!form.phone) {
+            errorMessage.value = 'Por favor ingresa tu número de celular'
+            return
+          }
+          loginData.email = form.phone // El backend espera email, pero puede ser teléfono
+        }
+
+        if (!form.password) {
+          errorMessage.value = 'Por favor ingresa tu contraseña'
+          return
         }
 
         await login(loginData)
         router.push('/')
       } catch (error) {
         console.error('Error al iniciar sesión:', error)
+        
+        // Mostrar mensajes de error específicos
+        if (error.message.includes('Credenciales incorrectas')) {
+          errorMessage.value = 'Email o contraseña incorrectos'
+        } else if (error.message.includes('Usuario desactivado')) {
+          errorMessage.value = 'Tu cuenta está desactivada. Contacta al administrador'
+        } else if (error.message.includes('conexión') || error.message.includes('Network')) {
+          errorMessage.value = 'Error de conexión. Verifica tu internet e intenta nuevamente'
+        } else if (error.message.includes('servidor') || error.message.includes('500')) {
+          errorMessage.value = 'Error del servidor. Intenta nuevamente más tarde'
+        } else {
+          errorMessage.value = error.message || 'Error al iniciar sesión. Intenta nuevamente'
+        }
       } finally {
         isLoading.value = false
       }
@@ -179,6 +226,7 @@ export default {
       currentTab,
       showPassword,
       isLoading,
+      errorMessage,
       form,
       switchTab,
       togglePassword,
@@ -282,6 +330,35 @@ export default {
 
 .tab-content.active {
   display: block;
+}
+
+.error-message {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  animation: slideDown 0.3s ease-out;
+}
+
+.error-message i {
+  flex-shrink: 0;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .input-group {
