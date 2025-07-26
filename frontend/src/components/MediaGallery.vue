@@ -66,7 +66,7 @@
       <div class="thumbnails-wrapper">
         <!-- Imágenes -->
         <div 
-          v-for="(image, index) in mediaGallery.images" 
+          v-for="(image, index) in (mediaGallery?.images || [])" 
           :key="`img-${index}`"
           class="thumbnail"
           :class="{ 
@@ -83,13 +83,13 @@
         
         <!-- Videos -->
         <div 
-          v-for="(video, index) in mediaGallery.videos" 
+          v-for="(video, index) in (mediaGallery?.videos || [])" 
           :key="`vid-${index}`"
           class="thumbnail video-thumbnail"
           :class="{ 
-            'active': currentIndex === (mediaGallery.images.length + index)
+            'active': currentIndex === ((mediaGallery?.images || []).length + index)
           }"
-          @click="selectMedia(mediaGallery.images.length + index, 'video')"
+          @click="selectMedia((mediaGallery?.images || []).length + index, 'video')"
         >
           <img :src="video.thumbnail" :alt="video.title" class="thumbnail-image" />
           <div class="video-play-overlay">
@@ -109,7 +109,7 @@
           @click="showImages"
         >
           <i class="fas fa-images"></i>
-          Imágenes ({{ mediaGallery.images.length }})
+          Imágenes ({{ (mediaGallery?.images || []).length }})
         </button>
         <button 
           class="type-tab"
@@ -117,7 +117,7 @@
           @click="showVideos"
         >
           <i class="fas fa-video"></i>
-          Videos ({{ mediaGallery.videos.length }})
+          Videos ({{ (mediaGallery?.videos || []).length }})
         </button>
       </div>
     </div>
@@ -198,11 +198,11 @@ export default {
 
     // Computed properties
     const allMedia = computed(() => {
-      const images = props.mediaGallery.images.map(img => ({
+      const images = (props.mediaGallery?.images || []).map(img => ({
         ...img,
         type: 'image'
       }))
-      const videos = props.mediaGallery.videos.map(vid => ({
+      const videos = (props.mediaGallery?.videos || []).map(vid => ({
         ...vid,
         type: 'video'
       }))
@@ -246,7 +246,7 @@ export default {
       showingImages.value = true
       showingVideos.value = false
       // Ir a la primera imagen
-      if (props.mediaGallery.images.length > 0) {
+      if ((props.mediaGallery?.images || []).length > 0) {
         currentIndex.value = 0
       }
     }
@@ -255,8 +255,8 @@ export default {
       showingImages.value = false
       showingVideos.value = true
       // Ir al primer video
-      if (props.mediaGallery.videos.length > 0) {
-        currentIndex.value = props.mediaGallery.images.length
+      if ((props.mediaGallery?.videos || []).length > 0) {
+        currentIndex.value = (props.mediaGallery?.images || []).length
       }
     }
 
@@ -266,7 +266,7 @@ export default {
 
     const handleImageError = (event) => {
       // Manejar error de carga de imagen
-      event.target.src = '/placeholder-image.jpg'
+      event.target.src = 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop&crop=center'
     }
 
     const handleVideoLoad = () => {
@@ -292,7 +292,8 @@ export default {
 
     onMounted(() => {
       // Inicializar con la imagen principal si existe
-      const mainImageIndex = props.mediaGallery.images.findIndex(img => img.isMain)
+      const images = props.mediaGallery?.images || []
+      const mainImageIndex = images.findIndex(img => img.isMain)
       if (mainImageIndex !== -1) {
         currentIndex.value = mainImageIndex
       }

@@ -658,7 +658,7 @@ export default {
         }
 
         const handleImageError = (event) => {
-            event.target.src = 'https://via.placeholder.com/600x400?text=Imagen+no+disponible'
+            event.target.src = 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=400&fit=crop&crop=center'
         }
 
         const copyPaymentCode = async () => {

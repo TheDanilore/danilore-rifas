@@ -176,10 +176,20 @@
 
                   <!-- Imagen del Premio -->
                   <div class="premio-image-container">
-                    <img :src="premio.imagen" :alt="premio.titulo" class="premio-image" @error="handleImageError">
-                    <div v-if="!premio.desbloqueado" class="premio-overlay">
-                      <i class="fas fa-lock"></i>
-                      <span>Bloqueado</span>
+                    <img 
+                      :src="premio.imagen || premio.imagen_principal || getDefaultPremioImage()" 
+                      :alt="premio.titulo" 
+                      class="premio-image" 
+                      @error="handleImageError"
+                    >
+                    <div v-if="!premio.desbloqueado" class="premio-overlay-blocked">
+                      <div class="blocked-content">
+                        <div class="blocked-icon">
+                          <i class="fas fa-lock"></i>
+                        </div>
+                        <h3 class="blocked-title">BLOQUEADA</h3>
+                        <p class="blocked-subtitle">PRÓXIMAMENTE</p>
+                      </div>
                     </div>
                   </div>
 
@@ -238,17 +248,11 @@
 
                     <!-- Action Button -->
                     <button 
-                      class="premio-btn"
-                      :class="{
-                        'btn-primary': premio.desbloqueado,
-                        'btn-disabled': !premio.desbloqueado
-                      }"
-                      :disabled="!premio.desbloqueado"
-                      @click.stop="handlePremioAction(rifa.id, premio.codigo)"
+                      class="premio-btn btn-primary"
+                      @click.stop="handlePremioClick(rifa.id, premio)"
                     >
-                      <i v-if="premio.desbloqueado" class="fas fa-eye"></i>
-                      <i v-else class="fas fa-lock"></i>
-                      {{ premio.desbloqueado ? 'Ver Detalle' : 'Bloqueado' }}
+                      <i class="fas fa-eye"></i>
+                      Ver Detalle
                     </button>
                   </div>
                 </div>
@@ -350,9 +354,9 @@ export default {
 
     // Métodos para navegación
     const handlePremioClick = (rifaId, premio) => {
-      if (premio.desbloqueado) {
-        router.push(`/premio/${rifaId}/${premio.id}`)
-      }
+      // Navegar directamente sin verificar autenticación (vista pública)
+      const codigoPremio = premio.codigo || premio.id || 'p1'
+      router.push(`/premio/${rifaId}/${codigoPremio}`)
     }
 
     const handlePremioAction = (rifaId, premio) => {
@@ -361,9 +365,8 @@ export default {
         return
       }
 
-      if (premio.desbloqueado) {
-        router.push(`/premio/${rifaId}/${premio.id}`)
-      }
+      const codigoPremio = premio.codigo || premio.id || 'p1'
+      router.push(`/premio/${rifaId}/${codigoPremio}`)
     }
 
     const handleRifaClick = (rifa) => {
@@ -445,10 +448,17 @@ export default {
       return milestones.sort((a, b) => a.tickets - b.tickets)
     }
 
+    // Obtener imagen por defecto para premios
+    const getDefaultPremioImage = () => {
+      return 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=300&fit=crop&crop=center'
+    }
+
     // Manejar errores de imagen
     const handleImageError = (event) => {
       // Imagen por defecto si falla la carga
-      event.target.src = 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop&crop=center'
+      if (!event.target.src.includes('unsplash.com')) {
+        event.target.src = getDefaultPremioImage()
+      }
     }
 
     return {
@@ -471,6 +481,7 @@ export default {
       handleRifaClick,
       formatDate,
       handleImageError,
+      getDefaultPremioImage,
       getPremiosCompletados,
       getSiguienteMeta,
       getProgressPercentage,
@@ -834,12 +845,17 @@ export default {
 }
 
 .premio-card.premio-locked {
-  opacity: 0.7;
+  opacity: 0.9;
   cursor: not-allowed;
+  position: relative;
 }
 
 .premio-card.premio-locked:hover {
   transform: none;
+}
+
+.premio-card.premio-locked .premio-image {
+  filter: grayscale(0.3) brightness(0.8);
 }
 
 .premio-status-badge {
@@ -907,6 +923,50 @@ export default {
 
 .premio-overlay i {
   font-size: 2rem;
+}
+
+/* Nuevo overlay para premios bloqueados */
+.premio-overlay-blocked {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.95));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  z-index: 5;
+}
+
+.blocked-content {
+  text-align: center;
+  color: white;
+  padding: 2rem;
+}
+
+.blocked-icon {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+  color: #f59e0b;
+  filter: drop-shadow(0 4px 8px rgba(245, 158, 11, 0.3));
+}
+
+.blocked-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  color: white;
+  letter-spacing: 3px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  text-transform: uppercase;
+}
+
+.blocked-subtitle {
+  font-size: 0.875rem;
+  color: #d1d5db;
+  margin: 0;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .premio-content {
@@ -1210,6 +1270,24 @@ export default {
   .premio-card {
     margin: 0 auto;
     max-width: 400px;
+  }
+
+  .blocked-content {
+    padding: 1.5rem;
+  }
+
+  .blocked-icon {
+    font-size: 3rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .blocked-title {
+    font-size: 1.125rem;
+    letter-spacing: 2px;
+  }
+
+  .blocked-subtitle {
+    font-size: 0.8rem;
   }
 }
 

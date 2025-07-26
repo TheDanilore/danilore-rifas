@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\PremioController;
 use App\Http\Controllers\Api\VentaController;
 use App\Http\Controllers\Api\CategoriaController;
 use App\Http\Controllers\Api\MediaController;
+use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\UploadController;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,6 +44,9 @@ Route::prefix('v1')->group(function () {
     // Categorías públicas
     Route::get('/categorias', [CategoriaController::class, 'index']);
 
+    // Premios públicos
+    Route::get('/premios/{rifaId}/{codigoPremio}', [PremioController::class, 'show']);
+
     // Ventas públicas (consulta por código)
     Route::get('/ventas/{codigo}', [VentaController::class, 'show']);
 });
@@ -69,6 +74,45 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
         Route::delete('/premios/{premioId}/images', [MediaController::class, 'deletePremioImage']);
         Route::get('/premios/{premioId}/images', [MediaController::class, 'getPremioImages']);
         Route::put('/premios/{premioId}/images/reorder', [MediaController::class, 'reorderPremioImages']);
+    });
+
+    // Upload de imágenes (admin only)
+    Route::prefix('upload')->group(function () {
+        Route::post('/rifa-image', [UploadController::class, 'uploadRifaImage']);
+        Route::post('/premio-image', [UploadController::class, 'uploadPremioImage']);
+        Route::post('/nivel-image', [UploadController::class, 'uploadNivelImage']);
+        Route::delete('/image', [UploadController::class, 'deleteImage']);
+    });
+
+    // Rutas de administración (solo para admins)
+    Route::prefix('admin')->middleware('admin')->group(function () {
+        Route::get('/dashboard/stats', [AdminController::class, 'getDashboardStats']);
+        Route::get('/activity/recent', [AdminController::class, 'getRecentActivity']);
+        
+        // Gestión de rifas
+        Route::prefix('rifas')->group(function () {
+            Route::get('/', [RifaController::class, 'adminIndex']);
+            Route::post('/', [RifaController::class, 'store']);
+            Route::put('/{id}', [RifaController::class, 'update']);
+            Route::delete('/{id}', [RifaController::class, 'destroy']);
+            Route::get('/estadisticas', [AdminController::class, 'getRifasStats']);
+            Route::patch('/{id}/estado', [RifaController::class, 'changeEstado']);
+            Route::get('/exportar', [AdminController::class, 'exportRifas']);
+        });
+        
+        // Gestión de usuarios
+        Route::prefix('usuarios')->group(function () {
+            Route::get('/', [AdminController::class, 'getUsuarios']);
+            Route::post('/', [AdminController::class, 'createUsuario']);
+            Route::put('/{id}', [AdminController::class, 'updateUsuario']);
+            Route::delete('/{id}', [AdminController::class, 'deleteUsuario']);
+        });
+        
+        // Reportes y ventas
+        Route::prefix('ventas')->group(function () {
+            Route::get('/', [AdminController::class, 'getVentas']);
+            Route::get('/reportes', [AdminController::class, 'getReportes']);
+        });
     });
 });
 

@@ -19,12 +19,15 @@ class DatabaseSeeder extends Seeder
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
+            'password' => 'danilore123'
         ]);
 
         User::factory()->create([
             'name' => 'Admin User',
-            'email' => 'admin@danilore.com',
+            'email' => 'admin@danilorerifas.com',
             'email_verified_at' => now(),
+            'password' => 'admin123',
+            'rol' => 'admin',
         ]);
 
         echo "✅ Usuarios creados\n\n";

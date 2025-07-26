@@ -19,21 +19,22 @@ class RifasSeeder extends Seeder
             'descripcion' => 'Gana el nuevo iPhone 15 Pro Max con 1TB de almacenamiento. Sistema de premios progresivos donde cada nivel se desbloquea con la participación de la comunidad.',
             'precio_boleto' => 10.00,
             'boletos_minimos' => 1000,
+            'boletos_maximos' => 2000,
             'boletos_vendidos' => 0,
-            'imagen_principal' => '/images/rifas/iphone-15-pro-max.jpg',
+            'imagen_principal' => 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&h=400&fit=crop&crop=center',
             'imagenes_adicionales' => json_encode([
-                '/images/rifas/iphone-15-pro-max-2.jpg',
-                '/images/rifas/iphone-15-pro-max-3.jpg'
+                'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&h=400&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1603921326210-6edd2d60ca68?w=600&h=400&fit=crop&crop=center'
             ]),
             'media_gallery' => json_encode([
-                ['type' => 'image', 'url' => '/images/rifas/iphone-15-pro-max.jpg'],
-                ['type' => 'image', 'url' => '/images/rifas/iphone-15-pro-max-2.jpg'],
-                ['type' => 'image', 'url' => '/images/rifas/iphone-15-pro-max-3.jpg']
+                ['type' => 'image', 'url' => 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&h=400&fit=crop&crop=center'],
+                ['type' => 'image', 'url' => 'https://images.unsplash.com/photo-1603921326210-6edd2d60ca68?w=600&h=400&fit=crop&crop=center'],
+                ['type' => 'image', 'url' => 'https://images.unsplash.com/photo-1574944985070-8f3ebc6b79d2?w=600&h=400&fit=crop&crop=center']
             ]),
             'fecha_inicio' => Carbon::now()->format('Y-m-d'),
             'fecha_fin' => Carbon::now()->addDays(30)->format('Y-m-d'),
             'fecha_sorteo' => Carbon::now()->addDays(32)->format('Y-m-d H:i:s'),
-            'estado' => 'en_venta',
+            'estado' => 'activa',
             'tipo' => 'actual',
             'categoria_id' => null,
             'codigo_unico' => 'IPHONE15PM001',
@@ -53,21 +54,22 @@ class RifasSeeder extends Seeder
             'descripcion' => 'La nueva MacBook Pro con chip M3, perfecta para profesionales y creadores de contenido. Sistema de premios progresivos con múltiples niveles de participación.',
             'precio_boleto' => 15.00,
             'boletos_minimos' => 800,
+            'boletos_maximos' => 1600,
             'boletos_vendidos' => 0,
-            'imagen_principal' => '/images/rifas/macbook-pro-m3.jpg',
+            'imagen_principal' => 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&h=400&fit=crop&crop=center',
             'imagenes_adicionales' => json_encode([
-                '/images/rifas/macbook-pro-m3-2.jpg',
-                '/images/rifas/macbook-pro-m3-3.jpg'
+                'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&h=400&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=600&h=400&fit=crop&crop=center'
             ]),
             'media_gallery' => json_encode([
-                ['type' => 'image', 'url' => '/images/rifas/macbook-pro-m3.jpg'],
-                ['type' => 'image', 'url' => '/images/rifas/macbook-pro-m3-2.jpg'],
-                ['type' => 'image', 'url' => '/images/rifas/macbook-pro-m3-3.jpg']
+                ['type' => 'image', 'url' => 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&h=400&fit=crop&crop=center'],
+                ['type' => 'image', 'url' => 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=600&h=400&fit=crop&crop=center'],
+                ['type' => 'image', 'url' => 'https://images.unsplash.com/photo-1484788984921-03950022c9ef?w=600&h=400&fit=crop&crop=center']
             ]),
             'fecha_inicio' => Carbon::now()->addDays(35)->format('Y-m-d'),
             'fecha_fin' => Carbon::now()->addDays(65)->format('Y-m-d'),
             'fecha_sorteo' => Carbon::now()->addDays(67)->format('Y-m-d H:i:s'),
-            'estado' => 'en_venta',
+            'estado' => 'activa',
             'tipo' => 'futura',
             'categoria_id' => null,
             'codigo_unico' => 'MACBOOKM3001',
@@ -87,21 +89,22 @@ class RifasSeeder extends Seeder
             'descripcion' => 'Vehículo eléctrico Tesla Model 3 con todas las características de lujo y tecnología avanzada.',
             'precio_boleto' => 50.00,
             'boletos_minimos' => 1000,
+            'boletos_maximos' => 2500,
             'boletos_vendidos' => 0,
-            'imagen_principal' => '/images/rifas/tesla-model-3.jpg',
+            'imagen_principal' => 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=600&h=400&fit=crop&crop=center',
             'imagenes_adicionales' => json_encode([
-                '/images/rifas/tesla-model-3-2.jpg',
-                '/images/rifas/tesla-model-3-3.jpg'
+                'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=600&h=400&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=400&fit=crop&crop=center'
             ]),
             'media_gallery' => json_encode([
-                ['type' => 'image', 'url' => '/images/rifas/tesla-model-3.jpg'],
-                ['type' => 'image', 'url' => '/images/rifas/tesla-model-3-2.jpg'],
-                ['type' => 'image', 'url' => '/images/rifas/tesla-model-3-3.jpg']
+                ['type' => 'image', 'url' => 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=600&h=400&fit=crop&crop=center'],
+                ['type' => 'image', 'url' => 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=400&fit=crop&crop=center'],
+                ['type' => 'image', 'url' => 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=600&h=400&fit=crop&crop=center']
             ]),
             'fecha_inicio' => Carbon::now()->format('Y-m-d'),
             'fecha_fin' => Carbon::now()->addDays(45)->format('Y-m-d'),
             'fecha_sorteo' => Carbon::now()->addDays(47)->format('Y-m-d H:i:s'),
-            'estado' => 'en_venta',
+            'estado' => 'activa',
             'tipo' => 'actual',
             'categoria_id' => null,
             'codigo_unico' => 'TESLA3001',

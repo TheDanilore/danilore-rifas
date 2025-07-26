@@ -38,11 +38,24 @@ apiClient.interceptors.response.use(
     
     // Manejar errores de autenticación
     if (error.response?.status === 401) {
-      // Token expirado o inválido
-      localStorage.removeItem('auth_token')
-      localStorage.removeItem('isAuthenticated')
-      localStorage.removeItem('currentUser')
-      window.location.href = '/login'
+      // Solo hacer redirect automático si no es una verificación de perfil
+      if (!error.config?.url?.includes('/auth/profile')) {
+        // Token expirado o inválido - limpiar y redirigir
+        localStorage.removeItem('auth_token')
+        localStorage.removeItem('isAuthenticated')
+        localStorage.removeItem('currentUser')
+        localStorage.removeItem('isAdmin')
+        
+        // Solo redirigir si estamos en una ruta que requiere autenticación
+        const currentPath = window.location.pathname
+        if (currentPath.startsWith('/admin') || currentPath.startsWith('/dashboard')) {
+          if (currentPath.startsWith('/admin')) {
+            window.location.href = '/admin'
+          } else {
+            window.location.href = '/login'
+          }
+        }
+      }
     }
     
     // Manejar errores de validación (422)

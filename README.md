@@ -17,6 +17,43 @@ Sistema completo de rifas online con **premios progresivos** usando Laravel + Vu
 - **Sistema de Auditoría**: Registro completo de todas las acciones
 
 
+## **Sistema de Premios Multinivel:**
+
+1. **Rifa Principal** → Tiene múltiples premios que se desbloquean progresivamente
+2. **Cada Premio** → Tiene sus propios niveles (1, 2, 3, etc.)
+3. **Al completar todos los niveles de un premio** → Se desbloquea el siguiente premio
+4. **Cada nuevo premio desbloqueado** → Tiene sus propios niveles desde cero
+
+### 📊 **Ejemplo Visual:**
+
+RIFA: AirPods Pro 2da Gen (Titulo que le ponga a la rifa)
+
+├── Premio 1: AirPods Básicos (Tickets: 50)
+
+│   ├── Nivel 1: Solo AirPods → 50 tickets
+
+│   ├── Nivel 2: AirPods + Funda → 100 tickets
+
+│   └── Nivel 3: AirPods + Funda + Apple Care → 150 tickets
+
+│
+
+├── Premio 2: iPhone 15 (Se desbloquea al completar Premio 1)
+
+│   ├── Nivel 1: iPhone básico → 200 tickets
+
+│   ├── Nivel 2: iPhone + Funda → 250 tickets
+
+│   └── Nivel 3: iPhone + Funda + AirPods → 300 tickets
+
+│
+
+└── Premio 3: MacBook Pro (Se desbloquea al completar Premio 2)
+
+├── Nivel 1: MacBook → 500 tickets
+
+└── Nivel 2: MacBook + Accesorios → 600 tickets
+
 
 ## 🗄️ Estructura de la Base de Datos
 

@@ -31,6 +31,7 @@
                     class="form-input" 
                     placeholder="Tus nombres"
                     v-model="form.nombres"
+                    autocomplete="given-name"
                     required
                   >
                 </div>
@@ -45,6 +46,7 @@
                     class="form-input" 
                     placeholder="Tus apellidos"
                     v-model="form.apellidos"
+                    autocomplete="family-name"
                     required
                   >
                 </div>
@@ -61,6 +63,7 @@
                     class="form-input" 
                     placeholder="999 888 777"
                     v-model="form.celular"
+                    autocomplete="tel"
                     required
                   >
                 </div>
@@ -76,6 +79,7 @@
                     class="form-input" 
                     placeholder="tu@email.com (opcional)"
                     v-model="form.email"
+                    autocomplete="email"
                   >
                 </div>
               </div>
@@ -96,6 +100,7 @@
                     class="form-input" 
                     placeholder="Mínimo 8 caracteres"
                     v-model="form.password"
+                    autocomplete="new-password"
                     minlength="8"
                     required
                   >
@@ -114,6 +119,7 @@
                     class="form-input" 
                     placeholder="Repite tu contraseña"
                     v-model="form.confirmPassword"
+                    autocomplete="new-password"
                     required
                   >
                   <button type="button" class="password-toggle" @click="toggleConfirmPassword">

@@ -47,23 +47,47 @@ export function useAuthStore() {
     }
   }
 
-  const adminLogin = (adminData) => {
-    const adminUserData = {
-      id: 'admin-001',
-      nombre: adminData.nombre || 'Administrador',
-      email: adminData.email,
-      role: 'admin',
-      fechaRegistro: new Date().toISOString(),
-      avatar: null
-    }
+  const adminLogin = async (adminData) => {
+    try {
+      // Llamar al servicio de autenticación como admin
+      const user = await authService.login({
+        email: adminData.email,
+        password: adminData.password,
+        remember: adminData.remember
+      })
 
-    isLoggedIn.value = true
-    currentUser.value = adminUserData
-    isAdminUser.value = true
-    
-    localStorage.setItem('isAuthenticated', 'true')
-    localStorage.setItem('currentUser', JSON.stringify(adminUserData))
-    localStorage.setItem('isAdmin', 'true')
+      // Verificar que el usuario sea admin
+      if (user.rol !== 'admin') {
+        throw new Error('No tienes permisos de administrador')
+      }
+
+      const adminUserData = {
+        id: user.id,
+        nombre: user.name,
+        email: user.email,
+        telefono: user.telefono,
+        role: 'admin',
+        fechaRegistro: user.created_at,
+        avatar: user.avatar || null,
+        activo: user.activo
+      }
+
+      isLoggedIn.value = true
+      currentUser.value = adminUserData
+      isAdminUser.value = true
+      
+      localStorage.setItem('isAuthenticated', 'true')
+      localStorage.setItem('currentUser', JSON.stringify(adminUserData))
+      localStorage.setItem('isAdmin', 'true')
+
+      return { success: true, user: adminUserData }
+    } catch (error) {
+      console.error('Error en admin login:', error)
+      return { 
+        success: false, 
+        message: error.message || 'Credenciales inválidas' 
+      }
+    }
   }
 
   const logout = async () => {
@@ -136,21 +160,39 @@ export function useAuthStore() {
   const checkAuthStatus = async () => {
     const token = authService.getToken()
     const userData = localStorage.getItem('currentUser')
+    const isAdmin = localStorage.getItem('isAdmin') === 'true'
     
     if (token && userData) {
       try {
-        // Verificar si el token sigue siendo válido obteniendo el perfil
-        const profile = await authService.getProfile()
-        
+        // Primero configurar el estado localmente para evitar redirects
         isLoggedIn.value = true
         currentUser.value = JSON.parse(userData)
+        isAdminUser.value = isAdmin
+        
+        // Luego verificar si el token sigue siendo válido
+        const profile = await authService.getProfile()
+        
+        // Actualizar con datos frescos del servidor
+        currentUser.value = {
+          ...currentUser.value,
+          ...profile
+        }
         isAdminUser.value = profile.rol === 'admin'
+        
+        // Actualizar localStorage con datos frescos
+        localStorage.setItem('currentUser', JSON.stringify(currentUser.value))
+        localStorage.setItem('isAdmin', isAdminUser.value.toString())
         
         await loadUserData()
       } catch (error) {
-        // Token inválido o expirado, limpiar datos
-        console.error('Token inválido:', error)
-        await logout()
+        // Solo limpiar si es un error de autenticación real (401/403)
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          console.error('Token inválido:', error)
+          await logout()
+        } else {
+          // Para otros errores (conexión, etc.), mantener la sesión local
+          console.warn('Error verificando autenticación, manteniendo sesión local:', error)
+        }
       }
     }
   }

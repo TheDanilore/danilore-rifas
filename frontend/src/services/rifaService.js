@@ -134,6 +134,25 @@ export class RifaService {
     return this.calcularProgreso(rifa)
   }
 
+  async getPremioDetail(rifaId, codigoPremio) {
+    if (this.useRealAPI) {
+      try {
+        const response = await apiClient.get(`/premios/${rifaId}/${codigoPremio}`)
+        console.log('Respuesta API premio detail:', response)
+        
+        if (response.success) {
+          return response.data
+        }
+        throw new Error(response.message || 'Premio no encontrado')
+      } catch (error) {
+        console.error('Error al obtener detalle del premio:', error)
+        throw error
+      }
+    }
+    // Fallback para datos simulados si es necesario
+    throw new Error('API no disponible')
+  }
+
   /**
    * Formatear rifa de la API para el frontend
    */
@@ -152,7 +171,7 @@ export class RifaService {
       fechaInicio: rifaAPI.fecha_inicio,
       fechaFin: rifaAPI.fecha_fin,
       estado: rifaAPI.estado,
-      tipo: rifaAPI.estado === 'en_venta' ? 'actual' : 'futura',
+      tipo: rifaAPI.tipo || (rifaAPI.estado === 'en_venta' ? 'actual' : 'futura'),
       categoria: rifaAPI.categoria,
       premios: rifaAPI.premios?.map(premio => this.formatearPremio(premio)) || [],
       destacada: rifaAPI.destacada || false,
@@ -166,11 +185,16 @@ export class RifaService {
   formatearPremio(premioAPI) {
     return {
       id: premioAPI.id.toString(),
+      codigo: premioAPI.codigo,
       titulo: premioAPI.titulo,
       descripcion: premioAPI.descripcion,
-      imagen: premioAPI.imagen,
+      imagen: premioAPI.imagen_principal, // Cambiado de premioAPI.imagen a premioAPI.imagen_principal
+      imagen_principal: premioAPI.imagen_principal, // Mantener ambos para compatibilidad
       orden: premioAPI.orden,
+      estado: premioAPI.estado,
       premio_requerido_id: premioAPI.premio_requerido_id?.toString(),
+      media_gallery: premioAPI.media_gallery,
+      notas_admin: premioAPI.notas_admin,
       niveles: premioAPI.niveles?.map(nivel => this.formatearNivel(nivel)) || []
     }
   }
@@ -181,10 +205,15 @@ export class RifaService {
   formatearNivel(nivelAPI) {
     return {
       id: nivelAPI.id.toString(),
+      codigo: nivelAPI.codigo,
       titulo: nivelAPI.titulo,
       descripcion: nivelAPI.descripcion,
       tickets_necesarios: nivelAPI.tickets_necesarios,
-      valor_aproximado: nivelAPI.valor_aproximado
+      valor_aproximado: nivelAPI.valor_aproximado,
+      imagen: nivelAPI.imagen,
+      orden: nivelAPI.orden,
+      es_actual: nivelAPI.es_actual,
+      especificaciones: nivelAPI.especificaciones
     }
   }
 
@@ -252,7 +281,7 @@ export class RifaService {
     console.log('Premios originales:', rifa.premios)
 
     // Primero calculamos los estados básicos sin dependencias
-    const premiosConEstado = rifa.premios.map(premio => {
+    const premiosConEstado = rifa.premios.map((premio, index) => {
       // Calcular estados de niveles
       const nivelesConEstado = premio.niveles?.map(nivel => {
         const nivelCompletado = rifa.ticketsVendidos >= nivel.tickets_necesarios
@@ -267,6 +296,7 @@ export class RifaService {
 
       return {
         ...premio,
+        codigo: premio.codigo || `p${index + 1}`, // Asignar código por defecto
         completado,
         activo: false, // Se calculará después
         bloqueado: true, // Se calculará después

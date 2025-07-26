@@ -42,15 +42,29 @@
                         </div>
                         <div class="card-content">
                             <!-- Galería de medios del premio -->
-                            <div class="premio-media">
+                            <div class="premio-media" :class="{ 'premio-bloqueado': !premio.desbloqueado }">
                                 <MediaGallery 
-                                    v-if="premio.mediaGallery"
-                                    :mediaGallery="premio.mediaGallery"
+                                    v-if="premioMediaGallery"
+                                    :mediaGallery="premioMediaGallery"
                                 />
                                 <!-- Fallback para premios sin galería -->
                                 <div v-else class="premio-image-container">
-                                    <img :src="premio.imagen" :alt="premio.titulo" class="premio-detail-image"
-                                        @error="handleImageError">
+                                    <img :src="premio.imagen_principal" :alt="premio.titulo" class="premio-detail-image" @error="handleImageError">
+                                </div>
+                                
+                                <!-- Overlay de bloqueado -->
+                                <div v-if="!premio.desbloqueado" class="premio-blocked-overlay">
+                                    <div class="blocked-content">
+                                        <div class="blocked-icon">
+                                            <i class="fas fa-lock"></i>
+                                        </div>
+                                        <h3>BLOQUEADA</h3>
+                                        <p>PRÓXIMAMENTE</p>
+                                        <div class="unlock-info">
+                                            <i class="fas fa-info-circle"></i>
+                                            <span>Se desbloqueará al completar la rifa anterior</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -74,9 +88,9 @@
                                             <i v-else class="fas fa-clock"></i>
                                         </div>
                                         <div class="status-content">
-                                            <h4>{{ premio.estado_texto }}</h4>
+                                            <h4>{{ premio.estado_texto || getEstadoTexto(premio) }}</h4>
                                             <p v-if="premio.completado">¡Todos los niveles han sido completados!</p>
-                                            <p v-else-if="!premio.desbloqueado">Se desbloqueará al completar: <strong>{{ premio.premio_requerido }}</strong></p>
+                                            <p v-else-if="!premio.desbloqueado">Se desbloqueará al completar: <strong>{{ premio.premio_requerido || 'el premio anterior' }}</strong></p>
                                             <p v-else>Premio activo - Sigue participando para desbloquear niveles</p>
                                         </div>
                                     </div>
@@ -116,22 +130,22 @@
                                             <p class="nivel-description">{{ nivel.descripcion }}</p>
                                             <div class="nivel-valor">
                                                 <i class="fas fa-gift"></i>
-                                                Valor: {{ nivel.valor }}
+                                                Valor: S/ {{ nivel.valor_aproximado }}
                                             </div>
                                         </div>
                                         <div class="nivel-status">
                                             <span 
                                                 class="nivel-badge" 
                                                 :class="{
-                                                    'badge-completed': nivel.desbloqueado,
+                                                    'badge-completed': nivel.completado,
                                                     'badge-current': nivel.es_actual,
-                                                    'badge-pending': !nivel.desbloqueado && !nivel.es_actual
+                                                    'badge-pending': !nivel.completado && !nivel.es_actual
                                                 }"
                                             >
-                                                <i v-if="nivel.desbloqueado" class="fas fa-check"></i>
+                                                <i v-if="nivel.completado" class="fas fa-check"></i>
                                                 <i v-else-if="nivel.es_actual" class="fas fa-clock"></i>
                                                 <i v-else class="fas fa-lock"></i>
-                                                {{ nivel.estado_texto }}
+                                                {{ nivel.completado ? 'Completado' : nivel.es_actual ? 'Actual' : 'Pendiente' }}
                                             </span>
                                         </div>
                                     </div>
@@ -145,17 +159,17 @@
                                     <div v-if="nivel.es_actual" class="nivel-progress-section">
                                         <div class="progress-info">
                                             <span class="progress-label">Progreso actual</span>
-                                            <span class="progress-value">{{ rifaActual.ticketsVendidos }}/{{ nivel.tickets_necesarios }}</span>
+                                            <span class="progress-value">{{ rifaActual.boletos_vendidos }}/{{ nivel.tickets_necesarios }}</span>
                                         </div>
                                         <div class="progress-bar">
                                             <div 
                                                 class="progress-fill" 
-                                                :style="{ width: `${Math.min((rifaActual.ticketsVendidos / nivel.tickets_necesarios) * 100, 100)}%` }"
+                                                :style="{ width: `${nivel.progreso}%` }"
                                             ></div>
                                         </div>
                                         <div class="tickets-remaining">
                                             <i class="fas fa-target"></i>
-                                            Faltan {{ Math.max(0, nivel.tickets_necesarios - rifaActual.ticketsVendidos) }} tickets para desbloquear
+                                            Faltan {{ nivel.tickets_restantes }} tickets para desbloquear
                                         </div>
                                     </div>
 
@@ -192,7 +206,7 @@
                                 <i class="fas fa-trophy"></i>
                             </div>
                             <h3 class="participate-title">¡Participa por este Premio!</h3>
-                            <p class="participate-subtitle">Solo S/ {{ rifaActual?.precio || 2 }} por ticket</p>
+                            <p class="participate-subtitle">Solo S/ {{ rifaActual?.precio_boleto || 2 }} por ticket</p>
                             
                             <!-- Estado de participación -->
                             <div v-if="userTicketsForPremio.length > 0" class="participation-status">
@@ -245,11 +259,11 @@
                             </div>
                             <div class="info-item">
                                 <i class="fas fa-clock"></i>
-                                <span>{{ premio.estado_texto }}</span>
+                                <span>{{ premio.estado }}</span>
                             </div>
                             <div v-if="premio.desbloqueado" class="info-item">
                                 <i class="fas fa-check-circle"></i>
-                                <span>{{ premio.niveles?.filter(n => n.desbloqueado).length || 0 }} completados</span>
+                                <span>{{ premio.niveles?.filter(n => n.completado).length || 0 }} completados</span>
                             </div>
                         </div>
                     </div>
@@ -263,22 +277,22 @@
                             <div class="progress-info-header">
                                 <div class="progress-detail-item">
                                     <span class="detail-label">Tickets Vendidos:</span>
-                                    <span class="detail-value">{{ rifaActual.ticketsVendidos }}</span>
+                                    <span class="detail-value">{{ getTicketsVendidos() }}</span>
                                 </div>
                                 <div class="progress-detail-item">
                                     <span class="detail-label">{{ nivelActual ? 'Meta del Nivel Actual:' : 'Meta del Primer Nivel:' }}</span>
-                                    <span class="detail-value">{{ metaNivelActual }}</span>
+                                    <span class="detail-value">{{ metaNivelActual || 'No definida' }}</span>
                                 </div>
                                 <div class="progress-detail-item">
                                     <span class="detail-label">Progreso:</span>
-                                    <span class="detail-value">{{ Math.round((rifaActual.ticketsVendidos / metaNivelActual) * 100) }}%</span>
+                                    <span class="detail-value">{{ getProgresoPercentage() }}%</span>
                                 </div>
                             </div>
                             
                             <!-- Barra de progreso del nivel actual -->
                             <div class="rifa-progress-bar-container">
                                 <div class="rifa-progress-bar">
-                                    <div class="progress-fill" :style="{ width: `${Math.min((rifaActual.ticketsVendidos / metaNivelActual) * 100, 100)}%` }"></div>
+                                    <div class="progress-fill" :style="{ width: `${getProgresoPercentage()}%` }"></div>
                                 </div>
                             </div>
                             
@@ -519,7 +533,7 @@ import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
 import AppFooter from '@/components/AppFooter.vue'
 import MediaGallery from '@/components/MediaGallery.vue'
-import { useRifaDetail } from '@/composables/useRifaDetail'
+import { usePremioDetail } from '@/composables/usePremioDetail'
 import { useAuthStore } from '@/store/auth'
 import { copyToClipboard, showNotification } from '@/utils/helpers'
 
@@ -534,72 +548,79 @@ export default {
         const route = useRoute()
         const router = useRouter()
         const rifaId = computed(() => route.params.rifaId)
-        const premioId = computed(() => {
-            const id = route.params.premioId
-            console.log('Raw premioId from route:', id, 'type:', typeof id)
-            // No hacer parseInt ya que los IDs son strings como "p1", "p2", etc.
-            return id
-        })
+        const premioId = computed(() => route.params.premioId)
         const { isAuthenticated } = useAuthStore()
 
         const {
+            premio,
             rifa: rifaActual,
             loading,
             error,
-            paymentModal,
-            paymentCode,
-            paymentLoading,
-            loadRifa,
-            showPaymentModal,
-            closePaymentModal,
-            confirmPayment,
-            getPremiosProgresivos
-        } = useRifaDetail()
+            loadPremioDetail,
+            handleCompra,
+            getNivelActual,
+            getNivelesCompletados,
+            getNivelesPendientes,
+            getProgresoGeneral
+        } = usePremioDetail()
 
         // Variables para manejo de archivos
         const selectedFile = ref(null)
         const filePreview = ref(null)
         const fileInput = ref(null)
 
+        // Variables para modal de pago
+        const paymentModal = ref(false)
+        const paymentCode = ref('')
+        const paymentLoading = ref(false)
+
         // Variables para selección de tickets
         const selectedTicketNumber = ref(null)
         const tempSelectedNumber = ref(null)
 
-        const premio = computed(() => {
-            if (!rifaActual.value) {
-                console.log('No rifaActual available')
-                return null
-            }
-            const premios = getPremiosProgresivos()
-            console.log('Buscando premio con ID:', premioId.value, 'en premios:', premios)
-            console.log('Premios IDs disponibles:', premios.map(p => ({ id: p.id, type: typeof p.id })))
-            
-            // Buscar por ID como string
-            const foundPremio = premios.find(p => p.id === premioId.value)
-            
-            console.log('Premio encontrado:', foundPremio)
-            return foundPremio
-        })
-
+        // Computed properties
         const premios = computed(() => {
             if (!rifaActual.value) return []
-            return getPremiosProgresivos()
+            return rifaActual.value.premios || []
         })
 
         const totalPremios = computed(() => {
-            if (!rifaActual.value) return 0
-            return getPremiosProgresivos().length
+            return premios.value.length
+        })
+
+        // Computed para crear la estructura de media gallery
+        const premioMediaGallery = computed(() => {
+            if (premio.value?.media_gallery) {
+                return premio.value.media_gallery
+            }
+            
+            // Crear estructura básica con la imagen principal si existe
+            if (premio.value?.imagen_principal) {
+                return {
+                    images: [{
+                        url: premio.value.imagen_principal,
+                        alt: premio.value.titulo || 'Premio',
+                        isMain: true
+                    }],
+                    videos: []
+                }
+            }
+            
+            // Estructura vacía si no hay datos
+            return {
+                images: [],
+                videos: []
+            }
         })
 
         // Computed para el nivel actual del premio
         const nivelActual = computed(() => {
-            if (!premio.value || !premio.value.niveles) return null
-            return premio.value.niveles.find(n => n.es_actual) || premio.value.niveles[0]
+            return getNivelActual()
         })
 
         // Meta del nivel actual (tickets necesarios)
         const metaNivelActual = computed(() => {
-            return nivelActual.value?.tickets_necesarios || premio.value?.niveles?.[0]?.tickets_necesarios || 0
+            return nivelActual.value?.tickets_necesarios || 0
         })
 
         // Tickets del usuario para este premio específico
@@ -607,32 +628,29 @@ export default {
             if (!isAuthenticated.value) return []
             const { getUserTicketsForRifa } = useAuthStore()
             const allTickets = getUserTicketsForRifa(rifaId.value)
-            // Por ahora retornamos todos los tickets de la rifa
-            // En una implementación real, filtrarías por premio específico
             return allTickets || []
         })
 
         // Computed para tickets disponibles y vendidos
         const availableTickets = computed(() => {
             if (!rifaActual.value) return []
-            const totalTickets = rifaActual.value.ticketsMinimos || 100
+            const totalTickets = rifaActual.value.boletos_minimos || 100
             return Array.from({ length: totalTickets }, (_, i) => String(i + 1).padStart(3, '0'))
         })
 
         const soldTickets = computed(() => {
             if (!rifaActual.value) return []
-            // Simular tickets vendidos basado en el número total vendido
-            const ticketsVendidos = rifaActual.value.ticketsVendidos || 0
+            const ticketsVendidos = rifaActual.value.boletos_vendidos || 0
             return Array.from({ length: ticketsVendidos }, (_, i) => String(i + 1).padStart(3, '0'))
         })
 
         const loadPremio = () => {
-            console.log('Loading premio for rifaId:', rifaId.value)
-            loadRifa(rifaId.value)
+            console.log('Loading premio for rifaId:', rifaId.value, 'premioId:', premioId.value)
+            loadPremioDetail(rifaId.value, premioId.value)
         }
 
         const handleImageError = (event) => {
-            event.target.src = 'https://via.placeholder.com/600x400?text=Imagen+no+disponible'
+            event.target.src = 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=400&fit=crop&crop=center'
         }
 
         const copyPaymentCode = async () => {
@@ -644,10 +662,31 @@ export default {
             }
         }
 
+        const showPaymentModal = () => {
+            if (!isAuthenticated.value) {
+                router.push('/login')
+                return
+            }
+            paymentModal.value = true
+            paymentCode.value = 'PAY-' + Date.now()
+        }
+
+        const closePaymentModal = () => {
+            paymentModal.value = false
+            paymentCode.value = ''
+        }
+
         const handleConfirmPayment = async () => {
-            const result = await confirmPayment()
-            if (result) {
-                showNotification(result.message, result.success ? 'success' : 'error')
+            paymentLoading.value = true
+            try {
+                // Simular proceso de pago
+                await new Promise(resolve => setTimeout(resolve, 2000))
+                showNotification('Pago procesado exitosamente', 'success')
+                closePaymentModal()
+            } catch (error) {
+                showNotification('Error al procesar el pago', 'error')
+            } finally {
+                paymentLoading.value = false
             }
         }
 
@@ -664,6 +703,28 @@ export default {
         const getProgressPercentage = (actual, objetivo) => {
             if (!objetivo || objetivo === 0) return 0
             return Math.min((actual / objetivo) * 100, 100)
+        }
+
+        // Función para obtener el progreso porcentual
+        const getProgresoPercentage = () => {
+            const ticketsVendidos = getTicketsVendidos()
+            const meta = metaNivelActual.value || 0
+            if (!meta || meta === 0) return 0
+            return Math.min(Math.round((ticketsVendidos / meta) * 100), 100)
+        }
+
+        // Función para obtener tickets vendidos
+        const getTicketsVendidos = () => {
+            return rifaActual.value?.boletos_vendidos || rifaActual.value?.ticketsVendidos || 0
+        }
+
+        // Función para obtener estado texto
+        const getEstadoTexto = (premio) => {
+            if (!premio) return 'No disponible'
+            if (premio.completado) return 'Completado'
+            if (!premio.desbloqueado) return 'Bloqueado'
+            if (premio.esta_activo) return 'Activo'
+            return 'En Progreso'
         }
 
         // Métodos para manejo de archivos
@@ -770,6 +831,7 @@ export default {
             premio,
             premios,
             totalPremios,
+            premioMediaGallery,
             nivelActual,
             metaNivelActual,
             userTicketsForPremio,
@@ -787,6 +849,9 @@ export default {
             copyPaymentCode,
             formatDate,
             getProgressPercentage,
+            getProgresoPercentage,
+            getTicketsVendidos,
+            getEstadoTexto,
             // Variables y métodos para archivos
             selectedFile,
             filePreview,
@@ -997,6 +1062,71 @@ export default {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+    position: relative;
+}
+
+/* Estilos para premio bloqueado */
+.premio-media.premio-bloqueado {
+    position: relative;
+}
+
+.premio-blocked-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.95));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--border-radius-lg);
+    z-index: 10;
+    backdrop-filter: blur(4px);
+}
+
+.blocked-content {
+    text-align: center;
+    color: white;
+    padding: 2rem;
+}
+
+.blocked-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    color: #f59e0b;
+}
+
+.blocked-content h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: white;
+    letter-spacing: 2px;
+}
+
+.blocked-content p {
+    font-size: 1rem;
+    color: #d1d5db;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+}
+
+.unlock-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: var(--border-radius);
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    color: #fbbf24;
+}
+
+.unlock-info i {
+    font-size: 0.875rem;
 }
 
 /* Asegurar que MediaGallery tenga ancho consistente */
@@ -1065,7 +1195,12 @@ export default {
 
 .status-card.status-active {
     border-color: var(--primary-blue);
-    background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+}
+
+.status-card.status-active .status-icon {
+    background: var(--primary-blue);
+    color: white;
 }
 
 .status-card.status-completed {
@@ -1073,9 +1208,19 @@ export default {
     background: linear-gradient(135deg, #f0fdf4, #dcfce7);
 }
 
+.status-card.status-completed .status-icon {
+    background: var(--success-green);
+    color: white;
+}
+
 .status-card.status-locked {
     border-color: var(--gray-300);
-    background: var(--gray-50);
+    background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+}
+
+.status-card.status-locked .status-icon {
+    background: var(--gray-400);
+    color: white;
 }
 
 .status-icon {
@@ -1086,7 +1231,7 @@ export default {
     align-items: center;
     justify-content: center;
     font-size: 1.5rem;
-    color: var(--white);
+    color: var(--primary-purple);
 }
 
 .status-active .status-icon {

@@ -66,7 +66,7 @@
           <!-- Admin Profile -->
           <div class="admin-profile" @click="toggleProfile">
             <div class="profile-info">
-              <span class="profile-name">{{ user?.nombre }}</span>
+              <span class="profile-name">{{ currentUser?.nombre || 'Admin' }}</span>
               <span class="profile-role">Administrador</span>
             </div>
             <div class="profile-avatar">
@@ -127,7 +127,7 @@ export default {
   name: 'AdminHeader',
   setup() {
     const router = useRouter()
-    const { user, logout } = useAuthStore()
+    const { currentUser, logout } = useAuthStore()
     
     const showNotifications = ref(false)
     const showProfile = ref(false)
@@ -216,9 +216,14 @@ export default {
       notifications.value.forEach(n => n.read = true)
     }
 
-    const handleLogout = () => {
-      logout()
-      router.push('/admin')
+    const handleLogout = async () => {
+      try {
+        await logout()
+        router.push('/admin/login')
+      } catch (error) {
+        console.error('Error al cerrar sesión:', error)
+        router.push('/admin/login')
+      }
     }
 
     const handleClickOutside = (event) => {
@@ -239,7 +244,7 @@ export default {
     })
 
     return {
-      user,
+      currentUser,
       navItems,
       notifications,
       unreadCount,

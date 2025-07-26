@@ -22,6 +22,7 @@
                   v-model="adminForm.email"
                   type="email"
                   placeholder="admin@danilorerifas.com"
+                  autocomplete="username"
                   required
                 />
               </div>
@@ -36,6 +37,7 @@
                   v-model="adminForm.password"
                   :type="showPassword ? 'text' : 'password'"
                   placeholder="••••••••"
+                  autocomplete="current-password"
                   required
                 />
                 <button
@@ -114,21 +116,21 @@ export default {
       error.value = ''
 
       try {
-        // Validación simple de credenciales de admin
-        if (adminForm.value.email === 'admin@danilorerifas.com' && 
-            adminForm.value.password === 'DaniloreAdmin2024!') {
-          
-          await adminLogin({
-            nombre: 'Administrador',
-            email: adminForm.value.email
-          })
-          
+        const result = await adminLogin({
+          email: adminForm.value.email,
+          password: adminForm.value.password,
+          remember: adminForm.value.rememberMe
+        })
+
+        if (result.success) {
+          // Redirigir al dashboard de admin
           router.push('/admin/dashboard')
         } else {
-          error.value = 'Credenciales de administrador incorrectas'
+          error.value = result.message || 'Credenciales inválidas'
         }
       } catch (err) {
-        error.value = 'Error al iniciar sesión. Inténtalo de nuevo.'
+        console.error('Error en login de admin:', err)
+        error.value = 'Error de conexión. Inténtalo de nuevo.'
       } finally {
         loading.value = false
       }

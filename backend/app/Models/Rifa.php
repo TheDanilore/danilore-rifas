@@ -16,6 +16,7 @@ class Rifa extends Model
         'descripcion',
         'precio_boleto',
         'boletos_minimos',
+        'boletos_maximos',
         'boletos_vendidos',
         'imagen_principal',
         'imagenes_adicionales',
@@ -45,6 +46,7 @@ class Rifa extends Model
         'es_destacada' => 'boolean',
         'boletos_vendidos' => 'integer',
         'boletos_minimos' => 'integer',
+        'boletos_maximos' => 'integer',
         'max_boletos_por_persona' => 'integer',
         'orden' => 'integer'
     ];

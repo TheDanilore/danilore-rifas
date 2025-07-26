@@ -273,7 +273,7 @@ export default {
     }
 
     const handleImageError = (event) => {
-      event.target.src = 'https://via.placeholder.com/400x300?text=Premio+no+disponible'
+      event.target.src = 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop&crop=center'
     }
 
     const verCertificado = (ganador) => {

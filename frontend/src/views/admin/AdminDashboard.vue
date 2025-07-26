@@ -147,6 +147,7 @@
 import { ref, onMounted } from 'vue'
 import AdminHeader from '@/components/admin/AdminHeader.vue'
 import AdminFooter from '@/components/admin/AdminFooter.vue'
+import { adminService } from '@/services/adminService.js'
 
 export default {
   name: 'AdminDashboard',
@@ -155,80 +156,7 @@ export default {
     AdminFooter
   },
   setup() {
-    const stats = ref([
-      {
-        id: 1,
-        label: 'Ventas Totales',
-        value: 'S/. 45,230',
-        change: '+12.5%',
-        changeType: 'positive',
-        changeIcon: 'fas fa-arrow-up',
-        icon: 'fas fa-dollar-sign',
-        color: 'linear-gradient(135deg, var(--success-green), #34d399)'
-      },
-      {
-        id: 2,
-        label: 'Rifas Activas',
-        value: '8',
-        change: '+2',
-        changeType: 'positive',
-        changeIcon: 'fas fa-arrow-up',
-        icon: 'fas fa-ticket-alt',
-        color: 'linear-gradient(135deg, var(--primary-purple), var(--primary-indigo))'
-      },
-      {
-        id: 3,
-        label: 'Usuarios Registrados',
-        value: '1,247',
-        change: '+8.3%',
-        changeType: 'positive',
-        changeIcon: 'fas fa-arrow-up',
-        icon: 'fas fa-users',
-        color: 'linear-gradient(135deg, var(--primary-blue), #3b82f6)'
-      },
-      {
-        id: 4,
-        label: 'Tickets Vendidos',
-        value: '3,892',
-        change: '+15.2%',
-        changeType: 'positive',
-        changeIcon: 'fas fa-arrow-up',
-        icon: 'fas fa-chart-line',
-        color: 'linear-gradient(135deg, var(--accent-orange), #f97316)'
-      }
-    ])
-
-    const quickActions = ref([
-      {
-        id: 1,
-        title: 'Crear Nueva Rifa',
-        description: 'Configura una nueva rifa con todos los detalles',
-        icon: 'fas fa-plus-circle',
-        route: '/admin/rifas?action=create'
-      },
-      {
-        id: 2,
-        title: 'Gestionar Rifas',
-        description: 'Ver, editar y administrar rifas existentes',
-        icon: 'fas fa-cogs',
-        route: '/admin/rifas'
-      },
-      {
-        id: 3,
-        title: 'Ver Usuarios',
-        description: 'Administrar usuarios y sus perfiles',
-        icon: 'fas fa-user-friends',
-        route: '/admin/usuarios'
-      },
-      {
-        id: 4,
-        title: 'Reportes de Ventas',
-        description: 'Analizar ventas y estadísticas detalladas',
-        icon: 'fas fa-chart-bar',
-        route: '/admin/ventas'
-      }
-    ])
-
+    const stats = ref([])
     const recentActivity = ref([
       {
         id: 1,
@@ -271,6 +199,152 @@ export default {
         statusText: 'Verificado'
       }
     ])
+    const loading = ref(true)
+    const error = ref(null)
+
+    const loadDashboardData = async () => {
+      try {
+        loading.value = true
+        
+        // Cargar estadísticas
+        const statsData = await adminService.getDashboardStats()
+        
+        // Formatear estadísticas para la vista
+        stats.value = [
+          {
+            id: 1,
+            label: 'Ventas del Mes',
+            value: `S/. ${statsData.ventas.total_mes.toLocaleString()}`,
+            change: '+12.5%',
+            changeType: 'positive',
+            changeIcon: 'fas fa-arrow-up',
+            icon: 'fas fa-dollar-sign',
+            color: 'linear-gradient(135deg, var(--success-green), #34d399)'
+          },
+          {
+            id: 2,
+            label: 'Rifas Activas',
+            value: statsData.rifas.activas.toString(),
+            change: `${statsData.rifas.total} total`,
+            changeType: 'info',
+            changeIcon: 'fas fa-info-circle',
+            icon: 'fas fa-ticket-alt',
+            color: 'linear-gradient(135deg, var(--primary-purple), var(--primary-indigo))'
+          },
+          {
+            id: 3,
+            label: 'Usuarios Registrados',
+            value: statsData.usuarios.total.toLocaleString(),
+            change: `+${statsData.usuarios.nuevos_mes} este mes`,
+            changeType: 'positive',
+            changeIcon: 'fas fa-arrow-up',
+            icon: 'fas fa-users',
+            color: 'linear-gradient(135deg, var(--primary-blue), #3b82f6)'
+          },
+          {
+            id: 4,
+            label: 'Tickets Vendidos',
+            value: statsData.ventas.tickets_vendidos.toLocaleString(),
+            change: `${statsData.ventas.pendientes} pendientes`,
+            changeType: 'warning',
+            changeIcon: 'fas fa-clock',
+            icon: 'fas fa-chart-line',
+            color: 'linear-gradient(135deg, var(--accent-orange), #f97316)'
+          }
+        ]
+
+        // Cargar actividad reciente si el servicio funciona
+        try {
+          const activityData = await adminService.getRecentActivity()
+          if (activityData && activityData.length > 0) {
+            recentActivity.value = activityData
+          }
+        } catch (activityError) {
+          console.log('Usando datos de ejemplo para actividad reciente')
+        }
+        
+      } catch (err) {
+        console.error('Error al cargar datos del dashboard:', err)
+        error.value = 'Error al cargar los datos del dashboard'
+        
+        // Fallback con datos de ejemplo
+        stats.value = [
+          {
+            id: 1,
+            label: 'Ventas Totales',
+            value: 'S/. 45,230',
+            change: '+12.5%',
+            changeType: 'positive',
+            changeIcon: 'fas fa-arrow-up',
+            icon: 'fas fa-dollar-sign',
+            color: 'linear-gradient(135deg, var(--success-green), #34d399)'
+          },
+          {
+            id: 2,
+            label: 'Rifas Activas',
+            value: '8',
+            change: '+2',
+            changeType: 'positive',
+            changeIcon: 'fas fa-arrow-up',
+            icon: 'fas fa-ticket-alt',
+            color: 'linear-gradient(135deg, var(--primary-purple), var(--primary-indigo))'
+          },
+          {
+            id: 3,
+            label: 'Usuarios Registrados',
+            value: '1,247',
+            change: '+8.3%',
+            changeType: 'positive',
+            changeIcon: 'fas fa-arrow-up',
+            icon: 'fas fa-users',
+            color: 'linear-gradient(135deg, var(--primary-blue), #3b82f6)'
+          },
+          {
+            id: 4,
+            label: 'Tickets Vendidos',
+            value: '3,892',
+            change: '+15.2%',
+            changeType: 'positive',
+            changeIcon: 'fas fa-arrow-up',
+            icon: 'fas fa-chart-line',
+            color: 'linear-gradient(135deg, var(--accent-orange), #f97316)'
+          }
+        ]
+      } finally {
+        loading.value = false
+      }
+    }
+
+    const quickActions = ref([
+      {
+        id: 1,
+        title: 'Crear Nueva Rifa',
+        description: 'Configura una nueva rifa con todos los detalles',
+        icon: 'fas fa-plus-circle',
+        route: '/admin/rifas?action=create'
+      },
+      {
+        id: 2,
+        title: 'Gestionar Rifas',
+        description: 'Ver, editar y administrar rifas existentes',
+        icon: 'fas fa-cogs',
+        route: '/admin/rifas'
+      },
+      {
+        id: 3,
+        title: 'Ver Usuarios',
+        description: 'Administrar usuarios y sus perfiles',
+        icon: 'fas fa-user-friends',
+        route: '/admin/usuarios'
+      },
+      {
+        id: 4,
+        title: 'Reportes de Ventas',
+        description: 'Analizar ventas y estadísticas detalladas',
+        icon: 'fas fa-chart-bar',
+        route: '/admin/ventas'
+      }
+    ])
 
     const popularRifas = ref([
       {
@@ -300,15 +374,17 @@ export default {
     ])
 
     onMounted(() => {
-      // Cargar datos del dashboard
-      console.log('Dashboard de admin cargado')
+      loadDashboardData()
     })
 
     return {
       stats,
       quickActions,
       recentActivity,
-      popularRifas
+      popularRifas,
+      loading,
+      error,
+      loadDashboardData
     }
   }
 }
