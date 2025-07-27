@@ -95,7 +95,7 @@ class Rifa extends Model
 
     public function scopeEnVenta($query)
     {
-        return $query->where('estado', 'en_venta');
+        return $query->where('estado', 'activa');
     }
 
     public function scopeDestacadas($query)
@@ -132,6 +132,67 @@ class Rifa extends Model
             return $rifaRequerida && $rifaRequerida->estado === 'confirmada';
         }
         return true;
+    }
+
+    /**
+     * Actualizar progreso de premios cuando cambian los boletos vendidos
+     */
+    public function actualizarProgresosPremios()
+    {
+        foreach ($this->premios as $premio) {
+            // Actualizar progreso para cada nivel del premio
+            foreach ($premio->niveles as $nivel) {
+                $progresoNivel = \App\Models\ProgresoPremio::where('premio_id', $premio->id)
+                                                          ->where('nivel_id', $nivel->id)
+                                                          ->first();
+                
+                if ($progresoNivel) {
+                    $progresoNivel->actualizarProgreso($this->boletos_vendidos);
+                    
+                    // Actualizar estado del nivel si se completa
+                    if ($progresoNivel->objetivo_alcanzado && !$nivel->desbloqueado) {
+                        $nivel->update([
+                            'desbloqueado' => true,
+                            'fecha_desbloqueo' => now()
+                        ]);
+                    }
+                }
+            }
+            
+            // Actualizar progreso total del premio
+            $progresoTotal = \App\Models\ProgresoPremio::where('premio_id', $premio->id)
+                                                      ->whereNull('nivel_id')
+                                                      ->first();
+            
+            if ($progresoTotal) {
+                $progresoTotal->actualizarProgreso($this->boletos_vendidos);
+                
+                // Verificar si todos los niveles están completados
+                $todosCompletados = $premio->niveles->every(function($nivel) {
+                    return \App\Models\ProgresoPremio::where('premio_id', $nivel->premio_id)
+                                                     ->where('nivel_id', $nivel->id)
+                                                     ->where('objetivo_alcanzado', true)
+                                                     ->exists();
+                });
+                
+                if ($todosCompletados && $premio->estado !== 'completado') {
+                    $premio->update([
+                        'estado' => 'completado',
+                        'fecha_completado' => now()
+                    ]);
+                    
+                    // Desbloquear siguiente premio si existe
+                    $siguientePremio = $this->premios()->where('premio_requerido_id', $premio->id)->first();
+                    if ($siguientePremio) {
+                        $siguientePremio->update([
+                            'estado' => 'activo',
+                            'desbloqueado' => true,
+                            'fecha_desbloqueo' => now()
+                        ]);
+                    }
+                }
+            }
+        }
     }
 
     // Generar código único

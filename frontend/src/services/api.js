@@ -33,8 +33,11 @@ apiClient.interceptors.response.use(
     return response.data
   },
   (error) => {
-    console.error('Error interceptado:', error)
-    console.error('Respuesta del error:', error.response?.data)
+    // Solo loggear errores que no sean verificaciones de perfil sin autenticar
+    if (!(error.response?.status === 401 && error.config?.url?.includes('/auth/profile'))) {
+      console.error('Error interceptado:', error)
+      console.error('Respuesta del error:', error.response?.data)
+    }
     
     // Manejar errores de autenticación
     if (error.response?.status === 401) {

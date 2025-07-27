@@ -46,6 +46,11 @@ class RifaController extends Controller
 
         $rifas = $query->paginate($request->get('per_page', 15));
 
+        // Enriquecer datos de cada rifa
+        $rifas->getCollection()->transform(function ($rifa) {
+            return $this->enrichRifaData($rifa);
+        });
+
         return response()->json([
             'success' => true,
             'data' => $rifas
@@ -116,6 +121,11 @@ class RifaController extends Controller
                       ->orderBy('created_at', 'desc')
                       ->paginate($request->get('per_page', 10));
 
+        // Enriquecer datos de cada rifa
+        $rifas->getCollection()->transform(function ($rifa) {
+            return $this->enrichRifaData($rifa);
+        });
+
         return response()->json([
             'success' => true,
             'data' => $rifas
@@ -131,6 +141,11 @@ class RifaController extends Controller
             ->futuras();
 
         $rifas = $query->paginate($request->get('per_page', 10));
+
+        // Enriquecer datos de cada rifa
+        $rifas->getCollection()->transform(function ($rifa) {
+            return $this->enrichRifaData($rifa);
+        });
 
         return response()->json([
             'success' => true,
@@ -148,6 +163,11 @@ class RifaController extends Controller
             ->enVenta()
             ->limit(6)
             ->get();
+
+        // Enriquecer datos de cada rifa
+        $rifas = $rifas->map(function ($rifa) {
+            return $this->enrichRifaData($rifa);
+        });
 
         return response()->json([
             'success' => true,
@@ -506,5 +526,95 @@ class RifaController extends Controller
             'data' => $rifa->load(['categoria', 'premios']),
             'message' => 'Estado de la rifa actualizado exitosamente'
         ]);
+    }
+
+    /**
+     * Enriquecer datos de una rifa con información calculada de progreso
+     */
+    private function enrichRifaData($rifa)
+    {
+        // Mapear nombres de campos para compatibilidad con frontend
+        $rifa->ticketsVendidos = $rifa->boletos_vendidos;
+        $rifa->ticketsMinimos = $rifa->boletos_minimos;
+        $rifa->fechaSorteo = $rifa->fecha_sorteo;
+        $rifa->nombre = $rifa->titulo;
+        $rifa->imagen = $rifa->imagen_principal;
+
+        // Calcular datos de progreso para cada premio
+        $premiosConProgreso = [];
+        $todosLosNiveles = [];
+        $nivelesCompletadosGeneral = 0;
+        $totalNivelesGeneral = 0;
+
+        foreach ($rifa->premios as $premio) {
+            // Determinar estado del premio
+            $premioAnteriorCompletado = true;
+            if ($premio->premio_requerido_id) {
+                $premioAnterior = $rifa->premios->where('id', $premio->premio_requerido_id)->first();
+                $premioAnteriorCompletado = $premioAnterior ? $premioAnterior->estado === 'completado' : false;
+            }
+
+            $premio->desbloqueado = $premioAnteriorCompletado;
+            $premio->completado = $premio->estado === 'completado';
+            $premio->esta_activo = $premio->desbloqueado && !$premio->completado;
+
+            // Determinar texto de estado
+            if ($premio->completado) {
+                $premio->estado_texto = 'Completado';
+            } elseif ($premio->esta_activo) {
+                $premio->estado_texto = 'En Progreso';
+            } else {
+                $premio->estado_texto = 'Bloqueado';
+                $premio->premio_requerido = $premioAnterior ? $premioAnterior->titulo : 'Premio anterior';
+            }
+
+            // Procesar niveles del premio
+            $nivelesConProgreso = [];
+            foreach ($premio->niveles as $nivel) {
+                $nivel->desbloqueado = $rifa->boletos_vendidos >= $nivel->tickets_necesarios;
+                $nivel->es_actual = !$nivel->desbloqueado && $premio->esta_activo && 
+                    ($premio->niveles->where('tickets_necesarios', '<', $nivel->tickets_necesarios)
+                        ->where('desbloqueado', true)->count() == $premio->niveles->where('tickets_necesarios', '<', $nivel->tickets_necesarios)->count());
+                
+                $nivel->nombre = $nivel->titulo;
+                $nivelesConProgreso[] = $nivel;
+
+                // Agregar a todos los niveles para progreso general
+                $todosLosNiveles[] = [
+                    'id' => $nivel->id,
+                    'titulo' => $nivel->titulo,
+                    'tickets_necesarios' => $nivel->tickets_necesarios,
+                    'completado' => $nivel->desbloqueado,
+                    'premio_titulo' => $premio->titulo
+                ];
+
+                $totalNivelesGeneral++;
+                if ($nivel->desbloqueado) {
+                    $nivelesCompletadosGeneral++;
+                }
+            }
+
+            $premio->niveles = collect($nivelesConProgreso);
+            $premiosConProgreso[] = $premio;
+        }
+
+        $rifa->premios = collect($premiosConProgreso);
+
+        // Calcular progreso general
+        $porcentajeGeneral = $totalNivelesGeneral > 0 ? round(($nivelesCompletadosGeneral / $totalNivelesGeneral) * 100, 2) : 0;
+
+        $rifa->progreso_general = [
+            'niveles_completados' => $nivelesCompletadosGeneral,
+            'total_niveles' => $totalNivelesGeneral,
+            'porcentaje' => $porcentajeGeneral,
+            'todos_los_niveles' => $todosLosNiveles
+        ];
+
+        // Para compatibilidad, mantener también estas propiedades en el nivel raíz
+        $rifa->niveles_completados_general = $nivelesCompletadosGeneral;
+        $rifa->total_niveles_general = $totalNivelesGeneral;
+        $rifa->porcentaje_general = $rifa->progreso_general['porcentaje'];
+
+        return $rifa;
     }
 }

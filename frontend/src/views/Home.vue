@@ -97,12 +97,16 @@
                 <div class="rifa-progress">
                   <div class="progress-info">
                     <span class="progress-label">Progreso General</span>
-                    <span class="progress-value">{{ getPremiosCompletados(rifa.id) }}/{{ getPremiosProgresivos(rifa.id).length }}</span>
+                    <span class="progress-value">{{ rifa.progreso_general ? rifa.progreso_general.niveles_completados : 0 }}/{{ rifa.progreso_general ? rifa.progreso_general.total_niveles : 0 }}</span>
                   </div>
                   <div class="progress-details">
                     <div class="progress-detail-item">
-                      <span class="detail-label">Premios Completados:</span>
-                      <span class="detail-value">{{ getPremiosCompletados(rifa.id) }}</span>
+                      <span class="detail-label">Niveles Completados:</span>
+                      <span class="detail-value">{{ rifa.progreso_general ? rifa.progreso_general.niveles_completados : 0 }}</span>
+                    </div>
+                    <div class="progress-detail-item">
+                      <span class="detail-label">Total Niveles:</span>
+                      <span class="detail-value">{{ rifa.progreso_general ? rifa.progreso_general.total_niveles : 0 }}</span>
                     </div>
                     <div class="progress-detail-item">
                       <span class="detail-label">Tickets Vendidos:</span>
@@ -355,7 +359,8 @@ export default {
     // Métodos para navegación
     const handlePremioClick = (rifaId, premio) => {
       // Navegar directamente sin verificar autenticación (vista pública)
-      const codigoPremio = premio.codigo || premio.id || 'p1'
+      console.log('Navegando a premio:', rifaId, premio.codigo, premio)
+      const codigoPremio = premio.codigo || `p${premio.orden}` || 'p1'
       router.push(`/premio/${rifaId}/${codigoPremio}`)
     }
 
@@ -365,13 +370,15 @@ export default {
         return
       }
 
-      const codigoPremio = premio.codigo || premio.id || 'p1'
+      const codigoPremio = premio.codigo || `p${premio.orden}` || 'p1'
       router.push(`/premio/${rifaId}/${codigoPremio}`)
     }
 
     const handleRifaClick = (rifa) => {
-      // Navegar a RifaDetail para rifas futuras
-      router.push(`/rifa/${rifa.id}`)
+      // Navegar a RifaDetail usando el codigo_unico para consistencia
+      console.log('Navegando a rifa:', rifa.codigo_unico || rifa.codigo || rifa.id)
+      const identificador = rifa.codigo_unico || rifa.codigo || rifa.id
+      router.push(`/rifa/${identificador}`)
     }
 
     // Método para formatear fechas
@@ -386,8 +393,11 @@ export default {
 
     // Obtener cantidad de premios completados
     const getPremiosCompletados = (rifaId) => {
-      const premios = getPremiosProgresivos(rifaId)
-      return premios.filter(p => p.completado).length
+      const rifa = filteredRifas.value.find(r => r.id === rifaId)
+      if (!rifa || !rifa.progreso_general) {
+        return 0
+      }
+      return rifa.progreso_general.niveles_completados || 0
     }
 
     // Obtener la siguiente meta de tickets
@@ -413,36 +423,40 @@ export default {
 
     // Obtener porcentaje de progreso general
     const getProgressPercentage = (rifa) => {
-      const maxTickets = 75 // Máximo fijo para consistencia
+      // Usar datos calculados del backend
+      if (rifa.progreso_general) {
+        return rifa.progreso_general.porcentaje || 0
+      }
+      
+      // Fallback si no hay datos del backend
+      const maxTickets = 1500 // Máximo basado en los datos reales
       return Math.min((rifa.ticketsVendidos / maxTickets) * 100, 100)
     }
 
     // Obtener hitos de progreso para la barra
     const getProgressMilestones = (rifaId) => {
-      const premios = getPremiosProgresivos(rifaId)
       const rifa = filteredRifas.value.find(r => r.id === rifaId)
-      if (!rifa) return []
+      if (!rifa || !rifa.progreso_general || !rifa.progreso_general.todos_los_niveles) {
+        return []
+      }
 
       const milestones = []
-      const maxTickets = 75 // Máximo fijo
+      const todosLosNiveles = rifa.progreso_general.todos_los_niveles
+      const maxTickets = Math.max(...todosLosNiveles.map(n => n.tickets_necesarios))
 
-      premios.forEach(premio => {
-        if (premio.niveles) {
-          premio.niveles.forEach(nivel => {
-            const position = (nivel.tickets_necesarios / maxTickets) * 100
-            const completed = rifa.ticketsVendidos >= nivel.tickets_necesarios
-            const active = !completed && rifa.ticketsVendidos < nivel.tickets_necesarios && premio.desbloqueado
-            
-            milestones.push({
-              id: `${premio.id}-${nivel.id}`,
-              title: `${premio.titulo} - ${nivel.nombre}`,
-              tickets: nivel.tickets_necesarios,
-              position: Math.min(position, 100),
-              completed,
-              active
-            })
-          })
-        }
+      todosLosNiveles.forEach((nivel, index) => {
+        const position = (nivel.tickets_necesarios / maxTickets) * 100
+        const completed = nivel.completado
+        const active = !completed && rifa.ticketsVendidos < nivel.tickets_necesarios
+
+        milestones.push({
+          id: `nivel-${nivel.id}`,
+          title: `${nivel.premio_titulo} - ${nivel.titulo}`,
+          tickets: nivel.tickets_necesarios,
+          position: Math.min(position, 100),
+          completed,
+          active
+        })
       })
 
       return milestones.sort((a, b) => a.tickets - b.tickets)

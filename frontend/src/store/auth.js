@@ -109,7 +109,30 @@ export function useAuthStore() {
       localStorage.removeItem('userTickets')
       localStorage.removeItem('userHistory')
       localStorage.removeItem('isAdmin')
+      localStorage.removeItem('auth_token') // Asegurar que el token también se elimine
+      
+      console.log('Sesión limpiada completamente')
     }
+  }
+
+  // Función para forzar limpieza de sesión fantasma
+  const clearGhostSession = () => {
+    console.log('Limpiando sesión fantasma...')
+    isLoggedIn.value = false
+    currentUser.value = null
+    userTickets.value = []
+    userHistory.value = []
+    isAdminUser.value = false
+    
+    // Limpiar todo el localStorage relacionado con auth
+    localStorage.removeItem('isAuthenticated')
+    localStorage.removeItem('currentUser')
+    localStorage.removeItem('userTickets')
+    localStorage.removeItem('userHistory')
+    localStorage.removeItem('isAdmin')
+    localStorage.removeItem('auth_token')
+    
+    console.log('Sesión fantasma eliminada')
   }
 
   const register = async (userData) => {
@@ -162,6 +185,7 @@ export function useAuthStore() {
     const userData = localStorage.getItem('currentUser')
     const isAdmin = localStorage.getItem('isAdmin') === 'true'
     
+    // Solo verificar autenticación si hay indicios de una sesión existente
     if (token && userData) {
       try {
         // Primero configurar el estado localmente para evitar redirects
@@ -185,20 +209,27 @@ export function useAuthStore() {
         
         await loadUserData()
       } catch (error) {
-        // Solo limpiar si es un error de autenticación real (401/403)
-        if (error.response?.status === 401 || error.response?.status === 403) {
-          console.error('Token inválido:', error)
+        console.log('Error en checkAuthStatus:', error.response?.status, error.message)
+        // Limpiar sesión si hay cualquier error de autenticación 
+        if (error.response?.status === 401 || error.response?.status === 403 || error.message === 'Unauthenticated.') {
+          console.log('Token inválido o expirado, limpiando sesión...')
           await logout()
         } else {
           // Para otros errores (conexión, etc.), mantener la sesión local
           console.warn('Error verificando autenticación, manteniendo sesión local:', error)
         }
       }
+    } else {
+      // No hay token ni datos de usuario, asegurar estado limpio sin hacer llamadas API
+      isLoggedIn.value = false
+      currentUser.value = null
+      isAdminUser.value = false
     }
   }
 
   const loadUserData = async () => {
-    if (!currentUser.value) return
+    // Solo cargar datos si hay un usuario logueado y un token válido
+    if (!currentUser.value || !authService.getToken()) return
     
     try {
       // Cargar datos reales del perfil
@@ -299,6 +330,7 @@ export function useAuthStore() {
     purchaseTicket,
     updateUserProfile,
     getUserTicketsForRifa,
-    loadUserData
+    loadUserData,
+    clearGhostSession
   }
 }

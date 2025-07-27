@@ -49,10 +49,31 @@ class PremioController extends Controller
             ->where('codigo', $codigoPremio)
             ->firstOrFail();
 
-            // Calcular el progreso de cada nivel
+            // Calcular el progreso de cada nivel usando progreso_premios
             $nivelesConProgreso = $premio->niveles->map(function($nivel) use ($rifa, $premio) {
-                $progreso = $rifa->boletos_vendidos >= $nivel->tickets_necesarios ? 100 : 
-                           ($rifa->boletos_vendidos / $nivel->tickets_necesarios) * 100;
+                // Buscar el progreso específico para este nivel
+                $progresoNivel = \App\Models\ProgresoPremio::where('premio_id', $premio->id)
+                                                           ->where('nivel_id', $nivel->id)
+                                                           ->first();
+                
+                // Si no existe progreso, crear valores por defecto
+                if (!$progresoNivel) {
+                    $progreso = $rifa->boletos_vendidos >= $nivel->tickets_necesarios ? 100 : 
+                               ($rifa->boletos_vendidos / $nivel->tickets_necesarios) * 100;
+                    $completado = $rifa->boletos_vendidos >= $nivel->tickets_necesarios;
+                    $ticketsRestantes = max(0, $nivel->tickets_necesarios - $rifa->boletos_vendidos);
+                } else {
+                    $progreso = $progresoNivel->porcentaje_completado;
+                    $completado = $progresoNivel->objetivo_alcanzado;
+                    $ticketsRestantes = $progresoNivel->tickets_restantes;
+                }
+                
+                // Determinar si es el nivel actual
+                $esActual = !$completado && 
+                           !$premio->niveles->where('orden', '<', $nivel->orden)
+                                           ->contains(function($nivelAnterior) use ($rifa) {
+                                               return $rifa->boletos_vendidos < $nivelAnterior->tickets_necesarios;
+                                           });
                 
                 return [
                     'id' => $nivel->id,
@@ -62,12 +83,13 @@ class PremioController extends Controller
                     'valor_aproximado' => $nivel->valor_aproximado,
                     'imagen' => $nivel->imagen,
                     'orden' => $nivel->orden,
-                    'completado' => $rifa->boletos_vendidos >= $nivel->tickets_necesarios,
-                    'es_actual' => !($rifa->boletos_vendidos >= $nivel->tickets_necesarios) && 
-                                  !$premio->niveles->where('orden', '<', $nivel->orden)
-                                         ->where('tickets_necesarios', '>', $rifa->boletos_vendidos)->count(),
+                    'completado' => $completado,
+                    'es_actual' => $esActual,
                     'progreso' => round($progreso, 2),
-                    'tickets_restantes' => max(0, $nivel->tickets_necesarios - $rifa->boletos_vendidos)
+                    'tickets_restantes' => $ticketsRestantes,
+                    'tickets_actuales' => $progresoNivel ? $progresoNivel->tickets_actuales : $rifa->boletos_vendidos,
+                    'objetivo_alcanzado' => $progresoNivel ? $progresoNivel->objetivo_alcanzado : $completado,
+                    'fecha_alcanzado' => $progresoNivel ? $progresoNivel->fecha_alcanzado : null
                 ];
             });
 
@@ -75,14 +97,16 @@ class PremioController extends Controller
             $todosNivelesCompletados = $nivelesConProgreso->every(fn($nivel) => $nivel['completado']);
             $hayNivelesCompletados = $nivelesConProgreso->some(fn($nivel) => $nivel['completado']);
 
-            $estadoPremio = 'bloqueado';
-            if ($premio->desbloqueado) {
-                if ($todosNivelesCompletados) {
-                    $estadoPremio = 'completado';
-                } else {
-                    $estadoPremio = 'en_progreso';
-                }
+            // Usar el estado de la base de datos directamente
+            $estadoPremio = $premio->estado;
+            
+            // Solo actualizar si todos los niveles están completados y el estado no es 'completado'
+            if ($todosNivelesCompletados && $premio->estado !== 'completado') {
+                $estadoPremio = 'completado';
             }
+
+            // Calcular si el premio está desbloqueado
+            $estaDesbloqueado = $premio->puedeDesbloquearse();
 
             return response()->json([
                 'success' => true,
@@ -96,7 +120,7 @@ class PremioController extends Controller
                         'media_gallery' => $premio->media_gallery,
                         'orden' => $premio->orden,
                         'estado' => $estadoPremio,
-                        'desbloqueado' => $premio->desbloqueado,
+                        'desbloqueado' => $estaDesbloqueado,
                         'completado' => $todosNivelesCompletados,
                         'fecha_desbloqueo' => $premio->fecha_desbloqueo,
                         'fecha_completado' => $premio->fecha_completado,
@@ -118,7 +142,9 @@ class PremioController extends Controller
                         'fecha_sorteo' => $rifa->fecha_sorteo,
                         'estado' => $rifa->estado,
                         'tipo' => $rifa->tipo,
-                        'porcentaje_completado' => round(($rifa->boletos_vendidos / $rifa->boletos_minimos) * 100, 2)
+                        'porcentaje_completado' => round(($rifa->boletos_vendidos / $rifa->boletos_minimos) * 100, 2),
+                        'total_premios' => $rifa->premios()->count(),
+                        'premios' => $rifa->premios()->select('id', 'codigo', 'titulo', 'orden')->orderBy('orden')->get()
                     ]
                 ]
             ]);

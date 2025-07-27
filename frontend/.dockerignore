@@ -1,0 +1,43 @@
+# Ignorar node_modules para reducir el contexto de build
+node_modules/
+
+# Ignorar archivos de desarrollo
+.git/
+.gitignore
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Ignorar archivos de build
+dist/
+build/
+
+# Ignorar archivos de cache
+.cache/
+.nuxt/
+.vuepress/dist
+
+# Ignorar archivos temporales
+*.tmp
+*.log
+*.swp
+*.swo
+*~
+
+# Ignorar archivos de IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# Ignorar archivos de testing
+coverage/
+.nyc_output/
+
+# Ignorar documentación
+README.md
+*.md
+
+# Ignorar archivos de Docker
+Dockerfile
+.dockerignore

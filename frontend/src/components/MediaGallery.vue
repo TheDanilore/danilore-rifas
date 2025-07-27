@@ -196,6 +196,9 @@ export default {
     const showingImages = ref(true)
     const showingVideos = ref(false)
 
+    // Debug logs
+    console.log('MediaGallery - Props recibidas:', props.mediaGallery)
+
     // Computed properties
     const allMedia = computed(() => {
       const images = (props.mediaGallery?.images || []).map(img => ({
@@ -206,6 +209,13 @@ export default {
         ...vid,
         type: 'video'
       }))
+      
+      console.log('MediaGallery - Procesando media:', {
+        images: images,
+        videos: videos,
+        allMedia: [...images, ...videos]
+      })
+      
       return [...images, ...videos]
     })
 

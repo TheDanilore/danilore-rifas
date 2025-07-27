@@ -24,35 +24,44 @@ Sistema completo de rifas online con **premios progresivos** usando Laravel + Vu
 3. **Al completar todos los niveles de un premio** → Se desbloquea el siguiente premio
 4. **Cada nuevo premio desbloqueado** → Tiene sus propios niveles desde cero
 
-### 📊 **Ejemplo Visual:**
 
-RIFA: AirPods Pro 2da Gen (Titulo que le ponga a la rifa)
+## 🎮 Cómo Funciona el Sistema
 
-├── Premio 1: AirPods Básicos (Tickets: 50)
+### **Concepto de Premios Progresivos**
 
-│   ├── Nivel 1: Solo AirPods → 50 tickets
+El sistema funciona con un **modelo de premios progresivos** donde:
 
-│   ├── Nivel 2: AirPods + Funda → 100 tickets
+1. **Una rifa tiene múltiples premios** (Ej: p1, p2, p3)
+2. **Cada premio tiene múltiples niveles** (Ej: n1, n2, n3)
+3. **Los premios se desbloquean secuencialmente** según los tickets vendidos
+4. **Los niveles dentro de un premio se completan gradualmente**
 
-│   └── Nivel 3: AirPods + Funda + Apple Care → 150 tickets
+### **Ejemplo Práctico: Rifa PlayStation 5**
 
-│
+```
+🎰 RIFA: PlayStation 5 y Accesorios
+├── 🏆 Premio 1: Accesorios Gaming (p1)
+│   ├── 📦 Nivel 1: Auriculares Gaming (20 tickets)
+│   └── 📦 Nivel 2: Control Adicional (30 tickets)
+├── 🏆 Premio 2: Juegos Exclusivos (p2) [Requiere p1 completado]
+│   ├── 📦 Nivel 1: God of War (40 tickets)
+│   ├── 📦 Nivel 2: Spider-Man 2 (50 tickets)
+│   └── 📦 Nivel 3: The Last of Us (60 tickets)
+└── 🏆 Premio 3: PlayStation 5 Console (p3) [Requiere p2 completado]
+    ├── 📦 Nivel 1: Console Estándar (70 tickets)
+    └── 📦 Nivel 2: Bundle Completo (75 tickets)
+```
 
-├── Premio 2: iPhone 15 (Se desbloquea al completar Premio 1)
+### **Flujo de Desbloqueo**
 
-│   ├── Nivel 1: iPhone básico → 200 tickets
-
-│   ├── Nivel 2: iPhone + Funda → 250 tickets
-
-│   └── Nivel 3: iPhone + Funda + AirPods → 300 tickets
-
-│
-
-└── Premio 3: MacBook Pro (Se desbloquea al completar Premio 2)
-
-├── Nivel 1: MacBook → 500 tickets
-
-└── Nivel 2: MacBook + Accesorios → 600 tickets
+1. **0-19 tickets**: Todos los premios bloqueados
+2. **20 tickets**: Se desbloquea Auriculares Gaming (p1-n1)
+3. **30 tickets**: Se completa Control Adicional (p1-n2) → Premio 1 completado
+4. **40 tickets**: Se desbloquea God of War (p2-n1)
+5. **50 tickets**: Se desbloquea Spider-Man 2 (p2-n2)
+6. **60 tickets**: Se completa The Last of Us (p2-n3) → Premio 2 completado
+7. **70 tickets**: Se desbloquea PlayStation 5 (p3-n1)
+8. **75 tickets**: Se completa Bundle Completo (p3-n2) → **RIFA CONFIRMADA**
 
 
 ## 🗄️ Estructura de la Base de Datos
@@ -102,6 +111,7 @@ El sistema soporta múltiples tipos de documentos para hacerlo internacional y f
 - descripcion (TEXT)
 - precio_boleto (DECIMAL 10,2)
 - boletos_minimos (INT) # Tickets mínimos para confirmar la rifa
+- boletos_maximos (INT)
 - boletos_vendidos (INT) DEFAULT 0
 - imagen_principal (VARCHAR)
 - imagenes_adicionales (JSON)
@@ -109,7 +119,7 @@ El sistema soporta múltiples tipos de documentos para hacerlo internacional y f
 - fecha_inicio (DATE)
 - fecha_fin (DATE)
 - fecha_sorteo (DATETIME)
-- estado (ENUM: en_venta, confirmada, sorteada, cancelada) DEFAULT 'en_venta'
+- estado (ENUM: borrador,activa,pausada,finalizada,cancelada) DEFAULT 'borrador'
 - tipo (ENUM: actual, futura) DEFAULT 'futura'
 - categoria_id (BIGINT, FK)
 - codigo_unico (VARCHAR, 20, UNIQUE)
@@ -702,6 +712,9 @@ docker exec -it danilore_backend bash
 # Instalar dependencias
 docker exec danilore_frontend npm install
 
+# Ejecutar en modo desarrollo
+docker exec danilore_frontend npm run serve
+
 # Acceder al contenedor
 docker exec -it danilore_frontend sh
 ```
@@ -724,88 +737,6 @@ docker exec -it danilore_frontend sh
 - **Contraseña:** danilore123
 - **Root Password:** root123
 
-### phpMyAdmin:
-- **URL:** http://localhost:8080
-- **Usuario:** danilore
-- **Contraseña:** danilore123
-
-## 🛠️ Comandos Útiles
-
-### Docker
-```bash
-# Levantar servicios
-docker-compose up -d
-
-# Ver logs
-docker-compose logs -f
-
-# Detener servicios
-docker-compose down
-
-# Reconstruir contenedores
-docker-compose up --build
-```
-
-### Laravel (Backend)
-```bash
-# Ejecutar comandos artisan
-docker exec danilore_backend php artisan migrate
-docker exec danilore_backend php artisan db:seed
-docker exec danilore_backend php artisan cache:clear
-
-# Acceder al contenedor
-docker exec -it danilore_backend bash
-```
-
-### Vue.js (Frontend)
-```bash
-# Instalar dependencias
-docker exec danilore_frontend npm install
-
-# Ejecutar en modo desarrollo
-docker exec danilore_frontend npm run serve
-
-# Acceder al contenedor
-docker exec -it danilore_frontend sh
-```
-
-## 🎮 Cómo Funciona el Sistema
-
-### **Concepto de Premios Progresivos**
-
-El sistema funciona con un **modelo de premios progresivos** donde:
-
-1. **Una rifa tiene múltiples premios** (Ej: p1, p2, p3)
-2. **Cada premio tiene múltiples niveles** (Ej: n1, n2, n3)
-3. **Los premios se desbloquean secuencialmente** según los tickets vendidos
-4. **Los niveles dentro de un premio se completan gradualmente**
-
-### **Ejemplo Práctico: Rifa PlayStation 5**
-
-```
-🎰 RIFA: PlayStation 5 y Accesorios
-├── 🏆 Premio 1: Accesorios Gaming (p1)
-│   ├── 📦 Nivel 1: Auriculares Gaming (20 tickets)
-│   └── 📦 Nivel 2: Control Adicional (30 tickets)
-├── 🏆 Premio 2: Juegos Exclusivos (p2) [Requiere p1 completado]
-│   ├── 📦 Nivel 1: God of War (40 tickets)
-│   ├── 📦 Nivel 2: Spider-Man 2 (50 tickets)
-│   └── 📦 Nivel 3: The Last of Us (60 tickets)
-└── 🏆 Premio 3: PlayStation 5 Console (p3) [Requiere p2 completado]
-    ├── 📦 Nivel 1: Console Estándar (70 tickets)
-    └── 📦 Nivel 2: Bundle Completo (75 tickets)
-```
-
-### **Flujo de Desbloqueo**
-
-1. **0-19 tickets**: Todos los premios bloqueados
-2. **20 tickets**: Se desbloquea Auriculares Gaming (p1-n1)
-3. **30 tickets**: Se completa Control Adicional (p1-n2) → Premio 1 completado
-4. **40 tickets**: Se desbloquea God of War (p2-n1)
-5. **50 tickets**: Se desbloquea Spider-Man 2 (p2-n2)
-6. **60 tickets**: Se completa The Last of Us (p2-n3) → Premio 2 completado
-7. **70 tickets**: Se desbloquea PlayStation 5 (p3-n1)
-8. **75 tickets**: Se completa Bundle Completo (p3-n2) → **RIFA CONFIRMADA**
 
 ## 🎯 API Endpoints (Backend)
 
@@ -897,46 +828,6 @@ GET    /api/auth/me                          # Perfil del usuario [Auth]
 - Boletos activos
 - Estadísticas personales
 
-## 🔧 Servicios y Composables
-
-### **rifaService.js**
-```javascript
-// Gestión de datos de rifas
-class RifaService {
-  calcularEstadosPremios(rifa)     // Calcula estados de premios
-  obtenerRifaActual()              // Obtiene rifa en curso
-  obtenerRifasFuturas()            // Obtiene rifas programadas
-  calcularProgreso(tickets, meta)   // Calcula porcentaje de progreso
-}
-```
-
-### **useRifaDetail.js**
-```javascript
-// Composable para lógica de rifas
-export function useRifaDetail() {
-  const rifa = ref(null)
-  const loading = ref(false)
-  const error = ref(null)
-  
-  const loadRifa = (id) => { /* ... */ }
-  const getPremiosProgresivos = () => { /* ... */ }
-  const showPaymentModal = () => { /* ... */ }
-  const confirmPayment = () => { /* ... */ }
-}
-```
-
-### **useAuth.js**
-```javascript
-// Composable para autenticación
-export function useAuth() {
-  const user = ref(null)
-  const isAuthenticated = ref(false)
-  
-  const login = (credentials) => { /* ... */ }
-  const logout = () => { /* ... */ }
-  const register = (userData) => { /* ... */ }
-}
-```
 
 ## 📱 Estados del Sistema
 
@@ -962,65 +853,6 @@ export function useAuth() {
 - `cancelada`: Venta cancelada por el usuario
 - `expirada`: Tiempo de pago agotado
 
-## 🔐 Validaciones Frontend vs Backend
-
-### **Campos de Usuario (users)**
-```javascript
-// Frontend (Register.vue, Dashboard.vue)
-{
-  name: 'string|required|min:2|max:100',
-  email: 'email|required|unique',
-  telefono: 'string|max:15',
-  dni: 'string|max:8',
-  fecha_nacimiento: 'date',
-  genero: 'enum:masculino,femenino,otro',
-  password: 'string|min:8|confirmed'
-}
-
-// Backend (UserRequest.php) - DEBE COINCIDIR
-{
-  'name' => 'required|string|min:2|max:100',
-  'email' => 'required|email|unique:users',
-  'telefono' => 'nullable|string|max:15',
-  'dni' => 'nullable|string|size:8',
-  'fecha_nacimiento' => 'nullable|date',
-  'genero' => 'nullable|in:masculino,femenino,otro',
-  'password' => 'required|string|min:8|confirmed'
-}
-```
-
-### **Campos de Venta (ventas)**
-```javascript
-// Frontend (RifaDetail.vue, PremioDetail.vue)
-{
-  rifa_id: 'required|integer',
-  cantidad_boletos: 'required|integer|min:1|max:10',
-  metodo_pago: 'required|enum:yape,plin,transferencia',
-  comprador_nombre: 'required|string|max:100',
-  comprador_email: 'required|email',
-  comprador_telefono: 'required|string|max:15'
-}
-
-// Backend (VentaRequest.php) - DEBE COINCIDIR
-{
-  'rifa_id' => 'required|exists:rifas,id',
-  'cantidad_boletos' => 'required|integer|min:1|max:10',
-  'metodo_pago' => 'required|in:yape,plin,transferencia,efectivo',
-  'comprador_nombre' => 'required|string|max:100',
-  'comprador_email' => 'required|email',
-  'comprador_telefono' => 'required|string|max:15'
-}
-```
-
-## 🔍 Verificación de Consistencia
-
-### **✅ Campos Verificados**
-- ✅ **users**: Todos los campos del frontend coinciden con la migración
-- ✅ **rifas**: Estructura frontend alineada con BD
-- ✅ **premios**: Códigos (p1, p2, p3) consistentes
-- ✅ **niveles**: Códigos (n1, n2, n3) y campos alineados
-- ✅ **ventas**: Campos de compra y estados coinciden
-- ✅ **boletos**: Estructura de tickets consistente
 
 ### **⚠️ Puntos de Atención**
 - Los enums deben mantenerse sincronizados entre frontend y backend

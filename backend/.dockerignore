@@ -1,0 +1,13 @@
+# Ignorar dependencias para reducir el contexto de build
+node_modules/
+vendor/
+
+# Ignorar archivos de desarrollo
+.git/
+.env.local
+.env.development
+.env.testing
+
+# Ignorar archivos temporales
+*.tmp
+*.log

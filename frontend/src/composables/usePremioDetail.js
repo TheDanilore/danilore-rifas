@@ -18,6 +18,7 @@ export function usePremioDetail() {
     
     try {
       const response = await rifaService.getPremioDetail(rifaId, codigoPremio)
+      // El servicio devuelve { premio: {...}, rifa: {...} }
       premio.value = response.premio
       rifa.value = response.rifa
     } catch (err) {

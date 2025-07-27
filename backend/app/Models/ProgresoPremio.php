@@ -20,7 +20,8 @@ class ProgresoPremio extends Model
         'porcentaje_completado',
         'objetivo_alcanzado',
         'fecha_alcanzado',
-        'ultimo_ticket'
+        'ultimo_ticket',
+        'tickets_restantes'
     ];
 
     protected $casts = [

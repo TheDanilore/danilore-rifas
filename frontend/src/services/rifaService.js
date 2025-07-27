@@ -5,6 +5,25 @@ export class RifaService {
   constructor() {
     // Configuración para usar API real o datos simulados
     this.useRealAPI = true // Cambiar a false para usar datos simulados durante desarrollo
+    // URL base para imágenes del backend
+    this.imageBaseURL = 'http://localhost:8000'
+  }
+
+  /**
+   * Procesa una URL de imagen para asegurar que apunte al backend
+   */
+  processImageURL(imagePath) {
+    if (!imagePath) return null
+    
+    // Si ya es una URL completa, devolverla tal como está
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath
+    }
+    
+    // Si es una ruta relativa, agregar la URL base del backend
+    // Asegurar que comience con /
+    const cleanPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`
+    return `${this.imageBaseURL}${cleanPath}`
   }
 
   // Single Responsibility Principle: cada método tiene una responsabilidad específica
@@ -12,7 +31,6 @@ export class RifaService {
     if (this.useRealAPI) {
       try {
         const response = await apiClient.get('/rifas')
-        console.log('Respuesta completa de API rifas:', response)
         
         if (response.success) {
           // Laravel devuelve datos paginados: {data: array, current_page, total, etc}
@@ -40,7 +58,6 @@ export class RifaService {
     if (this.useRealAPI) {
       try {
         const response = await apiClient.get('/rifas/actuales')
-        console.log('Respuesta API rifas actuales:', response)
         
         if (response.success) {
           const rifasArray = response.data?.data || response.data
@@ -61,7 +78,6 @@ export class RifaService {
     if (this.useRealAPI) {
       try {
         const response = await apiClient.get('/rifas/futuras')
-        console.log('Respuesta API rifas futuras:', response)
         
         if (response.success) {
           const rifasArray = response.data?.data || response.data
@@ -82,7 +98,6 @@ export class RifaService {
     if (this.useRealAPI) {
       try {
         const response = await apiClient.get('/rifas/destacadas')
-        console.log('Respuesta API rifas destacadas:', response)
         
         if (response.success) {
           const rifasArray = response.data?.data || response.data
@@ -138,10 +153,20 @@ export class RifaService {
     if (this.useRealAPI) {
       try {
         const response = await apiClient.get(`/premios/${rifaId}/${codigoPremio}`)
-        console.log('Respuesta API premio detail:', response)
         
         if (response.success) {
-          return response.data
+          // Extraer los datos de la estructura de respuesta
+          const premioData = response.data.premio
+          const rifaData = response.data.rifa
+          
+          // Formatear el premio para procesar URLs de imágenes
+          const premioFormateado = this.formatearPremio(premioData)
+          
+          // Devolver tanto el premio como la rifa
+          return {
+            premio: premioFormateado,
+            rifa: rifaData
+          }
         }
         throw new Error(response.message || 'Premio no encontrado')
       } catch (error) {
@@ -160,22 +185,33 @@ export class RifaService {
     return {
       id: rifaAPI.id.toString(),
       codigo_unico: rifaAPI.codigo_unico,
+      codigo: rifaAPI.codigo_unico, // Alias para compatibilidad
       nombre: rifaAPI.titulo,
+      titulo: rifaAPI.titulo, // Alias para compatibilidad
       descripcion: rifaAPI.descripcion,
-      imagen: rifaAPI.imagen_principal,
+      imagen: this.processImageURL(rifaAPI.imagen_principal),
       precio: rifaAPI.precio_boleto,
       ticketsVendidos: rifaAPI.boletos_vendidos || 0,
+      boletos_vendidos: rifaAPI.boletos_vendidos || 0, // Alias para compatibilidad
       ticketsMinimos: rifaAPI.boletos_minimos,
+      boletos_minimos: rifaAPI.boletos_minimos, // Alias para compatibilidad
       ticketsMaximos: rifaAPI.boletos_maximos,
+      boletos_maximos: rifaAPI.boletos_maximos, // Alias para compatibilidad
       fechaSorteo: rifaAPI.fecha_sorteo,
+      fecha_sorteo: rifaAPI.fecha_sorteo, // Alias para compatibilidad
       fechaInicio: rifaAPI.fecha_inicio,
       fechaFin: rifaAPI.fecha_fin,
       estado: rifaAPI.estado,
-      tipo: rifaAPI.tipo || (rifaAPI.estado === 'en_venta' ? 'actual' : 'futura'),
+      tipo: rifaAPI.tipo || (rifaAPI.estado === 'activa' ? 'actual' : 'futura'),
       categoria: rifaAPI.categoria,
       premios: rifaAPI.premios?.map(premio => this.formatearPremio(premio)) || [],
-      destacada: rifaAPI.destacada || false,
-      activa: rifaAPI.estado === 'en_venta'
+      destacada: rifaAPI.es_destacada || false,
+      activa: rifaAPI.estado === 'activa',
+      // Información adicional para compatibilidad con RifaDetail
+      mediaGallery: rifaAPI.media_gallery || [],
+      imagenes_adicionales: rifaAPI.imagenes_adicionales || [],
+      terminos_condiciones: rifaAPI.terminos_condiciones,
+      max_boletos_por_persona: rifaAPI.max_boletos_por_persona
     }
   }
 
@@ -183,18 +219,32 @@ export class RifaService {
    * Formatear premio de la API para el frontend
    */
   formatearPremio(premioAPI) {
+    // Procesar media_gallery para convertir rutas relativas a URLs completas
+    let mediaGallery = []
+    if (premioAPI.media_gallery && Array.isArray(premioAPI.media_gallery)) {
+      mediaGallery = premioAPI.media_gallery.map(imagePath => {
+        if (typeof imagePath === 'string') {
+          // Si es solo una string, procesarla como imagen
+          return this.processImageURL(imagePath)
+        }
+        return imagePath
+      })
+    }
+
     return {
-      id: premioAPI.id.toString(),
-      codigo: premioAPI.codigo,
-      titulo: premioAPI.titulo,
-      descripcion: premioAPI.descripcion,
-      imagen: premioAPI.imagen_principal, // Cambiado de premioAPI.imagen a premioAPI.imagen_principal
-      imagen_principal: premioAPI.imagen_principal, // Mantener ambos para compatibilidad
-      orden: premioAPI.orden,
-      estado: premioAPI.estado,
+      id: premioAPI.id?.toString() || '',
+      codigo: premioAPI.codigo || '',
+      titulo: premioAPI.titulo || '',
+      descripcion: premioAPI.descripcion || '',
+      imagen: this.processImageURL(premioAPI.imagen_principal), // Procesar URL de imagen
+      imagen_principal: this.processImageURL(premioAPI.imagen_principal), // Mantener ambos para compatibilidad
+      orden: premioAPI.orden || 0,
+      estado: premioAPI.estado || 'bloqueado',
+      desbloqueado: Boolean(premioAPI.desbloqueado), // Convertir a boolean
+      completado: Boolean(premioAPI.completado), // Convertir a boolean
       premio_requerido_id: premioAPI.premio_requerido_id?.toString(),
-      media_gallery: premioAPI.media_gallery,
-      notas_admin: premioAPI.notas_admin,
+      media_gallery: mediaGallery, // Usar el array procesado
+      notas_admin: premioAPI.notas_admin || '',
       niveles: premioAPI.niveles?.map(nivel => this.formatearNivel(nivel)) || []
     }
   }
@@ -204,16 +254,16 @@ export class RifaService {
    */
   formatearNivel(nivelAPI) {
     return {
-      id: nivelAPI.id.toString(),
-      codigo: nivelAPI.codigo,
-      titulo: nivelAPI.titulo,
-      descripcion: nivelAPI.descripcion,
-      tickets_necesarios: nivelAPI.tickets_necesarios,
-      valor_aproximado: nivelAPI.valor_aproximado,
-      imagen: nivelAPI.imagen,
-      orden: nivelAPI.orden,
-      es_actual: nivelAPI.es_actual,
-      especificaciones: nivelAPI.especificaciones
+      id: nivelAPI.id?.toString() || '',
+      codigo: nivelAPI.codigo || '',
+      titulo: nivelAPI.titulo || '',
+      descripcion: nivelAPI.descripcion || '',
+      tickets_necesarios: nivelAPI.tickets_necesarios || 0,
+      valor_aproximado: nivelAPI.valor_aproximado || 0,
+      imagen: this.processImageURL(nivelAPI.imagen), // Procesar URL de imagen
+      orden: nivelAPI.orden || 0,
+      es_actual: nivelAPI.es_actual || false,
+      especificaciones: nivelAPI.especificaciones || ''
     }
   }
 
@@ -248,7 +298,8 @@ export class RifaService {
         const endpoint = isNaN(id) ? `/rifas/${id}` : `/rifas/${id}`
         const response = await apiClient.get(endpoint)
         if (response.success) {
-          return this.formatearRifa(response.data)
+          // El API devuelve response.data.rifa, no response.data directamente
+          return this.formatearRifa(response.data.rifa)
         }
         throw new Error(response.message || 'Rifa no encontrada')
       } catch (error) {
@@ -282,25 +333,37 @@ export class RifaService {
 
     // Primero calculamos los estados básicos sin dependencias
     const premiosConEstado = rifa.premios.map((premio, index) => {
-      // Calcular estados de niveles
+      // Calcular estados de niveles basado en tickets vendidos reales
       const nivelesConEstado = premio.niveles?.map(nivel => {
         const nivelCompletado = rifa.ticketsVendidos >= nivel.tickets_necesarios
+        const nivelActual = !nivelCompletado && (
+          premio.niveles.filter(n => n.orden < nivel.orden && rifa.ticketsVendidos >= n.tickets_necesarios).length === nivel.orden - 1
+        )
+        
         return {
           ...nivel,
-          completado: nivelCompletado
+          completado: nivelCompletado,
+          es_actual: nivelActual,
+          progreso: Math.min((rifa.ticketsVendidos / nivel.tickets_necesarios) * 100, 100),
+          tickets_restantes: Math.max(0, nivel.tickets_necesarios - rifa.ticketsVendidos)
         }
       }) || []
 
       // El premio está completado si todos sus niveles están completados
       const completado = nivelesConEstado.length > 0 && nivelesConEstado.every(n => n.completado)
+      
+      // El premio tiene al menos un nivel completado
+      const tieneProgreso = nivelesConEstado.some(n => n.completado)
 
       return {
         ...premio,
-        codigo: premio.codigo || `p${index + 1}`, // Asignar código por defecto
+        codigo: premio.codigo || `p${index + 1}`,
         completado,
+        tiene_progreso: tieneProgreso,
         activo: false, // Se calculará después
-        bloqueado: true, // Se calculará después
+        bloqueado: true, // Se calculará después  
         desbloqueado: false, // Se calculará después
+        esta_activo: false, // Se calculará después
         niveles: nivelesConEstado
       }
     })
@@ -318,7 +381,9 @@ export class RifaService {
         console.log(`Premio ${premio.titulo} - Es el primer premio, desbloqueado por defecto`)
       } else {
         // Buscar el premio requerido en la lista ya calculada
-        const premioRequerido = premiosConEstado.find(p => p.id === premio.premio_requerido_id)
+        const premioRequerido = premiosConEstado.find(p => 
+          p.id?.toString() === premio.premio_requerido_id?.toString()
+        )
         if (premioRequerido?.completado) {
           desbloqueado = true
           bloqueado = false
@@ -331,20 +396,35 @@ export class RifaService {
       }
 
       // El premio está activo si está desbloqueado y no está completado
-      const activo = desbloqueado && !premio.completado
+      const esta_activo = desbloqueado && !premio.completado
+
+      // Estado texto para mostrar en UI
+      let estado_texto = 'Bloqueado'
+      if (desbloqueado) {
+        if (premio.completado) {
+          estado_texto = 'Completado'
+        } else if (premio.tiene_progreso) {
+          estado_texto = 'En Progreso'
+        } else {
+          estado_texto = 'Activo'
+        }
+      }
 
       const premioFinal = {
         ...premio,
-        activo,
+        activo: esta_activo,
+        esta_activo,
         bloqueado,
-        desbloqueado
+        desbloqueado,
+        estado_texto
       }
 
       console.log(`Premio ${premio.titulo}:`, {
         completado: premioFinal.completado,
         desbloqueado: premioFinal.desbloqueado,
         bloqueado: premioFinal.bloqueado,
-        activo: premioFinal.activo
+        esta_activo: premioFinal.esta_activo,
+        estado_texto: premioFinal.estado_texto
       })
 
       return premioFinal

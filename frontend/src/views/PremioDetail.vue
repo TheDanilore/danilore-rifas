@@ -30,8 +30,8 @@
                             <div class="premio-header">
                                 <div>
                                     <h1>{{ premio.titulo }}</h1>
-                                    <div class="premio-status-badge" :class="`status-${(premio.estado_texto || 'bloqueado').toLowerCase().replace(' ', '_')}`">
-                                        {{ premio.estado_texto || 'Bloqueado' }}
+                                    <div class="premio-status-badge" :class="`status-${getEstadoTexto(premio).toLowerCase().replace(' ', '_')}`">
+                                        {{ getEstadoTexto(premio) }}
                                     </div>
                                 </div>
                                 <div class="premio-order">
@@ -77,21 +77,24 @@
                                 <!-- Estado del premio en la rifa -->
                                 <div class="premio-rifa-status">
                                     <h3>Estado en la Rifa</h3>
-                                    <div class="status-card" :class="{
-                                        'status-active': premio.esta_activo,
-                                        'status-completed': premio.completado,
-                                        'status-locked': !premio.desbloqueado
-                                    }">
+                                    <div class="status-card" :class="[
+                                        {
+                                            'status-active': premio.esta_activo,
+                                            'status-completed': premio.completado,
+                                            'status-locked': !premio.desbloqueado
+                                        },
+                                        `status-${getEstadoTexto(premio).toLowerCase().replace(' ', '_')}`
+                                    ]">
                                         <div class="status-icon">
                                             <i v-if="premio.completado" class="fas fa-check-circle"></i>
                                             <i v-else-if="!premio.desbloqueado" class="fas fa-lock"></i>
                                             <i v-else class="fas fa-clock"></i>
                                         </div>
                                         <div class="status-content">
-                                            <h4>{{ premio.estado_texto || getEstadoTexto(premio) }}</h4>
+                                            <h4>{{ getEstadoTexto(premio) }}</h4>
                                             <p v-if="premio.completado">¡Todos los niveles han sido completados!</p>
                                             <p v-else-if="!premio.desbloqueado">Se desbloqueará al completar: <strong>{{ premio.premio_requerido || 'el premio anterior' }}</strong></p>
-                                            <p v-else>Premio activo - Sigue participando para desbloquear niveles</p>
+                                            <p v-else>{{ getEstadoTexto(premio) }} - Sigue participando para desbloquear niveles</p>
                                         </div>
                                     </div>
                                 </div>
@@ -259,7 +262,7 @@
                             </div>
                             <div class="info-item">
                                 <i class="fas fa-clock"></i>
-                                <span>{{ premio.estado }}</span>
+                                <span>{{ getEstadoTexto(premio) }}</span>
                             </div>
                             <div v-if="premio.desbloqueado" class="info-item">
                                 <i class="fas fa-check-circle"></i>
@@ -585,20 +588,46 @@ export default {
         })
 
         const totalPremios = computed(() => {
-            return premios.value.length
+            return rifaActual.value?.total_premios || rifaActual.value?.premios?.length || 0
         })
 
         // Computed para crear la estructura de media gallery
         const premioMediaGallery = computed(() => {
-            if (premio.value?.media_gallery) {
-                return premio.value.media_gallery
+            console.log('PremioDetail - Generando premioMediaGallery:', {
+                premio: premio.value,
+                media_gallery: premio.value?.media_gallery,
+                imagen_principal: premio.value?.imagen_principal
+            })
+            
+            // Si hay media_gallery, procesarla
+            if (premio.value?.media_gallery && Array.isArray(premio.value.media_gallery) && premio.value.media_gallery.length > 0) {
+                console.log('Procesando media_gallery array:', premio.value.media_gallery)
+                
+                const images = premio.value.media_gallery.map((imagePath, index) => ({
+                    url: imagePath.startsWith('http') ? imagePath : `http://localhost:8000${imagePath}`,
+                    alt: `${premio.value.titulo} - Imagen ${index + 1}`,
+                    isMain: index === 0
+                }))
+                
+                const galleryStructure = {
+                    images: images,
+                    videos: []
+                }
+                
+                console.log('Media gallery structure creada:', galleryStructure)
+                return galleryStructure
             }
             
-            // Crear estructura básica con la imagen principal si existe
+            // Si hay imagen principal, crear estructura
             if (premio.value?.imagen_principal) {
+                const imageUrl = premio.value.imagen_principal.startsWith('http') ? 
+                                premio.value.imagen_principal : 
+                                `http://localhost:8000${premio.value.imagen_principal}`
+                
+                console.log('Usando imagen_principal:', imageUrl)
                 return {
                     images: [{
-                        url: premio.value.imagen_principal,
+                        url: imageUrl,
                         alt: premio.value.titulo || 'Premio',
                         isMain: true
                     }],
@@ -606,9 +635,14 @@ export default {
                 }
             }
             
-            // Estructura vacía si no hay datos
+            // Imagen por defecto si no hay datos
+            console.log('Usando imagen por defecto')
             return {
-                images: [],
+                images: [{
+                    url: 'http://localhost:8000/images/sin_imagen.png',
+                    alt: 'Sin imagen disponible',
+                    isMain: true
+                }],
                 videos: []
             }
         })
@@ -721,10 +755,24 @@ export default {
         // Función para obtener estado texto
         const getEstadoTexto = (premio) => {
             if (!premio) return 'No disponible'
+            
+            // Si está completado
             if (premio.completado) return 'Completado'
+            
+            // Si está bloqueado
             if (!premio.desbloqueado) return 'Bloqueado'
-            if (premio.esta_activo) return 'Activo'
-            return 'En Progreso'
+            
+            // Si está desbloqueado, verificar estado
+            switch (premio.estado) {
+                case 'activo':
+                    return 'En Progreso'
+                case 'completado':
+                    return 'Completado'
+                case 'bloqueado':
+                    return 'Bloqueado'
+                default:
+                    return 'Bloqueado'
+            }
         }
 
         // Métodos para manejo de archivos
@@ -1219,6 +1267,37 @@ export default {
 }
 
 .status-card.status-locked .status-icon {
+    background: var(--gray-400);
+    color: white;
+}
+
+/* Estados dinámicos basados en getEstadoTexto */
+.status-card.status-en_progreso {
+    border-color: var(--primary-blue);
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+}
+
+.status-card.status-en_progreso .status-icon {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.status-card.status-completado {
+    border-color: var(--success-green);
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+}
+
+.status-card.status-completado .status-icon {
+    background: var(--success-green);
+    color: white;
+}
+
+.status-card.status-bloqueado {
+    border-color: var(--gray-300);
+    background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+}
+
+.status-card.status-bloqueado .status-icon {
     background: var(--gray-400);
     color: white;
 }

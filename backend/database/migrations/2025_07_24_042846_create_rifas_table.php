@@ -17,6 +17,7 @@ return new class extends Migration
             $table->text('descripcion');
             $table->decimal('precio_boleto', 10, 2);
             $table->integer('boletos_minimos'); // Cambiado de total_boletos
+            $table->integer('boletos_maximos')->nullable(); // Puede ser null si no hay límite
             $table->integer('boletos_vendidos')->default(0);
             $table->string('imagen_principal')->nullable();
             $table->json('imagenes_adicionales')->nullable();
@@ -24,7 +25,7 @@ return new class extends Migration
             $table->date('fecha_inicio');
             $table->date('fecha_fin');
             $table->datetime('fecha_sorteo');
-            $table->enum('estado', ['en_venta', 'confirmada', 'sorteada', 'cancelada'])->default('en_venta');
+            $table->enum('estado', ['borrador', 'activa', 'pausada', 'finalizada', 'cancelada'])->default('borrador');
             $table->enum('tipo', ['actual', 'futura'])->default('futura');
             $table->unsignedBigInteger('categoria_id')->nullable();
             $table->string('codigo_unico', 20)->unique();
