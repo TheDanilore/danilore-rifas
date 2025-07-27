@@ -1,16 +1,11 @@
 import axios from 'axios'
-
-// Configuración base de la API
-const API_BASE_URL = 'http://localhost:8000/api/v1'
+import { backendConfig } from '../config/backend.js'
 
 // Crear instancia de axios
 const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  },
-  timeout: 10000 // 10 segundos de timeout
+  baseURL: backendConfig.API_BASE_URL,
+  headers: backendConfig.DEFAULT_HEADERS,
+  timeout: backendConfig.TIMEOUT
 })
 
 // Interceptor para agregar el token de autenticación
@@ -80,4 +75,4 @@ apiClient.interceptors.response.use(
 )
 
 export default apiClient
-export { API_BASE_URL }
+export { backendConfig }

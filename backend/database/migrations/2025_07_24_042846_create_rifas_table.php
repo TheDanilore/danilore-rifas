@@ -25,7 +25,7 @@ return new class extends Migration
             $table->date('fecha_inicio');
             $table->date('fecha_fin');
             $table->datetime('fecha_sorteo');
-            $table->enum('estado', ['borrador', 'activa', 'pausada', 'finalizada', 'cancelada'])->default('borrador');
+            $table->enum('estado', ['borrador', 'activa', 'bloqueada', 'pausada', 'finalizada', 'cancelada'])->default('borrador');
             $table->enum('tipo', ['actual', 'futura'])->default('futura');
             $table->unsignedBigInteger('categoria_id')->nullable();
             $table->string('codigo_unico', 20)->unique();

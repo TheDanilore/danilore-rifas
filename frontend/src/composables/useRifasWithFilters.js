@@ -51,8 +51,14 @@ export function useRifasWithFilters() {
     try {
       loading.value = true
       error.value = null
-      const data = await rifaService.getAllRifasWithBlocked()
-      rifas.value = data
+      
+      // Cargar todas las rifas usando los endpoints enriquecidos
+      const [rifasActuales, rifasFuturas] = await Promise.all([
+        rifaService.getRifasActuales(),
+        rifaService.getRifasFuturas()
+      ])
+      
+      rifas.value = [...rifasActuales, ...rifasFuturas]
     } catch (err) {
       error.value = err.message
       console.error('Error loading rifas:', err)

@@ -21,6 +21,7 @@ class Nivel extends Model
         'tickets_necesarios',
         'valor_aproximado',
         'imagen',
+        'media_gallery',
         'orden',
         'desbloqueado',
         'es_actual',
@@ -35,7 +36,8 @@ class Nivel extends Model
         'desbloqueado' => 'boolean',
         'es_actual' => 'boolean',
         'fecha_desbloqueo' => 'datetime',
-        'especificaciones' => 'json'
+        'especificaciones' => 'json',
+        'media_gallery' => 'json'
     ];
 
     // Relaciones

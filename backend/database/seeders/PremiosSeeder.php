@@ -17,7 +17,7 @@ class PremiosSeeder extends Seeder
         $rifaMacbook = DB::table('rifas')->where('codigo_unico', 'MACBOOKM3001')->first();
 
         if ($rifaIphone) {
-            // Premio 1: AirPods Pro (iPhone)
+            // Premio 1: AirPods Pro (COMPLETADO - 200 tickets alcanzados)
             $premio1 = DB::table('premios')->insertGetId([
                 'rifa_id' => $rifaIphone->id,
                 'codigo' => 'p1',
@@ -31,13 +31,14 @@ class PremiosSeeder extends Seeder
                 ]),
                 'orden' => 1,
                 'premio_requerido_id' => null,
-                'estado' => 'activo',
+                'estado' => 'completado', // ✅ COMPLETADO
                 'desbloqueado' => true,
+                'fecha_completado' => now()->subDays(5),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
 
-            // Premio 2: iPad Air (iPhone)
+            // Premio 2: iPad Air (COMPLETADO - 500 tickets alcanzados)
             $premio2 = DB::table('premios')->insertGetId([
                 'rifa_id' => $rifaIphone->id,
                 'codigo' => 'p2',
@@ -51,13 +52,14 @@ class PremiosSeeder extends Seeder
                 ]),
                 'orden' => 2,
                 'premio_requerido_id' => $premio1,
-                'estado' => 'bloqueado',
-                'desbloqueado' => false,
+                'estado' => 'completado', // ✅ COMPLETADO
+                'desbloqueado' => true,
+                'fecha_completado' => now()->subDays(2),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
 
-            // Premio 3: iPhone 15 Pro Max (iPhone) - Premio final
+            // Premio 3: iPhone 15 Pro Max (ACTIVO - En progreso)
             DB::table('premios')->insert([
                 'rifa_id' => $rifaIphone->id,
                 'codigo' => 'p3',
@@ -72,8 +74,9 @@ class PremiosSeeder extends Seeder
                 ]),
                 'orden' => 3,
                 'premio_requerido_id' => $premio2,
-                'estado' => 'bloqueado',
-                'desbloqueado' => false,
+                'estado' => 'activo', // ✅ ACTIVO (en progreso)
+                'desbloqueado' => true,
+                'fecha_completado' => null,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

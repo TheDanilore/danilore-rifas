@@ -41,7 +41,7 @@ const routes = [
     props: true
   },
   {
-    path: '/premio/:rifaId/:premioId',
+    path: '/premio/:codigoUnico/:codigoPremio',
     name: 'PremioDetail',
     component: PremioDetail,
     props: true

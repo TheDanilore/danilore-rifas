@@ -61,22 +61,33 @@ export const validatePhone = (phone) => {
 // Utilidades de estado
 export const getEstadoTexto = (estado) => {
   const estados = {
-    en_venta: "En Venta",
-    confirmada: "Confirmada",
-    sorteada: "Sorteada",
+    borrador: "Borrador",
+    activa: "En Progreso",
+    pausada: "Pausada",
+    finalizada: "Finalizada",
     cancelada: "Cancelada",
-    bloqueada: "Bloqueada"
+    bloqueada: "Bloqueada",
+    proximamente: "Próximamente",
+    // Estados legacy para compatibilidad
+    en_venta: "En Progreso",
+    confirmada: "Finalizada",
+    sorteada: "Finalizada"
   }
   return estados[estado] || estado
 }
 
 export const getButtonText = (estado) => {
   const buttonTexts = {
+    borrador: "No Disponible",
+    activa: "Participar Ahora",
+    pausada: "Pausada",
+    finalizada: "Ver Sorteo",
+    cancelada: "No Disponible",
+    bloqueada: "🔒 Bloqueada",
+    // Estados legacy para compatibilidad
     en_venta: "Participar Ahora",
     confirmada: "Ver Sorteo",
-    sorteada: "Ver Ganador",
-    cancelada: "No Disponible",
-    bloqueada: "🔒 Bloqueada"
+    sorteada: "Ver Ganador"
   }
   return buttonTexts[estado] || "Participar"
 }

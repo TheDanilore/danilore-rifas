@@ -137,7 +137,7 @@
                             'milestone-pending': !milestone.completed && !milestone.active
                           }"
                           :style="{ left: `${milestone.position}%` }"
-                          :title="`${milestone.title} - ${milestone.tickets} tickets`"
+                          @click="handleMilestoneClick(milestone, $event)"
                         >
                           <div class="milestone-marker">
                             <i v-if="milestone.completed" class="fas fa-check"></i>
@@ -148,7 +148,74 @@
                       </div>
                     </div>
                     
-                    
+                    <!-- Modal de detalles del nivel posicionado -->
+                    <div v-if="levelDetailModal" class="level-detail-tooltip" 
+                         :style="{ 
+                           left: `${modalPosition.x}px`, 
+                           top: `${modalPosition.y}px`,
+                           transform: 'translateX(-50%) translateY(-100%)'
+                         }"
+                         @click.stop>
+                      <div class="tooltip-arrow"></div>
+                      
+                      <div class="tooltip-header">
+                        <h4 class="tooltip-title">{{ selectedLevel?.premio_titulo }}</h4>
+                        <button class="tooltip-close" @click="closeLevelDetailModal">
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </div>
+                      
+                      <div class="tooltip-content" v-if="selectedLevel">
+                        <div class="tooltip-level-info">
+                          <div class="tooltip-level-image" v-if="selectedLevel.imagen">
+                            <img :src="selectedLevel.imagen" :alt="selectedLevel.nivel_titulo" @error="handleImageError">
+                          </div>
+                          
+                          <div class="tooltip-level-details">
+                            <h5 class="tooltip-level-title">{{ selectedLevel.nivel_titulo }}</h5>
+                            <p class="tooltip-level-description" v-if="selectedLevel.nivel_descripcion">
+                              {{ selectedLevel.nivel_descripcion }}
+                            </p>
+                            
+                            <div class="tooltip-level-stats">
+                              <div class="tooltip-stat-item">
+                                <i class="fas fa-ticket-alt"></i>
+                                <span>{{ selectedLevel.tickets }} tickets</span>
+                              </div>
+                              
+                              <div class="tooltip-stat-item" v-if="selectedLevel.valor_aproximado">
+                                <i class="fas fa-tag"></i>
+                                <span>S/ {{ selectedLevel.valor_aproximado.toFixed(2) }}</span>
+                              </div>
+                              
+                              <div class="tooltip-stat-item">
+                                <i class="fas fa-flag"></i>
+                                <span :class="{
+                                  'status-completed': selectedLevel.completed,
+                                  'status-active': selectedLevel.active,
+                                  'status-pending': !selectedLevel.completed && !selectedLevel.active
+                                }">
+                                  <i v-if="selectedLevel.completed" class="fas fa-check"></i>
+                                  <i v-else-if="selectedLevel.active" class="fas fa-clock"></i>
+                                  <i v-else class="fas fa-lock"></i>
+                                  {{ selectedLevel.completed ? 'Completado' : selectedLevel.active ? 'En Progreso' : 'Bloqueado' }}
+                                </span>
+                              </div>
+                            </div>
+                            
+                            <div class="tooltip-specifications" v-if="selectedLevel.especificaciones && Object.keys(selectedLevel.especificaciones).length > 0">
+                              <h6>Especificaciones:</h6>
+                              <div class="tooltip-specs-grid">
+                                <div v-for="(value, key) in selectedLevel.especificaciones" :key="key" class="tooltip-spec-item">
+                                  <span class="tooltip-spec-label">{{ key.charAt(0).toUpperCase() + key.slice(1) }}:</span>
+                                  <span class="tooltip-spec-value">{{ value }}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -318,6 +385,9 @@
       </div>
     </section>
 
+    <!-- Overlay para cerrar tooltip al hacer clic fuera -->
+    <div v-if="levelDetailModal" class="tooltip-overlay" @click="closeLevelDetailModal"></div>
+
     <!-- Footer -->
     <AppFooter />
   </div>
@@ -325,6 +395,7 @@
 
 <script>
 import { useRouter } from 'vue-router'
+import { ref } from 'vue'
 import AppHeader from '@/components/AppHeader.vue'
 import AppFooter from '@/components/AppFooter.vue'
 import { useRifasWithFilters } from '@/composables/useRifasWithFilters'
@@ -339,6 +410,11 @@ export default {
   setup() {
     const router = useRouter()
     const { isAuthenticated } = useAuthStore()
+    
+    // Estado para modal de detalles del nivel
+    const levelDetailModal = ref(false)
+    const selectedLevel = ref(null)
+    const modalPosition = ref({ x: 0, y: 0 })
     
     // Usar el composable de filtros
     const {
@@ -359,9 +435,12 @@ export default {
     // Métodos para navegación
     const handlePremioClick = (rifaId, premio) => {
       // Navegar directamente sin verificar autenticación (vista pública)
-      console.log('Navegando a premio:', rifaId, premio.codigo, premio)
+      const rifa = filteredRifas.value.find(r => r.id === rifaId)
+      const rifaCodigo = rifa?.codigo_unico || rifa?.codigo || rifaId
       const codigoPremio = premio.codigo || `p${premio.orden}` || 'p1'
-      router.push(`/premio/${rifaId}/${codigoPremio}`)
+      
+      console.log('Navegando a premio:', rifaCodigo, codigoPremio, premio)
+      router.push(`/premio/${rifaCodigo}/${codigoPremio}`)
     }
 
     const handlePremioAction = (rifaId, premio) => {
@@ -370,8 +449,10 @@ export default {
         return
       }
 
+      const rifa = filteredRifas.value.find(r => r.id === rifaId)
+      const rifaCodigo = rifa?.codigo_unico || rifa?.codigo || rifaId
       const codigoPremio = premio.codigo || `p${premio.orden}` || 'p1'
-      router.push(`/premio/${rifaId}/${codigoPremio}`)
+      router.push(`/premio/${rifaCodigo}/${codigoPremio}`)
     }
 
     const handleRifaClick = (rifa) => {
@@ -389,6 +470,26 @@ export default {
         month: 'long',
         year: 'numeric'
       })
+    }
+
+    // Funciones para modal de detalles del nivel
+    const handleMilestoneClick = (milestone, event) => {
+      const rect = event.target.getBoundingClientRect()
+      const containerRect = event.target.closest('.progress-with-milestones').getBoundingClientRect()
+      
+      // Calcular posición relativa al contenedor de progreso
+      modalPosition.value = {
+        x: rect.left - containerRect.left + (rect.width / 2),
+        y: rect.top - containerRect.top - 10 // Un poco arriba del milestone
+      }
+      
+      selectedLevel.value = milestone
+      levelDetailModal.value = true
+    }
+
+    const closeLevelDetailModal = () => {
+      levelDetailModal.value = false
+      selectedLevel.value = null
     }
 
     // Obtener cantidad de premios completados
@@ -455,7 +556,14 @@ export default {
           tickets: nivel.tickets_necesarios,
           position: Math.min(position, 100),
           completed,
-          active
+          active,
+          // Datos adicionales para el tooltip
+          premio_titulo: nivel.premio_titulo,
+          nivel_titulo: nivel.titulo,
+          nivel_descripcion: nivel.descripcion,
+          valor_aproximado: nivel.valor_aproximado,
+          imagen: nivel.imagen,
+          especificaciones: nivel.especificaciones
         })
       })
 
@@ -496,11 +604,86 @@ export default {
       formatDate,
       handleImageError,
       getDefaultPremioImage,
-      getPremiosCompletados,
-      getSiguienteMeta,
-      getProgressPercentage,
-      getProgressMilestones,
-      isAuthenticated
+      isAuthenticated,
+      
+      // Modal de detalles del nivel
+      levelDetailModal,
+      selectedLevel,
+      modalPosition,
+      handleMilestoneClick,
+      closeLevelDetailModal,
+      
+      // Funciones actualizadas para usar datos del backend
+      getPremiosCompletados: (rifaId) => {
+        const rifa = filteredRifas.value.find(r => r.id === rifaId)
+        if (!rifa || !rifa.progreso_general) {
+          return 0
+        }
+        return rifa.progreso_general.niveles_completados || 0
+      },
+      
+      getSiguienteMeta: (rifaId) => {
+        const rifa = filteredRifas.value.find(r => r.id === rifaId)
+        if (!rifa || !rifa.progreso_general || !rifa.progreso_general.todos_los_niveles) {
+          return 'Sin datos'
+        }
+        
+        const nivelesRestantes = rifa.progreso_general.todos_los_niveles
+          .filter(n => !n.completado)
+          .sort((a, b) => a.tickets_necesarios - b.tickets_necesarios)
+        
+        if (nivelesRestantes.length > 0) {
+          return `${nivelesRestantes[0].tickets_necesarios} tickets`
+        }
+        
+        return 'Meta alcanzada'
+      },
+      
+      getProgressPercentage: (rifa) => {
+        // Usar datos calculados del backend
+        if (rifa.progreso_general) {
+          return rifa.progreso_general.porcentaje || 0
+        }
+        
+        // Fallback si no hay datos del backend
+        const maxTickets = 1500 // Máximo basado en los datos reales
+        return Math.min((rifa.ticketsVendidos / maxTickets) * 100, 100)
+      },
+      
+      getProgressMilestones: (rifaId) => {
+        const rifa = filteredRifas.value.find(r => r.id === rifaId)
+        if (!rifa || !rifa.progreso_general || !rifa.progreso_general.todos_los_niveles) {
+          return []
+        }
+
+        const milestones = []
+        const todosLosNiveles = rifa.progreso_general.todos_los_niveles
+        const maxTickets = Math.max(...todosLosNiveles.map(n => n.tickets_necesarios))
+
+        todosLosNiveles.forEach((nivel, index) => {
+          const position = (nivel.tickets_necesarios / maxTickets) * 100
+          const completed = nivel.completado
+          const active = !completed && rifa.ticketsVendidos < nivel.tickets_necesarios
+
+          milestones.push({
+            id: `nivel-${nivel.id}`,
+            title: `${nivel.premio_titulo} - ${nivel.titulo}`,
+            tickets: nivel.tickets_necesarios,
+            position: Math.min(position, 100),
+            completed,
+            active,
+            // Información adicional para el modal
+            premio_titulo: nivel.premio_titulo,
+            nivel_titulo: nivel.titulo,
+            nivel_descripcion: nivel.descripcion || '',
+            valor_aproximado: nivel.valor_aproximado || 0,
+            especificaciones: nivel.especificaciones || {},
+            imagen: nivel.imagen || ''
+          })
+        })
+
+        return milestones.sort((a, b) => a.tickets - b.tickets)
+      }
     }
   }
 }
@@ -698,6 +881,7 @@ export default {
 /* Barra de progreso con hitos */
 .progress-with-milestones {
   margin-top: 1.5rem;
+  position: relative; /* Necesario para posicionar el tooltip */
 }
 
 .progress-bar-container {
@@ -736,6 +920,11 @@ export default {
 
 .milestone:hover {
   transform: translateX(-50%) translateY(-3px);
+}
+
+.milestone:hover .milestone-marker {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 .milestone-marker {
@@ -1609,6 +1798,430 @@ export default {
   .error-state,
   .empty-state {
     padding: 2rem 1rem;
+  }
+}
+
+/* Modal de detalles del nivel */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.level-detail-modal {
+  background: var(--white);
+  border-radius: var(--border-radius-lg);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modalSlideUp 0.3s ease-out;
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--gray-200);
+  background: linear-gradient(135deg, var(--primary-purple), var(--primary-indigo));
+  color: var(--white);
+  border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--white);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: var(--border-radius);
+  transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-content {
+  padding: 1.5rem;
+}
+
+.level-info {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.level-image {
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.level-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.level-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.level-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin: 0;
+}
+
+.level-description {
+  color: var(--gray-600);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.level-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--gray-50);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--gray-200);
+}
+
+.stat-item i {
+  color: var(--primary-purple);
+  width: 16px;
+  text-align: center;
+}
+
+.stat-label {
+  color: var(--gray-600);
+  font-weight: 500;
+  min-width: 120px;
+}
+
+.stat-value {
+  font-weight: 600;
+  color: var(--gray-800);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stat-value.status-completed {
+  color: var(--success-green);
+}
+
+.stat-value.status-active {
+  color: var(--primary-blue);
+}
+
+.stat-value.status-pending {
+  color: var(--gray-500);
+}
+
+.level-specifications {
+  margin-top: 1rem;
+}
+
+.level-specifications h5 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin: 0 0 0.75rem 0;
+}
+
+.specs-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+.spec-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: var(--gray-50);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--gray-200);
+}
+
+.spec-label {
+  color: var(--gray-600);
+  font-weight: 500;
+}
+
+.spec-value {
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+/* Responsive para el modal */
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 0.5rem;
+  }
+
+  .level-detail-modal {
+    max-height: 95vh;
+  }
+
+  .level-info {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .level-image {
+    max-width: 200px;
+    margin: 0 auto;
+  }
+
+  .modal-header {
+    padding: 1rem;
+  }
+
+  .modal-content {
+    padding: 1rem;
+  }
+
+  .stat-label {
+    min-width: auto;
+    flex: 1;
+  }
+}
+
+/* Tooltip de detalles del nivel */
+.tooltip-overlay {
+  position: fixed;
+  inset: 0;
+  background: transparent;
+  z-index: 1000;
+}
+
+.level-detail-tooltip {
+  position: absolute;
+  background: var(--white);
+  border-radius: var(--border-radius-lg);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--gray-200);
+  padding: 0;
+  z-index: 1001;
+  width: 320px;
+  max-width: 90vw;
+}
+
+.tooltip-arrow {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 16px;
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-top: none;
+  border-left: none;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.tooltip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid var(--gray-200);
+  background: var(--gray-50);
+  border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+}
+
+.tooltip-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+.tooltip-close {
+  background: none;
+  border: none;
+  color: var(--gray-500);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: var(--border-radius-sm);
+  transition: all 0.2s ease;
+}
+
+.tooltip-close:hover {
+  background: var(--gray-200);
+  color: var(--gray-700);
+}
+
+.tooltip-content {
+  padding: 1rem;
+}
+
+.tooltip-level-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tooltip-level-image {
+  width: 100%;
+  height: 120px;
+  overflow: hidden;
+  border-radius: var(--border-radius-md);
+  background: var(--gray-100);
+}
+
+.tooltip-level-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tooltip-level-details {
+  flex: 1;
+}
+
+.tooltip-level-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+.tooltip-level-description {
+  margin: 0 0 1rem 0;
+  font-size: 0.875rem;
+  color: var(--gray-600);
+  line-height: 1.4;
+}
+
+.tooltip-level-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tooltip-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.tooltip-stat-item i {
+  color: var(--primary-purple);
+  width: 16px;
+  text-align: center;
+}
+
+.status-completed {
+  color: var(--success-green);
+}
+
+.status-active {
+  color: var(--warning-yellow);
+}
+
+.status-pending {
+  color: var(--gray-500);
+}
+
+.tooltip-specifications {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--gray-200);
+}
+
+.tooltip-specifications h6 {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--gray-700);
+}
+
+.tooltip-specs-grid {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.tooltip-spec-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+}
+
+.tooltip-spec-label {
+  font-weight: 500;
+  color: var(--gray-600);
+}
+
+.tooltip-spec-value {
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+/* Responsive del tooltip */
+@media (max-width: 768px) {
+  .level-detail-tooltip {
+    width: 280px;
+  }
+  
+  .tooltip-header {
+    padding: 0.75rem;
+  }
+  
+  .tooltip-content {
+    padding: 0.75rem;
+  }
+  
+  .tooltip-level-image {
+    height: 100px;
   }
 }
 </style>

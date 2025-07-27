@@ -118,14 +118,14 @@
                                     :key="nivel.id"
                                     class="nivel-card"
                                     :class="{ 
-                                        'nivel-unlocked': nivel.desbloqueado,
+                                        'nivel-completed': nivel.completado,
                                         'nivel-current': nivel.es_actual,
-                                        'nivel-pending': !nivel.desbloqueado && !nivel.es_actual
+                                        'nivel-pending': !nivel.completado && !nivel.es_actual
                                     }"
                                 >
                                     <!-- Nivel Header -->
                                     <div class="nivel-header">
-                                        <div class="nivel-number" :class="{ 'unlocked': nivel.desbloqueado }">
+                                        <div class="nivel-number" :class="{ 'unlocked': nivel.completado }">
                                             {{ index + 1 }}
                                         </div>
                                         <div class="nivel-info">
@@ -155,7 +155,7 @@
 
                                     <!-- Nivel Image -->
                                     <div class="nivel-image-container">
-                                        <img :src="nivel.imagen" :alt="nivel.titulo" class="nivel-image" @error="handleImageError">
+                                        <img :src="processImageURL(nivel.imagen)" :alt="nivel.titulo" class="nivel-image" @error="handleImageError">
                                     </div>
 
                                     <!-- Progreso del nivel si es el actual -->
@@ -254,19 +254,11 @@
                         <div class="card-content">
                             <div class="info-item">
                                 <i class="fas fa-layer-group"></i>
-                                <span>{{ premio.niveles?.length || 0 }} niveles</span>
-                            </div>
-                            <div class="info-item">
-                                <i class="fas fa-trophy"></i>
-                                <span>Premio {{ premio.orden }} de {{ totalPremios }}</span>
+                                <span>Nivel: {{ premio.niveles?.filter(n => n.completado).length || 0 }}/{{ premio.niveles?.length || 0 }}</span>
                             </div>
                             <div class="info-item">
                                 <i class="fas fa-clock"></i>
                                 <span>{{ getEstadoTexto(premio) }}</span>
-                            </div>
-                            <div v-if="premio.desbloqueado" class="info-item">
-                                <i class="fas fa-check-circle"></i>
-                                <span>{{ premio.niveles?.filter(n => n.completado).length || 0 }} completados</span>
                             </div>
                         </div>
                     </div>
@@ -283,16 +275,16 @@
                                     <span class="detail-value">{{ getTicketsVendidos() }}</span>
                                 </div>
                                 <div class="progress-detail-item">
-                                    <span class="detail-label">{{ nivelActual ? 'Meta del Nivel Actual:' : 'Meta del Primer Nivel:' }}</span>
-                                    <span class="detail-value">{{ metaNivelActual || 'No definida' }}</span>
+                                    <span class="detail-label">Niveles Completados:</span>
+                                    <span class="detail-value">{{ getNivelesProgreso() }} niveles</span>
                                 </div>
                                 <div class="progress-detail-item">
-                                    <span class="detail-label">Progreso:</span>
+                                    <span class="detail-label">Progreso del Premio:</span>
                                     <span class="detail-value">{{ getProgresoPercentage() }}%</span>
                                 </div>
                             </div>
                             
-                            <!-- Barra de progreso del nivel actual -->
+                            <!-- Barra de progreso del premio completo -->
                             <div class="rifa-progress-bar-container">
                                 <div class="rifa-progress-bar">
                                     <div class="progress-fill" :style="{ width: `${getProgresoPercentage()}%` }"></div>
@@ -538,6 +530,8 @@ import AppFooter from '@/components/AppFooter.vue'
 import MediaGallery from '@/components/MediaGallery.vue'
 import { usePremioDetail } from '@/composables/usePremioDetail'
 import { useAuthStore } from '@/store/auth'
+import { rifaService } from '@/services/rifaService'
+import { backendConfig } from '@/config/backend.js'
 import { copyToClipboard, showNotification } from '@/utils/helpers'
 
 export default {
@@ -550,8 +544,8 @@ export default {
     setup() {
         const route = useRoute()
         const router = useRouter()
-        const rifaId = computed(() => route.params.rifaId)
-        const premioId = computed(() => route.params.premioId)
+        const rifaId = computed(() => route.params.codigoUnico)
+        const premioId = computed(() => route.params.codigoPremio)
         const { isAuthenticated } = useAuthStore()
 
         const {
@@ -591,45 +585,79 @@ export default {
             return rifaActual.value?.total_premios || rifaActual.value?.premios?.length || 0
         })
 
-        // Computed para crear la estructura de media gallery
+        // Computed para crear la estructura de media gallery con imágenes de niveles
         const premioMediaGallery = computed(() => {
-            console.log('PremioDetail - Generando premioMediaGallery:', {
+            console.log('PremioDetail - Generando premioMediaGallery con niveles:', {
                 premio: premio.value,
-                media_gallery: premio.value?.media_gallery,
-                imagen_principal: premio.value?.imagen_principal
+                niveles: premio.value?.niveles
             })
             
-            // Si hay media_gallery, procesarla
-            if (premio.value?.media_gallery && Array.isArray(premio.value.media_gallery) && premio.value.media_gallery.length > 0) {
-                console.log('Procesando media_gallery array:', premio.value.media_gallery)
+            // Si hay niveles, usar las imágenes de los niveles
+            if (premio.value?.niveles && Array.isArray(premio.value.niveles) && premio.value.niveles.length > 0) {
+                console.log('Procesando imágenes de niveles:', premio.value.niveles)
                 
-                const images = premio.value.media_gallery.map((imagePath, index) => ({
-                    url: imagePath.startsWith('http') ? imagePath : `http://localhost:8000${imagePath}`,
-                    alt: `${premio.value.titulo} - Imagen ${index + 1}`,
-                    isMain: index === 0
-                }))
+                const images = []
+                
+                // Recopilar todas las imágenes de todos los niveles
+                premio.value.niveles.forEach((nivel, nivelIndex) => {
+                    console.log(`Procesando nivel ${nivelIndex + 1} (${nivel.titulo}):`, {
+                        imagen: nivel.imagen,
+                        media_gallery: nivel.media_gallery,
+                        tieneMediaGallery: nivel.media_gallery && Array.isArray(nivel.media_gallery),
+                        cantidadImagenes: nivel.media_gallery ? nivel.media_gallery.length : 0
+                    })
+                    
+                    // Imagen principal del nivel
+                    if (nivel.imagen) {
+                        images.push({
+                            url: nivel.imagen.startsWith('http') ? nivel.imagen : `${backendConfig.BASE_URL}${nivel.imagen}`,
+                            alt: `${nivel.titulo} - ${premio.value.titulo}`,
+                            isMain: nivelIndex === 0 && images.length === 0,
+                            nivel: nivel.titulo,
+                            descripcion: nivel.descripcion
+                        })
+                    }
+                    
+                    // Media gallery del nivel
+                    if (nivel.media_gallery && Array.isArray(nivel.media_gallery) && nivel.media_gallery.length > 0) {
+                        console.log(`Agregando ${nivel.media_gallery.length} imágenes del media_gallery de ${nivel.titulo}`)
+                        nivel.media_gallery.forEach((imagePath, imageIndex) => {
+                            images.push({
+                                url: imagePath.startsWith('http') ? imagePath : `${backendConfig.BASE_URL}${imagePath}`,
+                                alt: `${nivel.titulo} - Imagen ${imageIndex + 1}`,
+                                isMain: false,
+                                nivel: nivel.titulo,
+                                descripcion: nivel.descripcion
+                            })
+                        })
+                    } else {
+                        console.log(`Nivel ${nivel.titulo} no tiene media_gallery o está vacío`)
+                    }
+                })
                 
                 const galleryStructure = {
                     images: images,
                     videos: []
                 }
                 
-                console.log('Media gallery structure creada:', galleryStructure)
+                console.log('Media gallery de niveles creada:', galleryStructure)
                 return galleryStructure
             }
             
-            // Si hay imagen principal, crear estructura
+            // Fallback: Si hay imagen principal del premio, usarla
             if (premio.value?.imagen_principal) {
                 const imageUrl = premio.value.imagen_principal.startsWith('http') ? 
                                 premio.value.imagen_principal : 
-                                `http://localhost:8000${premio.value.imagen_principal}`
+                                `${backendConfig.BASE_URL}${premio.value.imagen_principal}`
                 
-                console.log('Usando imagen_principal:', imageUrl)
+                console.log('Usando imagen_principal como fallback:', imageUrl)
                 return {
                     images: [{
                         url: imageUrl,
                         alt: premio.value.titulo || 'Premio',
-                        isMain: true
+                        isMain: true,
+                        nivel: 'Principal',
+                        descripcion: premio.value.descripcion
                     }],
                     videos: []
                 }
@@ -639,9 +667,11 @@ export default {
             console.log('Usando imagen por defecto')
             return {
                 images: [{
-                    url: 'http://localhost:8000/images/sin_imagen.png',
+                    url: `${backendConfig.BASE_URL}/images/sin_imagen.png`,
                     alt: 'Sin imagen disponible',
-                    isMain: true
+                    isMain: true,
+                    nivel: 'Sin imagen',
+                    descripcion: 'No hay imágenes disponibles'
                 }],
                 videos: []
             }
@@ -649,12 +679,19 @@ export default {
 
         // Computed para el nivel actual del premio
         const nivelActual = computed(() => {
-            return getNivelActual()
+            if (!premio.value?.niveles) return null
+            return premio.value.niveles.find(n => n.es_actual) || null
         })
 
         // Meta del nivel actual (tickets necesarios)
         const metaNivelActual = computed(() => {
-            return nivelActual.value?.tickets_necesarios || 0
+            if (nivelActual.value) {
+                return nivelActual.value.tickets_necesarios
+            }
+            
+            // Si no hay nivel actual, buscar el primer nivel pendiente
+            const primerNivel = premio.value?.niveles?.[0]
+            return primerNivel?.tickets_necesarios || 0
         })
 
         // Tickets del usuario para este premio específico
@@ -739,12 +776,39 @@ export default {
             return Math.min((actual / objetivo) * 100, 100)
         }
 
-        // Función para obtener el progreso porcentual
+        // Función para obtener el progreso porcentual del premio completo
         const getProgresoPercentage = () => {
-            const ticketsVendidos = getTicketsVendidos()
-            const meta = metaNivelActual.value || 0
-            if (!meta || meta === 0) return 0
-            return Math.min(Math.round((ticketsVendidos / meta) * 100), 100)
+            if (!premio.value?.niveles || premio.value.niveles.length === 0) return 0
+            
+            // Debug: Verificar datos de niveles
+            console.log('Debug getProgresoPercentage:', {
+                premio: premio.value,
+                niveles: premio.value.niveles,
+                nivelesDetalle: premio.value.niveles.map(n => ({
+                    codigo: n.codigo,
+                    titulo: n.titulo,
+                    desbloqueado: n.desbloqueado,
+                    es_actual: n.es_actual
+                }))
+            })
+            
+            // Contar niveles completados (desbloqueados)
+            const nivelesCompletados = premio.value.niveles.filter(nivel => nivel.desbloqueado).length
+            const totalNiveles = premio.value.niveles.length
+            
+            console.log('Debug progreso:', { nivelesCompletados, totalNiveles })
+            
+            return Math.round((nivelesCompletados / totalNiveles) * 100)
+        }
+
+        // Función para obtener niveles completados vs total
+        const getNivelesProgreso = () => {
+            if (!premio.value?.niveles || premio.value.niveles.length === 0) return '0/0'
+            
+            const nivelesCompletados = premio.value.niveles.filter(nivel => nivel.desbloqueado).length
+            const totalNiveles = premio.value.niveles.length
+            
+            return `${nivelesCompletados}/${totalNiveles}`
         }
 
         // Función para obtener tickets vendidos
@@ -874,6 +938,11 @@ export default {
             loadPremio()
         })
 
+        // Método para procesar URLs de imágenes
+        const processImageURL = (imagePath) => {
+            return rifaService.processImageURL(imagePath)
+        }
+
         return {
             rifaActual,
             premio,
@@ -898,8 +967,10 @@ export default {
             formatDate,
             getProgressPercentage,
             getProgresoPercentage,
+            getNivelesProgreso,
             getTicketsVendidos,
             getEstadoTexto,
+            processImageURL,
             // Variables y métodos para archivos
             selectedFile,
             filePreview,
@@ -1370,10 +1441,21 @@ export default {
     background: linear-gradient(135deg, #f0fdf4, #dcfce7);
 }
 
+.nivel-card.nivel-completed {
+    border-color: var(--success-green);
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+}
+
 .nivel-card.nivel-current {
     border-color: var(--primary-blue);
     background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
     box-shadow: 0 0 0 1px var(--primary-blue);
+}
+
+.nivel-card.nivel-pending {
+    border-color: var(--gray-300);
+    background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+    opacity: 0.7;
 }
 
 .nivel-header {

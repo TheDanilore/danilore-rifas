@@ -28,13 +28,18 @@ class PremioController extends Controller
 
     /**
      * Display the specified resource.
-     * Obtener premio específico por rifa ID y código de premio
+     * Obtener premio específico por código único de rifa y código de premio
      */
-    public function show(string $rifaId, string $codigoPremio): JsonResponse
+    public function show(string $rifaCodigoUnico, string $codigoPremio): JsonResponse
     {
         try {
-            // Buscar la rifa
-            $rifa = Rifa::findOrFail($rifaId);
+            // Buscar la rifa por codigo_unico en lugar de ID
+            $rifa = Rifa::where('codigo_unico', $rifaCodigoUnico)->firstOrFail();
+            
+            // Verificar si la rifa permite participación
+            $rifaPuedeParticipar = $this->puedeParticipar($rifa);
+            $rifaEstaBloquada = !$rifaPuedeParticipar;
+            $rifaRazonBloqueo = $rifaEstaBloquada ? $this->getRazonBloqueo($rifa) : null;
             
             // Buscar el premio específico con sus relaciones
             $premio = Premio::with([
@@ -45,12 +50,36 @@ class PremioController extends Controller
                 'rifa',
                 'premioRequerido'
             ])
-            ->where('rifa_id', $rifaId)
+            ->where('rifa_id', $rifa->id)
             ->where('codigo', $codigoPremio)
             ->firstOrFail();
 
             // Calcular el progreso de cada nivel usando progreso_premios
-            $nivelesConProgreso = $premio->niveles->map(function($nivel) use ($rifa, $premio) {
+            $nivelesConProgreso = $premio->niveles->map(function($nivel) use ($rifa, $premio, $rifaEstaBloquada, $rifaRazonBloqueo) {
+                // Si la rifa está bloqueada, todos los niveles están bloqueados
+                if ($rifaEstaBloquada) {
+                    return [
+                        'id' => $nivel->id,
+                        'titulo' => $nivel->titulo,
+                        'descripcion' => $nivel->descripcion,
+                        'tickets_necesarios' => $nivel->tickets_necesarios,
+                        'valor_aproximado' => $nivel->valor_aproximado,
+                        'imagen' => $nivel->imagen,
+                        'media_gallery' => $nivel->media_gallery,
+                        'orden' => $nivel->orden,
+                        'desbloqueado' => false,
+                        'completado' => false,
+                        'es_actual' => false,
+                        'progreso' => 0,
+                        'tickets_restantes' => $nivel->tickets_necesarios,
+                        'tickets_actuales' => 0,
+                        'objetivo_alcanzado' => false,
+                        'fecha_alcanzado' => null,
+                        'estado_bloqueo' => 'Rifa Bloqueada',
+                        'razon_bloqueo' => $rifaRazonBloqueo
+                    ];
+                }
+                
                 // Buscar el progreso específico para este nivel
                 $progresoNivel = \App\Models\ProgresoPremio::where('premio_id', $premio->id)
                                                            ->where('nivel_id', $nivel->id)
@@ -82,8 +111,10 @@ class PremioController extends Controller
                     'tickets_necesarios' => $nivel->tickets_necesarios,
                     'valor_aproximado' => $nivel->valor_aproximado,
                     'imagen' => $nivel->imagen,
+                    'media_gallery' => $nivel->media_gallery, // ✅ Agregar campo media_gallery
                     'orden' => $nivel->orden,
-                    'completado' => $completado,
+                    'desbloqueado' => $completado, // ✅ Usar 'desbloqueado' para consistencia
+                    'completado' => $completado,   // ✅ Mantener ambos por compatibilidad
                     'es_actual' => $esActual,
                     'progreso' => round($progreso, 2),
                     'tickets_restantes' => $ticketsRestantes,
@@ -152,7 +183,7 @@ class PremioController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Premio no encontrado: ' . $e->getMessage()
+                'message' => 'Premio no encontrado para la rifa ' . $rifaCodigoUnico . ' y premio ' . $codigoPremio . ': ' . $e->getMessage()
             ], 404);
         }
     }
@@ -171,5 +202,78 @@ class PremioController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * Verifica si se puede participar en la rifa asociada al premio.
+     */
+    private function puedeParticipar($rifa)
+    {
+        // Verificar estado
+        if ($rifa->estado !== 'activa') {
+            return false;
+        }
+
+        // Verificar fechas
+        $ahora = now();
+        if ($rifa->fecha_inicio && $ahora < $rifa->fecha_inicio) {
+            return false;
+        }
+        if ($rifa->fecha_fin && $ahora > $rifa->fecha_fin) {
+            return false;
+        }
+
+        // Verificar dependencias de rifas anteriores
+        if ($rifa->rifa_dependiente_id) {
+            $rifaDependiente = \App\Models\Rifa::find($rifa->rifa_dependiente_id);
+            if (!$rifaDependiente || $rifaDependiente->estado !== 'completada') {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Obtiene la razón por la cual no se puede participar en la rifa.
+     */
+    private function getRazonBloqueo($rifa)
+    {
+        // Verificar estado
+        if ($rifa->estado !== 'activa') {
+            switch ($rifa->estado) {
+                case 'borrador':
+                    return 'Rifa en borrador - aún no está disponible';
+                case 'programada':
+                    return 'Rifa programada - aún no ha iniciado';
+                case 'pausada':
+                    return 'Rifa pausada temporalmente';
+                case 'cancelada':
+                    return 'Rifa cancelada';
+                case 'completada':
+                    return 'Rifa ya finalizada';
+                default:
+                    return 'Rifa no disponible';
+            }
+        }
+
+        // Verificar fechas
+        $ahora = now();
+        if ($rifa->fecha_inicio && $ahora < $rifa->fecha_inicio) {
+            return 'Rifa aún no ha iniciado - disponible desde ' . $rifa->fecha_inicio->format('d/m/Y H:i');
+        }
+        if ($rifa->fecha_fin && $ahora > $rifa->fecha_fin) {
+            return 'Rifa ya finalizó el ' . $rifa->fecha_fin->format('d/m/Y H:i');
+        }
+
+        // Verificar dependencias
+        if ($rifa->rifa_dependiente_id) {
+            $rifaDependiente = \App\Models\Rifa::find($rifa->rifa_dependiente_id);
+            if (!$rifaDependiente || $rifaDependiente->estado !== 'completada') {
+                return 'Debes completar la rifa anterior primero';
+            }
+        }
+
+        return 'Rifa disponible';
     }
 }

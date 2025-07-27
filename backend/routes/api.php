@@ -45,7 +45,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/categorias', [CategoriaController::class, 'index']);
 
     // Premios públicos
-    Route::get('/premios/{rifaId}/{codigoPremio}', [PremioController::class, 'show']);
+    Route::get('/premios/{rifaCodigoUnico}/{codigoPremio}', [PremioController::class, 'show']);
 
     // Ventas públicas (consulta por código)
     Route::get('/ventas/{codigo}', [VentaController::class, 'show']);

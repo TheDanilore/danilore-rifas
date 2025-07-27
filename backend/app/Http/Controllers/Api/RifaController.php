@@ -7,6 +7,7 @@ use App\Models\Rifa;
 use App\Models\Premio;
 use App\Models\Nivel;
 use App\Models\ProgresoPremio;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -93,10 +94,13 @@ class RifaController extends Controller
 
         $numerosLibres = array_diff($numerosDisponibles, $boletosOcupados);
 
+        // Enriquecer datos de la rifa
+        $rifaEnriquecida = $this->enrichRifaData($rifa);
+
         return response()->json([
             'success' => true,
             'data' => [
-                'rifa' => $rifa,
+                'rifa' => $rifaEnriquecida,
                 'numeros_disponibles' => array_values($numerosLibres),
                 'numeros_ocupados' => $boletosOcupados,
                 'total_disponibles' => count($numerosLibres)
@@ -180,18 +184,25 @@ class RifaController extends Controller
      */
     public function progreso(string $codigo): JsonResponse
     {
-        $rifa = Rifa::where('codigo_unico', $codigo)->firstOrFail();
+        $rifa = Rifa::with([
+            'categoria',
+            'premios' => function($query) {
+                $query->orderBy('orden');
+            },
+            'premios.niveles' => function($query) {
+                $query->orderBy('orden');
+            },
+            'premios.progreso'
+        ])->where('codigo_unico', $codigo)->firstOrFail();
         
-        $premios = Premio::with(['niveles', 'progreso'])
-            ->where('rifa_id', $rifa->id)
-            ->orderBy('orden')
-            ->get();
+        // Enriquecer datos de la rifa
+        $rifaEnriquecida = $this->enrichRifaData($rifa);
 
         return response()->json([
             'success' => true,
             'data' => [
-                'rifa' => $rifa,
-                'premios' => $premios
+                'rifa' => $rifaEnriquecida,
+                'premios' => $rifaEnriquecida->premios
             ]
         ]);
     }
@@ -538,7 +549,48 @@ class RifaController extends Controller
         $rifa->ticketsMinimos = $rifa->boletos_minimos;
         $rifa->fechaSorteo = $rifa->fecha_sorteo;
         $rifa->nombre = $rifa->titulo;
-        $rifa->imagen = $rifa->imagen_principal;
+        
+        // Validar si la rifa está disponible para participación
+        $rifa->puede_participar = $this->puedeParticipar($rifa);
+        $rifa->esta_bloqueada = !$rifa->puede_participar;
+        $rifa->razon_bloqueo = $this->getRazonBloqueo($rifa);
+        
+        // Procesar imagen principal
+        $rifa->imagen = $this->processImageURL($rifa->imagen_principal);
+
+        // Procesar media_gallery para URLs completas
+        if ($rifa->media_gallery && is_array($rifa->media_gallery)) {
+            $rifa->media_gallery = array_map(function($media) {
+                if (is_array($media) && isset($media['url'])) {
+                    $media['url'] = $this->processImageURL($media['url']);
+                    return $media;
+                } elseif (is_string($media)) {
+                    return $this->processImageURL($media);
+                }
+                return $media;
+            }, $rifa->media_gallery);
+        }
+
+        // Procesar imagenes_adicionales para URLs completas
+        if ($rifa->imagenes_adicionales && is_array($rifa->imagenes_adicionales)) {
+            $rifa->imagenes_adicionales = array_map(function($imagen) {
+                return $this->processImageURL($imagen);
+            }, $rifa->imagenes_adicionales);
+        }
+
+                // Calcular fechas
+        $rifa->fecha_inicio_formatted = Carbon::parse($rifa->fecha_inicio)->format('d/m/Y H:i');
+        $rifa->fecha_fin_formatted = Carbon::parse($rifa->fecha_fin)->format('d/m/Y H:i');
+        $rifa->fecha_fin_formatted_corta = Carbon::parse($rifa->fecha_fin)->format('d/m/Y');
+
+        // Verificar disponibilidad de la rifa
+        $rifa->esta_disponible = $this->puedeParticipar($rifa);
+        $rifa->esta_bloqueada = !$rifa->esta_disponible;
+        
+        // Determinar razón del bloqueo si está bloqueada
+        if ($rifa->esta_bloqueada) {
+            $rifa->razon_bloqueo = $this->getRazonBloqueo($rifa);
+        }
 
         // Calcular datos de progreso para cada premio
         $premiosConProgreso = [];
@@ -554,29 +606,78 @@ class RifaController extends Controller
                 $premioAnteriorCompletado = $premioAnterior ? $premioAnterior->estado === 'completado' : false;
             }
 
-            $premio->desbloqueado = $premioAnteriorCompletado;
-            $premio->completado = $premio->estado === 'completado';
-            $premio->esta_activo = $premio->desbloqueado && !$premio->completado;
-
-            // Determinar texto de estado
-            if ($premio->completado) {
-                $premio->estado_texto = 'Completado';
-            } elseif ($premio->esta_activo) {
-                $premio->estado_texto = 'En Progreso';
+            // Si la rifa está bloqueada, todos los premios están bloqueados
+            if ($rifa->esta_bloqueada) {
+                $premio->desbloqueado = false;
+                $premio->completado = $premio->estado === 'completado';
+                $premio->esta_activo = false;
+                $premio->estado_texto = 'Rifa Bloqueada';
+                $premio->razon_bloqueo = $rifa->razon_bloqueo;
             } else {
-                $premio->estado_texto = 'Bloqueado';
-                $premio->premio_requerido = $premioAnterior ? $premioAnterior->titulo : 'Premio anterior';
+                $premio->desbloqueado = $premioAnteriorCompletado;
+                $premio->completado = $premio->estado === 'completado';
+                $premio->esta_activo = $premio->desbloqueado && !$premio->completado;
+
+                // Determinar texto de estado
+                if ($premio->completado) {
+                    $premio->estado_texto = 'Completado';
+                } elseif ($premio->esta_activo) {
+                    $premio->estado_texto = 'En Progreso';
+                } else {
+                    $premio->estado_texto = 'Bloqueado';
+                    $premio->premio_requerido = $premioAnterior ? $premioAnterior->titulo : 'Premio anterior';
+                }
             }
+
+            // Procesar imagen del premio
+            $premio->imagen = $this->processImageURL($premio->imagen_principal);
 
             // Procesar niveles del premio
             $nivelesConProgreso = [];
             foreach ($premio->niveles as $nivel) {
-                $nivel->desbloqueado = $rifa->boletos_vendidos >= $nivel->tickets_necesarios;
-                $nivel->es_actual = !$nivel->desbloqueado && $premio->esta_activo && 
-                    ($premio->niveles->where('tickets_necesarios', '<', $nivel->tickets_necesarios)
-                        ->where('desbloqueado', true)->count() == $premio->niveles->where('tickets_necesarios', '<', $nivel->tickets_necesarios)->count());
+                // Si la rifa está bloqueada, todos los niveles están bloqueados
+                if ($rifa->esta_bloqueada) {
+                    $nivel->desbloqueado = false;
+                    $nivel->es_actual = false;
+                    $nivel->progreso = 0;
+                    $nivel->estado_texto = 'Rifa Bloqueada';
+                } else {
+                    $nivel->desbloqueado = $rifa->boletos_vendidos >= $nivel->tickets_necesarios;
+                    $nivel->es_actual = !$nivel->desbloqueado && $premio->esta_activo && 
+                        ($premio->niveles->where('tickets_necesarios', '<', $nivel->tickets_necesarios)
+                            ->where('desbloqueado', true)->count() == $premio->niveles->where('tickets_necesarios', '<', $nivel->tickets_necesarios)->count());
+                    
+                    // Calcular progreso porcentual del nivel
+                    if ($nivel->desbloqueado) {
+                        $nivel->progreso = 100; // Nivel completado
+                    } elseif ($nivel->es_actual) {
+                        // Nivel actual: calcular progreso basado en tickets vendidos
+                        $nivel->progreso = $nivel->tickets_necesarios > 0 
+                            ? min(round(($rifa->boletos_vendidos / $nivel->tickets_necesarios) * 100, 2), 100)
+                            : 0;
+                    } else {
+                        $nivel->progreso = 0; // Nivel pendiente
+                    }
+                }
                 
                 $nivel->nombre = $nivel->titulo;
+                
+                // Procesar imagen del nivel
+                $nivel->imagen = $this->processImageURL($nivel->imagen);
+                
+                // Procesar media_gallery del nivel
+                if ($nivel->media_gallery && is_array($nivel->media_gallery)) {
+                    $nivel->media_gallery = array_map(function($media) {
+                        if (is_string($media)) {
+                            return $this->processImageURL($media);
+                        } elseif (is_array($media) && isset($media['url'])) {
+                            $media['url'] = $this->processImageURL($media['url']);
+                            return $media;
+                        }
+                        return $media;
+                    }, $nivel->media_gallery);
+                }
+                
                 $nivelesConProgreso[] = $nivel;
 
                 // Agregar a todos los niveles para progreso general
@@ -616,5 +717,123 @@ class RifaController extends Controller
         $rifa->porcentaje_general = $rifa->progreso_general['porcentaje'];
 
         return $rifa;
+    }
+
+    /**
+     * Procesar URL de imagen para convertir rutas relativas a absolutas
+     */
+    private function processImageURL($imagePath)
+    {
+        if (!$imagePath) {
+            return null;
+        }
+
+        // Si ya es una URL absoluta, devolverla tal como está
+        if (str_starts_with($imagePath, 'http://') || str_starts_with($imagePath, 'https://')) {
+            return $imagePath;
+        }
+
+        // Si es una ruta relativa, convertirla a URL absoluta
+        $baseURL = config('app.url', 'http://localhost:8000');
+        $cleanPath = ltrim($imagePath, '/');
+        return "{$baseURL}/{$cleanPath}";
+    }
+
+    /**
+     * Verificar si una rifa permite participación
+     */
+    private function puedeParticipar($rifa)
+    {
+        // 1. Verificar estado de la rifa
+        if ($rifa->estado === 'bloqueada') {
+            return false;
+        }
+        
+        if (!in_array($rifa->estado, ['activa'])) {
+            return false;
+        }
+
+        // 2. Verificar fechas
+        $now = now();
+        if ($now->lt($rifa->fecha_inicio) || $now->gt($rifa->fecha_fin)) {
+            return false;
+        }
+
+        // 3. Verificar si depende de otra rifa
+        if ($rifa->rifa_requerida_id) {
+            $rifaRequerida = Rifa::find($rifa->rifa_requerida_id);
+            if (!$rifaRequerida || $rifaRequerida->estado !== 'finalizada') {
+                return false;
+            }
+        }
+
+        // 4. Verificar tipo de rifa
+        if ($rifa->tipo === 'futura') {
+            // Rifas futuras solo permiten participación si han llegado a su fecha de inicio
+            return $now->gte($rifa->fecha_inicio);
+        }
+
+        return true;
+    }
+
+
+    /**
+     * Obtener la razón por la cual una rifa está bloqueada
+     */
+    private function getRazonBloqueo($rifa)
+    {
+        if ($this->puedeParticipar($rifa)) {
+            return null;
+        }
+
+        $now = now();
+
+        // Verificar estado
+        if ($rifa->estado === 'bloqueada') {
+            return 'Esta rifa está bloqueada';
+        }
+        
+        if ($rifa->estado !== 'activa') {
+            switch ($rifa->estado) {
+                case 'borrador':
+                    return 'La rifa aún no ha sido publicada';
+                case 'pausada':
+                    return 'La rifa está temporalmente pausada';
+                case 'finalizada':
+                    return 'La rifa ya ha finalizado';
+                case 'cancelada':
+                    return 'La rifa ha sido cancelada';
+                default:
+                    return 'La rifa no está disponible';
+            }
+        }
+
+        // Verificar fechas
+        if ($now->lt($rifa->fecha_inicio)) {
+            return 'La rifa aún no ha iniciado';
+        }
+
+        if ($now->gt($rifa->fecha_fin)) {
+            return 'La rifa ya ha finalizado';
+        }
+
+        // Verificar dependencia de otra rifa
+        if ($rifa->rifa_requerida_id) {
+            $rifaRequerida = Rifa::find($rifa->rifa_requerida_id);
+            if (!$rifaRequerida) {
+                return 'Dependencia no encontrada';
+            }
+            
+            if ($rifaRequerida->estado !== 'finalizada') {
+                return "Se desbloqueará cuando termine la rifa: {$rifaRequerida->titulo}";
+            }
+        }
+
+        // Verificar tipo futura
+        if ($rifa->tipo === 'futura' && $now->lt($rifa->fecha_inicio)) {
+            return 'Esta rifa estará disponible próximamente';
+        }
+
+        return 'No disponible para participación';
     }
 }

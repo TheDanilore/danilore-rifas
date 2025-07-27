@@ -19,7 +19,8 @@ return new class extends Migration
             $table->text('descripcion');
             $table->integer('tickets_necesarios'); // Tickets necesarios para desbloquear
             $table->decimal('valor_aproximado', 12, 2)->nullable(); // Valor estimado del nivel
-            $table->string('imagen')->nullable();
+            $table->json('media_gallery')->nullable(); // Galería de imágenes del nivel
+            $table->string('imagen')->nullable(); // Imagen principal del nivel
             $table->integer('orden'); // Orden dentro del premio (1, 2, 3...)
             $table->boolean('desbloqueado')->default(false);
             $table->boolean('es_actual')->default(false); // Si es el nivel activo actualmente

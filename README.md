@@ -161,6 +161,7 @@ El sistema soporta múltiples tipos de documentos para hacerlo internacional y f
 - tickets_necesarios (INT) # Tickets necesarios para desbloquear
 - valor_aproximado (DECIMAL 12,2) # Valor estimado del nivel
 - imagen (VARCHAR)
+- media_gallery (JSON) # Imágenes y videos adicionales
 - orden (INT) # Orden dentro del premio (1, 2, 3...)
 - desbloqueado (BOOLEAN) DEFAULT false
 - es_actual (BOOLEAN) DEFAULT false # Si es el nivel activo actualmente

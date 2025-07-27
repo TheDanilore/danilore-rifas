@@ -80,35 +80,41 @@ export function useRifaDetail() {
 
   const getProgressPercentage = () => {
     if (!rifa.value) return 0
+    
+    // Usar progreso calculado por el backend si está disponible
+    if (rifa.value.progreso_general && rifa.value.progreso_general.porcentaje !== undefined) {
+      return rifa.value.progreso_general.porcentaje
+    }
+    
+    // Fallback al cálculo original
     return Math.min((rifa.value.ticketsVendidos / rifa.value.ticketsMinimos) * 100, 100)
   }
 
   // Función para obtener premios progresivos estructurados
   const getPremiosProgresivos = () => {
-    if (!rifa.value) return []
+    if (!rifa.value || !rifa.value.premios) return []
     
-    // Usar el mismo método que en useRifasWithFilters
-    return rifaService.calcularEstadosPremios(rifa.value)
+    // Usar directamente los datos calculados por el backend
+    return rifa.value.premios
   }
 
   // Función para obtener el nivel actual activo
   const getNivelActual = () => {
-    if (!rifa.value) return null
+    if (!rifa.value || !rifa.value.premios) return null
     
-    const premiosProgresivos = getPremiosProgresivos()
-    
-    for (const premio of premiosProgresivos) {
-      if (!premio.desbloqueado) continue
-      
-      for (const nivel of premio.niveles) {
-        if (nivel.es_actual) {
-          return {
-            premio: premio.titulo,
-            nivel: nivel.titulo,
-            tickets_necesarios: nivel.tickets_necesarios,
-            tickets_actuales: rifa.value.ticketsVendidos,
-            tickets_restantes: Math.max(0, nivel.tickets_necesarios - rifa.value.ticketsVendidos),
-            porcentaje: Math.min((rifa.value.ticketsVendidos / nivel.tickets_necesarios) * 100, 100)
+    // Buscar el primer premio activo y su nivel actual
+    for (const premio of rifa.value.premios) {
+      if (premio.esta_activo && premio.niveles) {
+        for (const nivel of premio.niveles) {
+          if (nivel.es_actual) {
+            return {
+              premio: premio.titulo,
+              nivel: nivel.titulo,
+              tickets_necesarios: nivel.tickets_necesarios,
+              tickets_actuales: rifa.value.ticketsVendidos,
+              tickets_restantes: Math.max(0, nivel.tickets_necesarios - rifa.value.ticketsVendidos),
+              porcentaje: Math.min((rifa.value.ticketsVendidos / nivel.tickets_necesarios) * 100, 100)
+            }
           }
         }
       }

@@ -32,8 +32,8 @@
                             <div class="rifa-header">
                                 <div>
                                     <h1>{{ rifa.nombre }}</h1>
-                                    <div class="rifa-status-badge" :class="`status-${rifa.estado}`">
-                                        {{ getEstadoTexto(rifa.estado) }}
+                                    <div class="rifa-status-badge" :class="`status-${displayEstado}`">
+                                        {{ getEstadoTexto(displayEstado) }}
                                     </div>
                                 </div>
                                 <div class="rifa-price-display">
@@ -47,7 +47,9 @@
                             <div class="rifa-detail-content">
                                 <!-- Galería de medios mejorada -->
                                 <div class="rifa-media">
-                                    <MediaGallery v-if="rifa.mediaGallery" :mediaGallery="rifa.mediaGallery" />
+                                    <MediaGallery
+                                        v-if="rifaMediaGallery.images.length > 0 || rifaMediaGallery.videos.length > 0"
+                                        :mediaGallery="rifaMediaGallery" />
                                     <!-- Fallback para rifas sin galería -->
                                     <div v-else class="rifa-image-container">
                                         <img :src="rifa.imagen" :alt="rifa.nombre" class="rifa-detail-image"
@@ -99,7 +101,7 @@
                     </div>
 
                     <!-- Progreso del Sorteo -->
-                    <div class="card">
+                    <div class="card full-width-section">
                         <div class="card-header">
                             <div class="progress-header">
                                 <i class="fas fa-target"></i>
@@ -107,137 +109,170 @@
                             </div>
                         </div>
                         <div class="card-content">
-                            <div class="progress-current">
-                                <span>Progreso actual</span>
-                                <span class="progress-tickets">{{ rifa.ticketsVendidos }}/{{ rifa.ticketsMinimos }}
-                                    tickets</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" :style="{ width: progressPercentage + '%' }"></div>
-                            </div>
-                            <div class="progress-alert" :class="getProgressAlertClass()">
-                                <i :class="getProgressIcon()"></i>
-                                <span>{{ getProgressMessage() }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Premios Progresivos Multinivel -->
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="prizes-header">
-                                <i class="fas fa-trophy"></i>
-                                <h2>Premios Progresivos</h2>
-                            </div>
-                        </div>
-                        <div class="card-content">
-                            <div class="prizes-progression">
-                                <!-- Premio Actual Activo -->
-                                <div v-for="(premio, premioIndex) in getPremiosProgresivos()" :key="premioIndex"
-                                    class="premio-section" :class="{
-                                        'premio-active': premio.esta_activo,
-                                        'premio-completed': premio.completado,
-                                        'premio-locked': !premio.desbloqueado
-                                    }">
-                                    <!-- Header del Premio -->
-                                    <div class="premio-header">
-                                        <div class="premio-icon">
-                                            <i :class="premio.icono || 'fas fa-gift'"></i>
+                            <!-- Layout de dos columnas como en Home -->
+                            <div class="rifa-actual-header">
+                                <div class="rifa-info">
+                                    <h2 class="rifa-title">{{ rifa.nombre }}</h2>
+                                    <p class="rifa-description">{{ rifa.descripcion }}</p>
+                                    <div class="rifa-stats">
+                                        <div class="stat-item">
+                                            <i class="fas fa-ticket-alt"></i>
+                                            <span>{{ rifa.tickets }} tickets totales</span>
                                         </div>
-                                        <div class="premio-info">
-                                            <h4 class="premio-title">{{ premio.titulo }}</h4>
-                                            <p class="premio-description">{{ premio.descripcion }}</p>
+                                        <div class="stat-item">
+                                            <i class="fas fa-tag"></i>
+                                            <span>S/ {{ rifa.precio }} por ticket</span>
                                         </div>
-                                        <div class="premio-status">
-                                            <span class="premio-badge" :class="{
-                                                'badge-active': premio.esta_activo,
-                                                'badge-completed': premio.completado,
-                                                'badge-locked': !premio.desbloqueado
-                                            }">
-                                                <i v-if="premio.completado" class="fas fa-check"></i>
-                                                <i v-else-if="!premio.desbloqueado" class="fas fa-lock"></i>
-                                                <i v-else class="fas fa-clock"></i>
-                                                {{ premio.estado_texto }}
-                                            </span>
+                                        <div class="stat-item">
+                                            <i class="fas fa-calendar"></i>
+                                            <span>{{ formatDate(rifa.fecha_inicio) }} - {{ formatDate(rifa.fecha_fin)
+                                                }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="rifa-progress">
+                                    <div class="progress-info">
+                                        <span class="progress-label">Progreso General</span>
+                                        <span class="progress-value">{{ rifa.progreso_general ?
+                                            rifa.progreso_general.niveles_completados : 0 }}/{{ rifa.progreso_general ?
+                                                rifa.progreso_general.total_niveles : 0 }}</span>
+                                    </div>
+                                    <div class="progress-details">
+                                        <div class="progress-detail-item">
+                                            <span class="detail-label">Niveles Completados:</span>
+                                            <span class="detail-value">{{ rifa.progreso_general ?
+                                                rifa.progreso_general.niveles_completados : 0 }}</span>
+                                        </div>
+                                        <div class="progress-detail-item">
+                                            <span class="detail-label">Total Niveles:</span>
+                                            <span class="detail-value">{{ rifa.progreso_general ?
+                                                rifa.progreso_general.total_niveles : 0 }}</span>
+                                        </div>
+                                        <div class="progress-detail-item">
+                                            <span class="detail-label">Tickets Vendidos:</span>
+                                            <span class="detail-value">{{ rifa.ticketsVendidos }}</span>
+                                        </div>
+                                        <div class="progress-detail-item">
+                                            <span class="detail-label">Siguiente Meta:</span>
+                                            <span class="detail-value">{{ getSiguienteMeta(rifa.id) }}</span>
                                         </div>
                                     </div>
 
-                                    <!-- Botón Ver Detalles del Premio -->
-                                    <div class="premio-actions">
-                                        <button class="premio-detail-btn" :class="{
-                                            'btn-primary': premio.desbloqueado,
-                                            'btn-secondary': !premio.desbloqueado
-                                        }" @click="handlePremioClick(premio)">
-                                            <i class="fas fa-eye"></i>
-                                            {{ premio.desbloqueado ? 'Ver Galería y Detalles' : 'Ver Información' }}
-                                        </button>
-                                    </div>
+                                    <!-- Barra de progreso con premios -->
+                                    <div class="progress-with-milestones">
+                                        <div class="progress-bar-container">
+                                            <div class="progress-bar">
+                                                <div class="progress-fill"
+                                                    :style="{ width: `${getProgressPercentage(rifa)}%` }"></div>
+                                            </div>
 
-                                    <!-- Niveles del Premio (solo si está desbloqueado) -->
-                                    <div v-if="premio.desbloqueado" class="premio-niveles">
-                                        <div v-for="(nivel, nivelIndex) in premio.niveles" :key="nivelIndex"
-                                            class="nivel-item" :class="{
-                                                'nivel-unlocked': nivel.desbloqueado,
-                                                'nivel-current': nivel.es_actual
-                                            }">
-                                            <div class="nivel-progress">
-                                                <div class="nivel-number" :class="{ 'unlocked': nivel.desbloqueado }">
-                                                    {{ nivelIndex + 1 }}
-                                                </div>
-                                                <div class="nivel-details">
-                                                    <h5 class="nivel-title">{{ nivel.titulo }}</h5>
-                                                    <p class="nivel-description">{{ nivel.descripcion }}</p>
-                                                    <div class="nivel-requirement">
-                                                        <i class="fas fa-ticket-alt"></i>
-                                                        {{ nivel.tickets_necesarios }} tickets necesarios
+                                            <!-- Marcadores de premios en la barra -->
+                                            <div class="progress-milestones">
+                                                <div v-for="(milestone, index) in getProgressMilestones(rifa.id)"
+                                                    :key="milestone.id" class="milestone" :class="{
+                                                        'milestone-completed': milestone.completed,
+                                                        'milestone-active': milestone.active,
+                                                        'milestone-pending': !milestone.completed && !milestone.active
+                                                    }" :style="{ left: `${milestone.position}%` }"
+                                                    @click="handleMilestoneClick(milestone, $event)">
+                                                    <div class="milestone-marker">
+                                                        <i v-if="milestone.completed" class="fas fa-check"></i>
+                                                        <i v-else-if="milestone.active" class="fas fa-clock"></i>
+                                                        <i v-else class="fas fa-lock"></i>
                                                     </div>
                                                 </div>
                                             </div>
+                                        </div>
 
-                                            <!-- Progreso del nivel actual -->
-                                            <div v-if="nivel.es_actual" class="nivel-progress-bar">
-                                                <div class="progress-info">
-                                                    <span class="progress-label">Progreso actual</span>
-                                                    <span class="progress-value">{{ rifa.ticketsVendidos }}/{{
-                                                        nivel.tickets_necesarios }}</span>
-                                                </div>
-                                                <div class="progress-bar">
-                                                    <div class="progress-fill"
-                                                        :style="{ width: `${Math.min((rifa.ticketsVendidos / nivel.tickets_necesarios) * 100, 100)}%` }">
+                                        <!-- Modal de detalles del nivel posicionado -->
+                                        <div v-if="levelDetailModal" class="level-detail-tooltip" :style="{
+                                            left: `${modalPosition.x}px`,
+                                            top: `${modalPosition.y}px`,
+                                            transform: 'translateX(-50%) translateY(-100%)'
+                                        }" @click.stop>
+                                            <div class="tooltip-arrow"></div>
+
+                                            <div class="tooltip-header">
+                                                <h4 class="tooltip-title">{{ selectedLevel?.premio_titulo }}</h4>
+                                                <button class="tooltip-close" @click="closeLevelDetailModal">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+
+                                            <div class="tooltip-content" v-if="selectedLevel">
+                                                <div class="tooltip-level-info">
+                                                    <div class="tooltip-level-image" v-if="selectedLevel.imagen">
+                                                        <img :src="selectedLevel.imagen"
+                                                            :alt="selectedLevel.nivel_titulo" @error="handleImageError">
+                                                    </div>
+
+                                                    <div class="tooltip-level-details">
+                                                        <h5 class="tooltip-level-title">{{ selectedLevel.nivel_titulo }}
+                                                        </h5>
+                                                        <p class="tooltip-level-description"
+                                                            v-if="selectedLevel.nivel_descripcion">
+                                                            {{ selectedLevel.nivel_descripcion }}
+                                                        </p>
+
+                                                        <div class="tooltip-level-stats">
+                                                            <div class="tooltip-stat-item">
+                                                                <i class="fas fa-ticket-alt"></i>
+                                                                <span>{{ selectedLevel.tickets }} tickets</span>
+                                                            </div>
+
+                                                            <div class="tooltip-stat-item"
+                                                                v-if="selectedLevel.valor_aproximado">
+                                                                <i class="fas fa-tag"></i>
+                                                                <span>S/ {{ selectedLevel.valor_aproximado.toFixed(2)
+                                                                    }}</span>
+                                                            </div>
+
+                                                            <div class="tooltip-stat-item">
+                                                                <i class="fas fa-flag"></i>
+                                                                <span :class="{
+                                                                    'status-completed': selectedLevel.completed,
+                                                                    'status-active': selectedLevel.active,
+                                                                    'status-pending': !selectedLevel.completed && !selectedLevel.active
+                                                                }">
+                                                                    <i v-if="selectedLevel.completed"
+                                                                        class="fas fa-check"></i>
+                                                                    <i v-else-if="selectedLevel.active"
+                                                                        class="fas fa-clock"></i>
+                                                                    <i v-else class="fas fa-lock"></i>
+                                                                    {{ selectedLevel.completed ? 'Completado' :
+                                                                        selectedLevel.active ? 'En Progreso' : 'Bloqueado'
+                                                                    }}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="tooltip-specifications"
+                                                            v-if="selectedLevel.especificaciones && Object.keys(selectedLevel.especificaciones).length > 0">
+                                                            <h6>Especificaciones:</h6>
+                                                            <div class="tooltip-specs-grid">
+                                                                <div v-for="(value, key) in selectedLevel.especificaciones"
+                                                                    :key="key" class="tooltip-spec-item">
+                                                                    <span class="tooltip-spec-label">{{
+                                                                        key.charAt(0).toUpperCase() + key.slice(1)
+                                                                        }}:</span>
+                                                                    <span class="tooltip-spec-value">{{ value }}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div class="tickets-remaining">
-                                                    <i class="fas fa-target"></i>
-                                                    Faltan {{ Math.max(0, nivel.tickets_necesarios -
-                                                    rifa.ticketsVendidos) }} tickets
-                                                </div>
-                                            </div>
-
-                                            <!-- Estado del nivel -->
-                                            <div class="nivel-status">
-                                                <span class="nivel-badge" :class="{
-                                                    'badge-completed': nivel.desbloqueado,
-                                                    'badge-current': nivel.es_actual,
-                                                    'badge-pending': !nivel.desbloqueado && !nivel.es_actual
-                                                }">
-                                                    <i v-if="nivel.desbloqueado" class="fas fa-check"></i>
-                                                    <i v-else-if="nivel.es_actual" class="fas fa-clock"></i>
-                                                    <i v-else class="fas fa-lock"></i>
-                                                    {{ nivel.estado_texto }}
-                                                </span>
                                             </div>
                                         </div>
-                                    </div>
-
-                                    <!-- Premio Bloqueado -->
-                                    <div v-if="!premio.desbloqueado" class="premio-locked-info">
-                                        <i class="fas fa-lock"></i>
-                                        <p>Se desbloqueará al completar: <strong>{{ premio.premio_requerido }}</strong>
-                                        </p>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Mensaje de progreso -->
+                    <div class="progress-alert" :class="getProgressAlertClass()">
+                        <i :class="getProgressIcon()"></i>
+                        <span>{{ getProgressMessage() }}</span>
                     </div>
                 </div>
 
@@ -260,21 +295,34 @@
                                     <span>Tienes {{ userTicketsForRifa.length }} ticket(s) en esta rifa</span>
                                 </div>
                                 <div class="ticket-numbers">
-                                    <span v-for="ticket in userTicketsForRifa" :key="ticket.id" class="ticket-number">
+                                    <span v-for="ticket in userTicketsForRifa" :key="ticket.id"
+                                        class="ticket-number">
                                         #{{ ticket.numero }}
                                     </span>
                                 </div>
                             </div>
 
-                            <button class="participate-btn"
-                                :disabled="rifa.estado === 'cancelada' || rifa.estado === 'sorteada'"
+                            <button class="participate-btn" :disabled="!canParticipate || !isAuthenticated"
                                 @click="showPaymentModal">
-                                {{ isAuthenticated ? '🎫 Comprar Ticket' : '🔒 Inicia Sesión para Participar' }}
+                                <span v-if="!canParticipate">
+                                    🚫 {{ blockingMessage || 'No disponible' }}
+                                </span>
+                                <span v-else-if="!isAuthenticated">
+                                    🔒 Inicia Sesión para Participar
+                                </span>
+                                <span v-else>
+                                    🎫 Comprar Ticket
+                                </span>
                             </button>
 
                             <div v-if="!isAuthenticated" class="auth-notice">
                                 <i class="fas fa-info-circle"></i>
                                 <span>Necesitas iniciar sesión para participar en las rifas</span>
+                            </div>
+
+                            <div v-if="!canParticipate && blockingMessage" class="blocking-notice">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <span>{{ blockingMessage }}</span>
                             </div>
                         </div>
                     </div>
@@ -322,214 +370,333 @@
                     </div>
                 </div>
             </div>
-        </div>
 
-    </div>
-
-    <AppFooter />
-
-    <!-- Modal de pago -->
-    <div v-if="paymentModal" class="modal-overlay" @click="closePaymentModal">
-        <div class="modal payment-modal" @click.stop>
-            <div class="modal-header">
-                <h2 class="modal-title">Comprar Ticket - {{ rifa.nombre }}</h2>
-                <p class="modal-description">Sigue estos pasos para participar en la rifa</p>
-                <button class="close-btn" @click="closePaymentModal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-content">
-                <!-- Paso 0: Selección de Número de Ticket -->
-                <div v-if="!selectedTicketNumber" class="payment-step step-purple">
-                    <h4 class="step-title">Paso 0: Selecciona tu número de la suerte</h4>
-
-                    <div class="ticket-selection-section">
-                        <div class="selection-options">
-                            <button class="random-btn" @click="selectRandomTicket">
-                                <i class="fas fa-dice"></i>
-                                Número Aleatorio
-                            </button>
-                            <span class="separator">o</span>
-                            <span class="manual-text">Elige tu número de la suerte:</span>
-                        </div>
-
-                        <div class="tickets-grid">
-                            <button v-for="numero in availableTickets" :key="numero" class="ticket-number" :class="{
-                                'sold': soldTickets.includes(numero),
-                                'selected': numero === tempSelectedNumber
-                            }" :disabled="soldTickets.includes(numero)" @click="selectTicketNumber(numero)">
-                                {{ numero }}
-                            </button>
-                        </div>
-
-                        <div class="ticket-info">
-                            <div class="info-item">
-                                <span class="legend available"></span>
-                                <span>Disponible</span>
+            <!-- Premios Progresivos Multinivel (Fuera del grid para ocupar todo el ancho) -->
+            <div class="card full-width-section">
+                <div class="card-header">
+                    <div class="prizes-header">
+                        <i class="fas fa-trophy"></i>
+                        <h2>Premios Progresivos</h2>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="prizes-progression">
+                        <div v-for="(premio, premioIndex) in getPremiosProgresivos()" :key="premioIndex"
+                            class="premio-section" :class="{
+                                'premio-active': premio.esta_activo,
+                                'premio-completed': premio.completado,
+                                'premio-locked': !premio.desbloqueado
+                            }">
+                            <!-- Header del Premio -->
+                            <div class="premio-header">
+                                <div class="premio-icon">
+                                    <i :class="premio.icono || 'fas fa-gift'"></i>
+                                </div>
+                                <div class="premio-info">
+                                    <h4 class="premio-title">{{ premio.titulo }}</h4>
+                                    <p class="premio-description">{{ premio.descripcion }}</p>
+                                </div>
+                                <div class="premio-status">
+                                    <span class="premio-badge" :class="{
+                                        'badge-active': premio.esta_activo,
+                                        'badge-completed': premio.completado,
+                                        'badge-locked': !premio.desbloqueado
+                                    }">
+                                        <i v-if="premio.completado" class="fas fa-check"></i>
+                                        <i v-else-if="!premio.desbloqueado" class="fas fa-lock"></i>
+                                        <i v-else class="fas fa-clock"></i>
+                                        {{ premio.estado_texto }}
+                                    </span>
+                                </div>
                             </div>
-                            <div class="info-item">
-                                <span class="legend sold"></span>
-                                <span>Vendido</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="legend selected"></span>
-                                <span>Tu selección</span>
-                            </div>
-                        </div>
 
-                        <div v-if="tempSelectedNumber" class="selected-ticket-info">
-                            <div class="selected-display">
-                                <i class="fas fa-ticket-alt"></i>
-                                <span>Número seleccionado: <strong>{{ tempSelectedNumber }}</strong></span>
+                            <!-- Botón Ver Detalles del Premio -->
+                            <div class="premio-actions">
+                                <button class="premio-detail-btn" :class="{
+                                    'btn-primary': premio.desbloqueado,
+                                    'btn-secondary': !premio.desbloqueado
+                                }" @click="handlePremioClick(premio)">
+                                    <i class="fas fa-eye"></i>
+                                    {{ premio.desbloqueado ? 'Ver Galería y Detalles' : 'Ver Información' }}
+                                </button>
                             </div>
-                            <button class="confirm-selection-btn" @click="confirmTicketSelection">
-                                ✓ Confirmar y Continuar con el Pago
-                            </button>
+
+                            <!-- Niveles del Premio (solo si está desbloqueado) -->
+                            <div v-if="premio.desbloqueado" class="premio-niveles">
+                                <div v-for="(nivel, nivelIndex) in premio.niveles" :key="nivelIndex"
+                                    class="nivel-item" :class="{
+                                        'nivel-unlocked': nivel.desbloqueado,
+                                        'nivel-current': nivel.es_actual
+                                    }">
+                                    <div class="nivel-progress">
+                                        <div class="nivel-number" :class="{ 'unlocked': nivel.desbloqueado }">
+                                            {{ nivelIndex + 1 }}
+                                        </div>
+                                        <div class="nivel-details">
+                                            <h5 class="nivel-title">{{ nivel.titulo }}</h5>
+                                            <p class="nivel-description">{{ nivel.descripcion }}</p>
+                                            <div class="nivel-requirement">
+                                                <i class="fas fa-ticket-alt"></i>
+                                                {{ nivel.tickets_necesarios }} tickets necesarios
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Progreso del nivel actual -->
+                                    <div v-if="nivel.es_actual" class="nivel-progress-bar">
+                                        <div class="progress-info">
+                                            <span class="progress-label">Progreso actual</span>
+                                            <span class="progress-value">{{ rifa.ticketsVendidos }}/{{
+                                                nivel.tickets_necesarios }}</span>
+                                        </div>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill"
+                                                :style="{ width: `${Math.min((rifa.ticketsVendidos / nivel.tickets_necesarios) * 100, 100)}%` }">
+                                            </div>
+                                        </div>
+                                        <div class="tickets-remaining">
+                                            <i class="fas fa-target"></i>
+                                            Faltan {{ Math.max(0, nivel.tickets_necesarios -
+                                                rifa.ticketsVendidos) }} tickets
+                                        </div>
+                                    </div>
+
+                                    <!-- Estado del nivel -->
+                                    <div class="nivel-status">
+                                        <span class="nivel-badge" :class="{
+                                            'badge-completed': nivel.desbloqueado,
+                                            'badge-current': nivel.es_actual,
+                                            'badge-pending': !nivel.desbloqueado && !nivel.es_actual
+                                        }">
+                                            <i v-if="nivel.desbloqueado" class="fas fa-check"></i>
+                                            <i v-else-if="nivel.es_actual" class="fas fa-clock"></i>
+                                            <i v-else class="fas fa-lock"></i>
+                                            {{ nivel.estado_texto }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Premio Bloqueado -->
+                            <div v-if="!premio.desbloqueado" class="premio-locked-info">
+                                <i class="fas fa-lock"></i>
+                                <p>Se desbloqueará al completar: <strong>{{ premio.premio_requerido }}</strong>
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Pasos de pago (solo se muestran después de seleccionar número) -->
-                <div v-if="selectedTicketNumber">
-                    <!-- Mostrar número seleccionado -->
-                    <div class="selected-ticket-banner">
-                        <div class="ticket-banner-content">
-                            <i class="fas fa-ticket-alt"></i>
-                            <span>Tu ticket: <strong>{{ selectedTicketNumber }}</strong></span>
-                            <button class="change-ticket-btn" @click="changeTicketNumber">
-                                <i class="fas fa-edit"></i>
-                                Cambiar
-                            </button>
-                        </div>
+            <AppFooter />
+
+            <!-- Overlay para cerrar tooltip al hacer clic fuera -->
+            <div v-if="levelDetailModal" class="tooltip-overlay" @click="closeLevelDetailModal"></div>
+            <!-- Modal de pago -->
+            <div v-if="paymentModal" class="modal-overlay" @click="closePaymentModal">
+                <div class="modal payment-modal" @click.stop>
+                    <div class="modal-header">
+                        <h2 class="modal-title">Comprar Ticket - {{ rifa.nombre }}</h2>
+                        <p class="modal-description">Sigue estos pasos para participar en la rifa</p>
+                        <button class="close-btn" @click="closePaymentModal">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
+                    <div class="modal-content">
+                        <!-- Paso 0: Selección de Número de Ticket -->
+                        <div v-if="!selectedTicketNumber" class="payment-step step-purple">
+                            <h4 class="step-title">Paso 0: Selecciona tu número de la suerte</h4>
 
-                    <!-- Paso 1: Código de pago -->
-                    <div class="payment-step step-blue">
-                        <h4 class="step-title">Paso 1: Tu código de pago</h4>
-                        <div class="code-display">
-                            <span class="code-text">{{ paymentCode }}</span>
-                            <button class="btn btn-outline copy-btn" @click="copyPaymentCode">
-                                <i class="fas fa-copy"></i>
-                                Copiar
-                            </button>
-                        </div>
-                        <p class="payment-warning">
-                            ⚠️ <strong>Importante:</strong> Debes incluir este código en el mensaje de tu pago Yape o
-                            Plin
-                        </p>
-                    </div>
+                            <div class="ticket-selection-section">
+                                <div class="selection-options">
+                                    <button class="random-btn" @click="selectRandomTicket">
+                                        <i class="fas fa-dice"></i>
+                                        Número Aleatorio
+                                    </button>
+                                    <span class="separator">o</span>
+                                    <span class="manual-text">Elige tu número de la suerte:</span>
+                                </div>
 
-                    <!-- Paso 2: Realizar pago -->
-                    <div class="payment-step step-green">
-                        <h4 class="step-title">Paso 2: Realizar pago</h4>
-                        <div class="payment-content">
-                            <div class="payment-info-left">
-                                <div class="payment-info">• Monto: <strong>S/ {{ rifa.precio }}</strong></div>
-                                <div class="payment-info">• Escanea el código QR con tu app:</div>
-                                <div class="payment-apps">
-                                    <div class="payment-app">
-                                        <img src="https://logosenvector.com/logo/img/yape-37283.png" alt="Yape"
-                                            class="app-icon">
-                                        <span>Yape</span>
+                                <div class="tickets-grid">
+                                    <button v-for="numero in availableTickets" :key="numero" class="ticket-number"
+                                        :class="{
+                                            'sold': soldTickets.includes(numero),
+                                            'selected': numero === tempSelectedNumber
+                                        }" :disabled="soldTickets.includes(numero)"
+                                        @click="selectTicketNumber(numero)">
+                                        {{ numero }}
+                                    </button>
+                                </div>
+
+                                <div class="ticket-info">
+                                    <div class="info-item">
+                                        <span class="legend available"></span>
+                                        <span>Disponible</span>
                                     </div>
-                                    <div class="payment-app">
-                                        <img src="https://images.seeklogo.com/logo-png/38/1/plin-logo-png_seeklogo-386806.png"
-                                            alt="Plin" class="app-icon">
-                                        <span>Plin</span>
+                                    <div class="info-item">
+                                        <span class="legend sold"></span>
+                                        <span>Vendido</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="legend selected"></span>
+                                        <span>Tu selección</span>
                                     </div>
                                 </div>
-                                <div class="payment-warning">• <strong>Mensaje obligatorio:</strong> {{ paymentCode }}
-                                </div>
-                            </div>
-                            <div class="payment-qr">
-                                <div class="qr-container">
-                                    <div class="qr-header">
-                                        <i class="fas fa-qrcode"></i>
-                                        <span>Escanea para pagar</span>
+
+                                <div v-if="tempSelectedNumber" class="selected-ticket-info">
+                                    <div class="selected-display">
+                                        <i class="fas fa-ticket-alt"></i>
+                                        <span>Número seleccionado: <strong>{{ tempSelectedNumber }}</strong></span>
                                     </div>
-                                    <div class="qr-image-wrapper">
-                                        <img src="@/assets/yape-qr.png" alt="Código QR Yape/Plin" class="qr-image">
-                                    </div>
-                                    <div class="qr-footer">
-                                        <p class="qr-title">Código QR</p>
-                                        <small class="qr-subtitle">Compatible con Yape y Plin</small>
-                                    </div>
+                                    <button class="confirm-selection-btn" @click="confirmTicketSelection">
+                                        ✓ Confirmar y Continuar con el Pago
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Paso 3: Subir comprobante -->
-                    <div class="payment-step step-yellow">
-                        <h4 class="step-title">Paso 3: Confirmar tu pago</h4>
-                        
-                        <!-- Información sobre el proceso automático -->
-                        <div class="auto-process-info">
-                            <div class="info-header">
-                                <i class="fas fa-robot"></i>
-                                <span>Proceso Automático</span>
+                        <!-- Pasos de pago (solo se muestran después de seleccionar número) -->
+                        <div v-if="selectedTicketNumber">
+                            <!-- Mostrar número seleccionado -->
+                            <div class="selected-ticket-banner">
+                                <div class="ticket-banner-content">
+                                    <i class="fas fa-ticket-alt"></i>
+                                    <span>Tu ticket: <strong>{{ selectedTicketNumber }}</strong></span>
+                                    <button class="change-ticket-btn" @click="changeTicketNumber">
+                                        <i class="fas fa-edit"></i>
+                                        Cambiar
+                                    </button>
+                                </div>
                             </div>
-                            <p>Detectaremos tu pago en unos minutos. No necesitas hacer nada más.</p>
-                        </div>
 
-                        <!-- Separador -->
-                        <div class="process-separator">
-                            <span>O en caso de problemas</span>
-                        </div>
-
-                        <!-- Proceso manual como backup -->
-                        <div class="manual-process-section">
-                            <div class="info-header">
-                                <i class="fas fa-user"></i>
-                                <span>Confirmación Manual</span>
-                                <small>(Solo si el proceso automático falla)</small>
+                            <!-- Paso 1: Código de pago -->
+                            <div class="payment-step step-blue">
+                                <h4 class="step-title">Paso 1: Tu código de pago</h4>
+                                <div class="code-display">
+                                    <span class="code-text">{{ paymentCode }}</span>
+                                    <button class="btn btn-outline copy-btn" @click="copyPaymentCode">
+                                        <i class="fas fa-copy"></i>
+                                        Copiar
+                                    </button>
+                                </div>
+                                <p class="payment-warning">
+                                    ⚠️ <strong>Importante:</strong> Debes incluir este código en el mensaje de tu pago
+                                    Yape
+                                    o
+                                    Plin
+                                </p>
                             </div>
-                            
-                            <div class="file-upload-section">
-                                <label class="file-upload-label">
-                                    <i class="fas fa-camera"></i>
-                                    Subir comprobante de pago
-                                </label>
-                                <input 
-                                    type="file" 
-                                    ref="fileInput"
-                                    accept="image/*"
-                                    @change="handleFileUpload"
-                                    class="file-input"
-                                >
-                                <div class="file-upload-area" @click="triggerFileInput">
-                                    <div v-if="!selectedFile" class="upload-placeholder">
-                                        <i class="fas fa-cloud-upload-alt"></i>
-                                        <p>Haz clic aquí para subir tu comprobante</p>
-                                        <small>Formatos soportados: JPG, PNG (máx. 5MB)</small>
+
+                            <!-- Paso 2: Realizar pago -->
+                            <div class="payment-step step-green">
+                                <h4 class="step-title">Paso 2: Realizar pago</h4>
+                                <div class="payment-content">
+                                    <div class="payment-info-left">
+                                        <div class="payment-info">• Monto: <strong>S/ {{ rifa.precio }}</strong></div>
+                                        <div class="payment-info">• Escanea el código QR con tu app:</div>
+                                        <div class="payment-apps">
+                                            <div class="payment-app">
+                                                <img src="https://logosenvector.com/logo/img/yape-37283.png" alt="Yape"
+                                                    class="app-icon">
+                                                <span>Yape</span>
+                                            </div>
+                                            <div class="payment-app">
+                                                <img src="https://images.seeklogo.com/logo-png/38/1/plin-logo-png_seeklogo-386806.png"
+                                                    alt="Plin" class="app-icon">
+                                                <span>Plin</span>
+                                            </div>
+                                        </div>
+                                        <div class="payment-warning">• <strong>Mensaje obligatorio:</strong> {{
+                                            paymentCode
+                                            }}
+                                        </div>
                                     </div>
-                                    <div v-else class="file-preview">
-                                        <img v-if="filePreview" :src="filePreview" alt="Comprobante" class="preview-image">
-                                        <div class="file-info">
-                                            <i class="fas fa-file-image"></i>
-                                            <span>{{ selectedFile.name }}</span>
-                                            <button type="button" @click.stop="removeFile" class="remove-file-btn">
-                                                <i class="fas fa-times"></i>
-                                            </button>
+                                    <div class="payment-qr">
+                                        <div class="qr-container">
+                                            <div class="qr-header">
+                                                <i class="fas fa-qrcode"></i>
+                                                <span>Escanea para pagar</span>
+                                            </div>
+                                            <div class="qr-image-wrapper">
+                                                <img src="@/assets/yape-qr.png" alt="Código QR Yape/Plin"
+                                                    class="qr-image">
+                                            </div>
+                                            <div class="qr-footer">
+                                                <p class="qr-title">Código QR</p>
+                                                <small class="qr-subtitle">Compatible con Yape y Plin</small>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <button 
-                                class="confirm-btn manual-confirm"
-                                :disabled="paymentLoading || !selectedFile"
-                                @click="confirmPaymentManually"
-                            >
-                                <i v-if="paymentLoading" class="fas fa-spinner fa-spin"></i>
-                                <i v-else class="fas fa-paper-plane"></i>
-                                <span>{{ paymentLoading ? 'Enviando...' : 'Enviar Comprobante Manual' }}</span>
-                            </button>
-                            
-                            <p v-if="!selectedFile" class="manual-requirement">
-                                <i class="fas fa-info-circle"></i>
-                                Debes subir un comprobante para usar la confirmación manual
-                            </p>
+                            <!-- Paso 3: Subir comprobante -->
+                            <div class="payment-step step-yellow">
+                                <h4 class="step-title">Paso 3: Confirmar tu pago</h4>
+
+                                <!-- Información sobre el proceso automático -->
+                                <div class="auto-process-info">
+                                    <div class="info-header">
+                                        <i class="fas fa-robot"></i>
+                                        <span>Proceso Automático</span>
+                                    </div>
+                                    <p>Detectaremos tu pago en unos minutos. No necesitas hacer nada más.</p>
+                                </div>
+
+                                <!-- Separador -->
+                                <div class="process-separator">
+                                    <span>O en caso de problemas</span>
+                                </div>
+
+                                <!-- Proceso manual como backup -->
+                                <div class="manual-process-section">
+                                    <div class="info-header">
+                                        <i class="fas fa-user"></i>
+                                        <span>Confirmación Manual</span>
+                                        <small>(Solo si el proceso automático falla)</small>
+                                    </div>
+
+                                    <div class="file-upload-section">
+                                        <label class="file-upload-label">
+                                            <i class="fas fa-camera"></i>
+                                            Subir comprobante de pago
+                                        </label>
+                                        <input type="file" ref="fileInput" accept="image/*" @change="handleFileUpload"
+                                            class="file-input">
+                                        <div class="file-upload-area" @click="triggerFileInput">
+                                            <div v-if="!selectedFile" class="upload-placeholder">
+                                                <i class="fas fa-cloud-upload-alt"></i>
+                                                <p>Haz clic aquí para subir tu comprobante</p>
+                                                <small>Formatos soportados: JPG, PNG (máx. 5MB)</small>
+                                            </div>
+                                            <div v-else class="file-preview">
+                                                <img v-if="filePreview" :src="filePreview" alt="Comprobante"
+                                                    class="preview-image">
+                                                <div class="file-info">
+                                                    <i class="fas fa-file-image"></i>
+                                                    <span>{{ selectedFile.name }}</span>
+                                                    <button type="button" @click.stop="removeFile"
+                                                        class="remove-file-btn">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button class="confirm-btn manual-confirm"
+                                        :disabled="paymentLoading || !selectedFile" @click="confirmPaymentManually">
+                                        <i v-if="paymentLoading" class="fas fa-spinner fa-spin"></i>
+                                        <i v-else class="fas fa-paper-plane"></i>
+                                        <span>{{ paymentLoading ? 'Enviando...' : 'Enviar Comprobante Manual' }}</span>
+                                    </button>
+
+                                    <p v-if="!selectedFile" class="manual-requirement">
+                                        <i class="fas fa-info-circle"></i>
+                                        Debes subir un comprobante para usar la confirmación manual
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -582,18 +749,130 @@ export default {
             showPaymentModal,
             closePaymentModal,
             confirmPayment,
-            getProgressPercentage,
             getPremiosProgresivos,
             getNivelActual
         } = useRifaDetail()
 
-        const progressPercentage = computed(() => {
-            return getProgressPercentage()
-        })
+        // Función para obtener porcentaje de progreso como en Home.vue
+        const getProgressPercentage = (rifaObj) => {
+            if (!rifaObj) return 0
+            // Usar datos calculados del backend
+            if (rifaObj.progreso_general) {
+                return rifaObj.progreso_general.porcentaje || 0
+            }
+            
+            // Fallback si no hay datos del backend
+            const maxTickets = 1500 // Máximo basado en los datos reales
+            return Math.min((rifaObj.ticketsVendidos / maxTickets) * 100, 100)
+        }
 
         const userTicketsForRifa = computed(() => {
             if (!isAuthenticated.value || !rifa.value) return []
             return getUserTicketsForRifa(rifa.value.id)
+        })
+
+        // Computed para obtener todas las imágenes de niveles
+        const rifaMediaGallery = computed(() => {
+            if (!rifa.value || !rifa.value.premios) return { images: [], videos: [] }
+
+            const allImages = []
+            const allVideos = []
+
+            // Recopilar imágenes de todos los premios y niveles
+            rifa.value.premios.forEach(premio => {
+                if (premio.niveles) {
+                    premio.niveles.forEach(nivel => {
+                        // Agregar imagen principal del nivel
+                        if (nivel.imagen) {
+                            allImages.push({
+                                url: nivel.imagen,
+                                alt: `${premio.titulo} - ${nivel.titulo}`,
+                                title: `${premio.titulo} - ${nivel.titulo}`
+                            })
+                        }
+
+                        // Agregar media_gallery del nivel si existe
+                        if (nivel.media_gallery && Array.isArray(nivel.media_gallery)) {
+                            nivel.media_gallery.forEach(media => {
+                                const mediaItem = {
+                                    url: media.url || media,
+                                    alt: media.alt || `${premio.titulo} - ${nivel.titulo}`,
+                                    title: media.title || `${premio.titulo} - ${nivel.titulo}`
+                                }
+
+                                if (media.type === 'video') {
+                                    allVideos.push(mediaItem)
+                                } else {
+                                    allImages.push(mediaItem)
+                                }
+                            })
+                        }
+                    })
+                }
+            })
+
+            return {
+                images: allImages,
+                videos: allVideos
+            }
+        })
+
+        // Computed para verificar si se puede participar
+        const canParticipate = computed(() => {
+            if (!rifa.value) return false
+
+            // Verificar si la rifa está disponible (usando datos del backend)
+            if (rifa.value.esta_bloqueada) return false
+
+            // Verificar estados que impiden participación
+            const estadosNoParticipables = ['cancelada', 'sorteada', 'finalizada', 'pausada']
+            if (estadosNoParticipables.includes(rifa.value.estado)) return false
+
+            return true
+        })
+
+        // Computed para obtener el mensaje de bloqueo
+        const blockingMessage = computed(() => {
+            if (!rifa.value) return ''
+
+            if (rifa.value.esta_bloqueada && rifa.value.razon_bloqueo) {
+                return rifa.value.razon_bloqueo
+            }
+
+            if (rifa.value.estado === 'cancelada') return 'Esta rifa ha sido cancelada'
+            if (rifa.value.estado === 'sorteada') return 'Esta rifa ya ha sido sorteada'
+            if (rifa.value.estado === 'finalizada') return 'Esta rifa ha finalizado'
+            if (rifa.value.estado === 'pausada') return 'Esta rifa está pausada temporalmente'
+
+            return ''
+        })
+
+        // Computed para el estado visual que se muestra
+        const displayEstado = computed(() => {
+            if (!rifa.value) return 'borrador'
+
+            // Si la rifa está bloqueada explícitamente
+            if (rifa.value.estado === 'bloqueada') {
+                return 'bloqueada'
+            }
+
+            // Si es activa pero futura y aún no ha iniciado
+            if (rifa.value.estado === 'activa' && rifa.value.tipo === 'futura') {
+                const now = new Date()
+                const fechaInicio = new Date(rifa.value.fecha_inicio)
+
+                if (now < fechaInicio) {
+                    return 'proximamente' // Estado especial para mostrar "Próximamente"
+                }
+            }
+
+            // Si está bloqueada por otras razones (dependencias, fechas, etc.)
+            if (rifa.value.esta_bloqueada) {
+                return 'bloqueada'
+            }
+
+            // En otros casos, usar el estado real
+            return rifa.value.estado
         })
 
         // Computed properties para la selección de tickets
@@ -615,18 +894,40 @@ export default {
             // En una implementación real, esto vendría del backend con la lista exacta de números vendidos
             const ticketsVendidos = rifa.value.ticketsVendidos || 0
             const soldNumbers = []
-            
+
             // Generar números vendidos de forma determinística (siempre los mismos para la misma rifa)
             for (let i = 1; i <= ticketsVendidos; i++) {
                 soldNumbers.push(String(i).padStart(3, '0'))
             }
-            
+
             return soldNumbers
         })
 
         const getProgressMessage = () => {
             if (!rifa.value) return ''
 
+            // Usar el progreso general del backend si está disponible
+            if (rifa.value.progreso_general) {
+                const { niveles_completados, total_niveles } = rifa.value.progreso_general
+                const restantes = total_niveles - niveles_completados
+
+                if (restantes <= 0) {
+                    return "🎉 ¡Todos los niveles completados! Sorteo confirmado."
+                } else if (niveles_completados > 0) {
+                    return `¡${niveles_completados} de ${total_niveles} niveles desbloqueados!`
+                } else {
+                    // Buscar el primer nivel del primer premio
+                    const primerPremio = rifa.value.premios?.[0]
+                    const primerNivel = primerPremio?.niveles?.[0]
+
+                    if (primerNivel) {
+                        const ticketsRestantes = primerNivel.tickets_necesarios - rifa.value.ticketsVendidos
+                        return `¡Faltan ${Math.max(0, ticketsRestantes)} tickets para desbloquear el primer nivel!`
+                    }
+                }
+            }
+
+            // Fallback al comportamiento anterior
             const restantes = rifa.value.ticketsMinimos - rifa.value.ticketsVendidos
             if (restantes <= 0) {
                 return "🎉 ¡Sorteo confirmado! El premio será sorteado en la fecha programada."
@@ -638,6 +939,15 @@ export default {
         const getProgressAlertClass = () => {
             if (!rifa.value) return 'alert-success'
 
+            // Usar el progreso general del backend si está disponible
+            if (rifa.value.progreso_general) {
+                const { niveles_completados, total_niveles } = rifa.value.progreso_general
+                if (niveles_completados > 0) {
+                    return 'alert-success'
+                }
+            }
+
+            // Fallback
             const restantes = rifa.value.ticketsMinimos - rifa.value.ticketsVendidos
             if (restantes <= 0) {
                 return 'alert-success'
@@ -649,12 +959,107 @@ export default {
         const getProgressIcon = () => {
             if (!rifa.value) return 'fas fa-check-circle'
 
+            // Usar el progreso general del backend si está disponible
+            if (rifa.value.progreso_general) {
+                const { niveles_completados } = rifa.value.progreso_general
+                if (niveles_completados > 0) {
+                    return 'fas fa-check-circle'
+                }
+            }
+
+            // Fallback
             const restantes = rifa.value.ticketsMinimos - rifa.value.ticketsVendidos
             if (restantes <= 0) {
                 return 'fas fa-check-circle'
             } else {
                 return 'fas fa-exclamation-triangle'
             }
+        }
+
+        const showLevelDetails = (nivel) => {
+            const title = `${nivel.nombre} - ${nivel.precio_boleto} ${rifa.value?.moneda || 'PEN'}`
+            let message = `Descripción: ${nivel.descripcion}`
+
+            if (nivel.media_gallery && nivel.media_gallery.length > 0) {
+                message += '\n\nEste nivel incluye galería de imágenes/videos.'
+            }
+
+            if (nivel.ticket_vendidos > 0) {
+                message += `\n\nTickets vendidos: ${nivel.ticket_vendidos} de ${nivel.ticket_disponibles}`
+            }
+
+            alert(title + '\n\n' + message)
+        }
+
+        // Función para obtener la siguiente meta de tickets
+        const getSiguienteMeta = (rifaId) => {
+            if (!rifa.value || !rifa.value.progreso_general) return 'N/A'
+
+            const { todos_los_niveles } = rifa.value.progreso_general
+            if (!todos_los_niveles || todos_los_niveles.length === 0) return 'N/A'
+
+            // Buscar el primer nivel no completado
+            const siguienteNivel = todos_los_niveles.find(nivel => !nivel.completado)
+            if (siguienteNivel) {
+                return `${siguienteNivel.tickets_necesarios} tickets`
+            }
+
+            return 'Todos completados'
+        }
+
+        // Función para obtener los milestones del progreso
+        const getProgressMilestones = (rifaId) => {
+            if (!rifa.value || !rifa.value.progreso_general) return []
+
+            const { todos_los_niveles } = rifa.value.progreso_general
+            if (!todos_los_niveles || todos_los_niveles.length === 0) return []
+
+            const maxTickets = todos_los_niveles[todos_los_niveles.length - 1]?.tickets_necesarios || 1
+
+            return todos_los_niveles.map((nivel, index) => ({
+                id: nivel.id,
+                position: (nivel.tickets_necesarios / maxTickets) * 100,
+                completed: nivel.completado,
+                active: !nivel.completado && index === 0, // El primer no completado está activo
+                titulo: nivel.titulo,
+                tickets: nivel.tickets_necesarios,
+                premio_titulo: nivel.premio_titulo
+            }))
+        }
+
+        // Función para manejar click en milestone
+        const handleMilestoneClick = (milestone, event) => {
+            // Obtener posición del evento para mostrar tooltip
+            const rect = event.currentTarget.getBoundingClientRect()
+            modalPosition.value = {
+                x: rect.left + rect.width / 2,
+                y: rect.top
+            }
+
+            // Configurar los datos del nivel seleccionado
+            selectedLevel.value = {
+                ...milestone,
+                nivel_titulo: milestone.titulo,
+                nivel_descripcion: milestone.descripcion || '',
+                tickets: milestone.tickets,
+                premio_titulo: milestone.premio_titulo,
+                completed: milestone.completed,
+                active: milestone.active,
+                especificaciones: milestone.especificaciones || {}
+            }
+
+            levelDetailModal.value = true
+        }
+
+        // Variables para modal de nivel
+        const levelDetailModal = ref(false)
+        const selectedLevel = ref(null)
+        const modalPosition = ref({ x: 0, y: 0 })
+
+        // Función para cerrar modal de detalles de nivel
+        const closeLevelDetailModal = () => {
+            levelDetailModal.value = false
+            selectedLevel.value = null
         }
 
         const handleImageError = (event) => {
@@ -689,7 +1094,8 @@ export default {
         }
 
         const handlePremioClick = (premio) => {
-            router.push(`/premio/${rifaId.value}/${premio.id}`)
+            // Usar rifa.codigo_unico para la navegación hacia PremioDetail
+            router.push(`/premio/${rifa.value.codigo_unico}/${premio.codigo}`)
         }
 
         // Métodos para la selección de tickets
@@ -771,20 +1177,23 @@ export default {
             }
 
             try {
-                // Aquí implementarías la lógica para enviar el comprobante
-                // Por ejemplo, subir la imagen a un servidor y crear un ticket manual
-                
-                showNotification('Comprobante enviado para revisión manual. Te notificaremos cuando sea procesado.', 'success')
-                
-                // Cerrar el modal después de enviar
+                paymentLoading.value = true
+
+                // Aquí implementarías la lógica para enviar el comprobante al backend
+                // Por ahora, simularemos el proceso
+                await new Promise(resolve => setTimeout(resolve, 2000))
+
+                showNotification('Comprobante enviado. Será revisado en breve.', 'success')
                 closePaymentModal()
-                
-                // Limpiar el archivo seleccionado
-                removeFile()
-                
+
+                // Recargar datos de la rifa
+                await loadRifa(rifaId.value)
+
             } catch (error) {
                 console.error('Error al enviar comprobante:', error)
                 showNotification('Error al enviar el comprobante. Inténtalo de nuevo.', 'error')
+            } finally {
+                paymentLoading.value = false
             }
         }
 
@@ -800,8 +1209,11 @@ export default {
             paymentCode,
             paymentLoading,
             rifaId,
-            progressPercentage,
             userTicketsForRifa,
+            rifaMediaGallery,
+            canParticipate,
+            blockingMessage,
+            displayEstado,
             isAuthenticated,
             showPaymentModal,
             closePaymentModal,
@@ -809,6 +1221,15 @@ export default {
             getProgressMessage,
             getProgressAlertClass,
             getProgressIcon,
+            showLevelDetails,
+            getSiguienteMeta,
+            getProgressPercentage,
+            getProgressMilestones,
+            handleMilestoneClick,
+            levelDetailModal,
+            selectedLevel,
+            modalPosition,
+            closeLevelDetailModal,
             copyPaymentCode,
             handleImageError,
             formatDate,
@@ -912,6 +1333,97 @@ export default {
     gap: 1.5rem;
 }
 
+.full-width-section {
+    grid-column: 1 / -1;
+    margin-top: 2rem;
+}
+
+/* Layout de dos columnas como en Home */
+.rifa-actual-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    align-items: center;
+}
+
+.rifa-info h2.rifa-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0 0 1rem 0;
+}
+
+.rifa-info .rifa-description {
+    color: var(--gray-600);
+    font-size: 1.125rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.rifa-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+.stat-item i {
+    color: var(--primary-purple);
+}
+
+.rifa-progress {
+    text-align: right;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.progress-label {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+}
+
+.progress-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-purple);
+}
+
+.progress-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+}
+
+.progress-detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.detail-label {
+    color: var(--gray-600);
+}
+
+.detail-value {
+    font-weight: 600;
+    color: var(--gray-800);
+}
+
 .card {
     background: var(--white);
     border-radius: var(--border-radius-lg);
@@ -965,11 +1477,39 @@ export default {
     background: var(--primary-blue);
 }
 
+.status-activa {
+    background: var(--primary-blue);
+}
+
 .status-confirmada {
     background: var(--success-green);
 }
 
+.status-finalizada {
+    background: var(--success-green);
+}
+
 .status-sorteada {
+    background: var(--primary-purple);
+}
+
+.status-bloqueada {
+    background: var(--warning-orange);
+}
+
+.status-pausada {
+    background: var(--warning-orange);
+}
+
+.status-cancelada {
+    background: var(--danger-red);
+}
+
+.status-borrador {
+    background: var(--text-tertiary);
+}
+
+.status-proximamente {
     background: var(--primary-purple);
 }
 
@@ -2175,6 +2715,24 @@ export default {
     color: #ffc107;
 }
 
+.blocking-notice {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: var(--border-radius);
+    color: #721c24;
+    font-size: 0.875rem;
+}
+
+.blocking-notice i {
+    color: #dc3545;
+}
+
 /* Estilos para selección de tickets */
 .ticket-selection-section {
     margin-top: 1rem;
@@ -2660,14 +3218,445 @@ export default {
     .file-upload-area {
         padding: 1rem;
     }
-    
+
     .preview-image {
         max-width: 150px;
         max-height: 100px;
     }
-    
+
     .upload-placeholder i {
         font-size: 1.5rem;
+    }
+}
+
+/* Progress with milestones styles */
+.progress-with-milestones {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 2rem;
+    border: 1px solid #e2e8f0;
+}
+
+.progress-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.progress-header h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a202c;
+}
+
+.progress-subtitle {
+    color: #718096;
+    font-size: 1rem;
+    margin: 0;
+}
+
+.milestones-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    position: relative;
+}
+
+.milestone {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    background: white;
+    border: 1px solid #e2e8f0;
+}
+
+.milestone:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.milestone.completed {
+    background: linear-gradient(135deg, #48bb78, #38a169);
+    border-color: #38a169;
+    color: white;
+}
+
+.milestone.completed:hover {
+    background: linear-gradient(135deg, #38a169, #2f855a);
+}
+
+.milestone-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.milestone:not(.completed) .milestone-icon {
+    background: #e2e8f0;
+    color: #718096;
+    border: 2px solid #cbd5e0;
+}
+
+.milestone.completed .milestone-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.milestone-content {
+    flex: 1;
+}
+
+.milestone-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin: 0 0 0.25rem 0;
+}
+
+.milestone:not(.completed) .milestone-title {
+    color: #2d3748;
+}
+
+.milestone.completed .milestone-title {
+    color: white;
+}
+
+.milestone-description {
+    font-size: 0.9rem;
+    margin: 0;
+    opacity: 0.8;
+}
+
+.milestone:not(.completed) .milestone-description {
+    color: #718096;
+}
+
+.milestone.completed .milestone-description {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.milestone-stats {
+    text-align: right;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.milestone:not(.completed) .milestone-stats {
+    color: #4a5568;
+}
+
+.milestone.completed .milestone-stats {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Responsive adjustments for milestones */
+@media (max-width: 768px) {
+    .progress-with-milestones {
+        padding: 1.5rem;
+    }
+
+    .milestone {
+        padding: 0.75rem;
+        gap: 0.75rem;
+    }
+
+    .milestone-icon {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+
+    .milestone-title {
+        font-size: 1rem;
+    }
+
+    .milestone-description {
+        font-size: 0.8rem;
+    }
+
+    .milestone-stats {
+        font-size: 0.75rem;
+    }
+
+    .milestone:hover {
+        transform: none;
+    }
+}
+
+/* Estilos para milestones en barra de progreso */
+.progress-milestones {
+    position: absolute;
+    top: -10px;
+    left: 0;
+    right: 0;
+    height: auto;
+    z-index: 2;
+}
+
+.milestone {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 3;
+}
+
+.milestone:hover {
+    transform: translateX(-50%) translateY(-3px);
+}
+
+.milestone:hover .milestone-marker {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.milestone-marker {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border: 2px solid var(--white);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    position: relative;
+    z-index: 4;
+    transition: all 0.3s ease;
+}
+
+.milestone-completed .milestone-marker {
+    background: var(--success-green);
+    color: var(--white);
+}
+
+.milestone-active .milestone-marker {
+    background: var(--primary-blue);
+    color: var(--white);
+    animation: pulse 2s infinite;
+}
+
+.milestone-pending .milestone-marker {
+    background: var(--gray-300);
+    color: var(--gray-600);
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2), 0 0 0 0 rgba(59, 130, 246, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2), 0 0 0 8px rgba(59, 130, 246, 0);
+    }
+
+    100% {
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2), 0 0 0 0 rgba(59, 130, 246, 0);
+    }
+}
+
+/* Tooltip de detalles del nivel */
+.tooltip-overlay {
+    position: fixed;
+    inset: 0;
+    background: transparent;
+    z-index: 1000;
+}
+
+.level-detail-tooltip {
+    position: absolute;
+    background: var(--white);
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border: 1px solid var(--gray-200);
+    padding: 0;
+    z-index: 1001;
+    width: 320px;
+    max-width: 90vw;
+}
+
+.tooltip-arrow {
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 16px;
+    height: 16px;
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-top: none;
+    border-left: none;
+    transform: translateX(-50%) rotate(45deg);
+}
+
+.tooltip-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid var(--gray-200);
+    background: var(--gray-50);
+    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+}
+
+.tooltip-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gray-900);
+}
+
+.tooltip-close {
+    background: none;
+    border: none;
+    color: var(--gray-500);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: var(--border-radius-sm);
+    transition: all 0.2s ease;
+}
+
+.tooltip-close:hover {
+    background: var(--gray-200);
+    color: var(--gray-700);
+}
+
+.tooltip-content {
+    padding: 1rem;
+}
+
+.tooltip-level-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.tooltip-level-image {
+    width: 100%;
+    height: 120px;
+    overflow: hidden;
+    border-radius: var(--border-radius-md);
+    background: var(--gray-100);
+}
+
+.tooltip-level-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.tooltip-level-details {
+    flex: 1;
+}
+
+.tooltip-level-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--gray-900);
+}
+
+.tooltip-level-description {
+    margin: 0 0 1rem 0;
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    line-height: 1.4;
+}
+
+.tooltip-level-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.tooltip-stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.tooltip-stat-item i {
+    color: var(--primary-purple);
+    width: 16px;
+    text-align: center;
+}
+
+.status-completed {
+    color: var(--success-green);
+}
+
+.status-active {
+    color: var(--warning-yellow);
+}
+
+.status-pending {
+    color: var(--gray-500);
+}
+
+.tooltip-specifications {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--gray-200);
+}
+
+.tooltip-specifications h6 {
+    margin: 0 0 0.75rem 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+.tooltip-specs-grid {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.tooltip-spec-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+}
+
+.tooltip-spec-label {
+    font-weight: 500;
+    color: var(--gray-600);
+}
+
+.tooltip-spec-value {
+    font-weight: 600;
+    color: var(--gray-900);
+}
+
+/* Responsive del tooltip */
+@media (max-width: 768px) {
+    .level-detail-tooltip {
+        width: 280px;
+    }
+
+    .tooltip-header {
+        padding: 0.75rem;
+    }
+
+    .tooltip-content {
+        padding: 0.75rem;
+    }
+
+    .tooltip-level-image {
+        height: 100px;
     }
 }
 </style>

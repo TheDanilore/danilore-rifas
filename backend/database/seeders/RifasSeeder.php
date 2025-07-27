@@ -13,23 +13,23 @@ class RifasSeeder extends Seeder
      */
     public function run(): void
     {
-        // Rifa progresiva: iPhone 15 Pro Max
+        // Rifa progresiva: iPhone 15 Pro Max (ACTIVA con 500 tickets vendidos)
         $rifaIphone = DB::table('rifas')->insertGetId([
             'titulo' => 'iPhone 15 Pro Max 1TB',
             'descripcion' => 'Gana el nuevo iPhone 15 Pro Max con 1TB de almacenamiento. Sistema de premios progresivos donde cada nivel se desbloquea con la participación de la comunidad.',
             'precio_boleto' => 10.00,
-            'boletos_minimos' => 1000,
+            'boletos_minimos' => 700,
             'boletos_maximos' => 2000,
-            'boletos_vendidos' => 0,
-            'imagen_principal' => 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&h=400&fit=crop&crop=center',
+            'boletos_vendidos' => 500, // ✅ Actualizado - Ya hay participación
+            'imagen_principal' => '/images/premios/iphone-15-pro-max-rifa.jpg',
             'imagenes_adicionales' => json_encode([
-                'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&h=400&fit=crop&crop=center',
-                'https://images.unsplash.com/photo-1603921326210-6edd2d60ca68?w=600&h=400&fit=crop&crop=center'
+                '/images/premios/iphone-15-pro-max-1.jpg',
+                '/images/premios/iphone-15-pro-max-2.jpg'
             ]),
             'media_gallery' => json_encode([
-                ['type' => 'image', 'url' => 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&h=400&fit=crop&crop=center'],
-                ['type' => 'image', 'url' => 'https://images.unsplash.com/photo-1603921326210-6edd2d60ca68?w=600&h=400&fit=crop&crop=center'],
-                ['type' => 'image', 'url' => 'https://images.unsplash.com/photo-1574944985070-8f3ebc6b79d2?w=600&h=400&fit=crop&crop=center']
+                '/images/premios/iphone-15-pro-max-1.jpg',
+                '/images/premios/iphone-15-pro-max-2.jpg',
+                '/images/premios/iphone-15-pro-max-3.jpg'
             ]),
             'fecha_inicio' => Carbon::now()->format('Y-m-d'),
             'fecha_fin' => Carbon::now()->addDays(30)->format('Y-m-d'),
@@ -48,23 +48,23 @@ class RifasSeeder extends Seeder
             'updated_at' => now(),
         ]);
 
-        // Rifa futura: MacBook Pro
+        // Rifa futura: MacBook Pro (BLOQUEADA - se activa después del iPhone)
         $rifaMacbook = DB::table('rifas')->insertGetId([
             'titulo' => 'MacBook Pro M3 16" 1TB',
             'descripcion' => 'La nueva MacBook Pro con chip M3, perfecta para profesionales y creadores de contenido. Sistema de premios progresivos con múltiples niveles de participación.',
             'precio_boleto' => 15.00,
             'boletos_minimos' => 800,
             'boletos_maximos' => 1600,
-            'boletos_vendidos' => 0,
-            'imagen_principal' => 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&h=400&fit=crop&crop=center',
+            'boletos_vendidos' => 0, // ✅ Correcto - Rifa futura sin participación
+            'imagen_principal' => '/images/premios/macbook-pro-m3-rifa.jpg',
             'imagenes_adicionales' => json_encode([
-                'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&h=400&fit=crop&crop=center',
-                'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=600&h=400&fit=crop&crop=center'
+                '/images/premios/macbook-pro-m3-1.jpg',
+                '/images/premios/macbook-pro-m3-2.jpg'
             ]),
             'media_gallery' => json_encode([
-                ['type' => 'image', 'url' => 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&h=400&fit=crop&crop=center'],
-                ['type' => 'image', 'url' => 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=600&h=400&fit=crop&crop=center'],
-                ['type' => 'image', 'url' => 'https://images.unsplash.com/photo-1484788984921-03950022c9ef?w=600&h=400&fit=crop&crop=center']
+                '/images/premios/macbook-pro-m3-1.jpg',
+                '/images/premios/macbook-pro-m3-2.jpg',
+                '/images/premios/macbook-pro-m3-3.jpg'
             ]),
             'fecha_inicio' => Carbon::now()->addDays(35)->format('Y-m-d'),
             'fecha_fin' => Carbon::now()->addDays(65)->format('Y-m-d'),
@@ -83,23 +83,23 @@ class RifasSeeder extends Seeder
             'updated_at' => now(),
         ]);
 
-        // Rifa simple: Tesla Model 3
+        // Rifa simple: Tesla Model 3 (INDEPENDIENTE)
         DB::table('rifas')->insert([
             'titulo' => 'Tesla Model 3 Standard Range',
             'descripcion' => 'Vehículo eléctrico Tesla Model 3 con todas las características de lujo y tecnología avanzada.',
             'precio_boleto' => 50.00,
             'boletos_minimos' => 1000,
             'boletos_maximos' => 2500,
-            'boletos_vendidos' => 0,
-            'imagen_principal' => 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=600&h=400&fit=crop&crop=center',
+            'boletos_vendidos' => 0, // ✅ Correcto - Sin participación aún
+            'imagen_principal' => '/images/premios/tesla-model-3-rifa.jpg',
             'imagenes_adicionales' => json_encode([
-                'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=600&h=400&fit=crop&crop=center',
-                'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=400&fit=crop&crop=center'
+                '/images/premios/tesla-model-3-1.jpg',
+                '/images/premios/tesla-model-3-2.jpg'
             ]),
             'media_gallery' => json_encode([
-                ['type' => 'image', 'url' => 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=600&h=400&fit=crop&crop=center'],
-                ['type' => 'image', 'url' => 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=400&fit=crop&crop=center'],
-                ['type' => 'image', 'url' => 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=600&h=400&fit=crop&crop=center']
+                '/images/premios/tesla-model-3-1.jpg',
+                '/images/premios/tesla-model-3-2.jpg',
+                '/images/premios/tesla-model-3-3.jpg'
             ]),
             'fecha_inicio' => Carbon::now()->format('Y-m-d'),
             'fecha_fin' => Carbon::now()->addDays(45)->format('Y-m-d'),

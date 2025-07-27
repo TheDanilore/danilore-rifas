@@ -1,12 +1,13 @@
 import apiClient from './api.js'
+import { backendConfig } from '../config/backend.js'
 
 // Interfaz para el servicio de rifas (Interface Segregation Principle)
 export class RifaService {
   constructor() {
     // Configuración para usar API real o datos simulados
     this.useRealAPI = true // Cambiar a false para usar datos simulados durante desarrollo
-    // URL base para imágenes del backend
-    this.imageBaseURL = 'http://localhost:8000'
+    // URL base para imágenes del backend - ahora centralizada
+    this.imageBaseURL = backendConfig.BASE_URL
   }
 
   /**
@@ -189,29 +190,35 @@ export class RifaService {
       nombre: rifaAPI.titulo,
       titulo: rifaAPI.titulo, // Alias para compatibilidad
       descripcion: rifaAPI.descripcion,
-      imagen: this.processImageURL(rifaAPI.imagen_principal),
+      imagen: rifaAPI.imagen || rifaAPI.imagen_principal, // Usar imagen procesada del backend
       precio: rifaAPI.precio_boleto,
-      ticketsVendidos: rifaAPI.boletos_vendidos || 0,
+      ticketsVendidos: rifaAPI.ticketsVendidos || rifaAPI.boletos_vendidos || 0,
       boletos_vendidos: rifaAPI.boletos_vendidos || 0, // Alias para compatibilidad
-      ticketsMinimos: rifaAPI.boletos_minimos,
+      ticketsMinimos: rifaAPI.ticketsMinimos || rifaAPI.boletos_minimos,
       boletos_minimos: rifaAPI.boletos_minimos, // Alias para compatibilidad
       ticketsMaximos: rifaAPI.boletos_maximos,
       boletos_maximos: rifaAPI.boletos_maximos, // Alias para compatibilidad
-      fechaSorteo: rifaAPI.fecha_sorteo,
+      fechaSorteo: rifaAPI.fechaSorteo || rifaAPI.fecha_sorteo,
       fecha_sorteo: rifaAPI.fecha_sorteo, // Alias para compatibilidad
       fechaInicio: rifaAPI.fecha_inicio,
       fechaFin: rifaAPI.fecha_fin,
       estado: rifaAPI.estado,
       tipo: rifaAPI.tipo || (rifaAPI.estado === 'activa' ? 'actual' : 'futura'),
       categoria: rifaAPI.categoria,
-      premios: rifaAPI.premios?.map(premio => this.formatearPremio(premio)) || [],
+      premios: rifaAPI.premios || [],
       destacada: rifaAPI.es_destacada || false,
       activa: rifaAPI.estado === 'activa',
       // Información adicional para compatibilidad con RifaDetail
-      mediaGallery: rifaAPI.media_gallery || [],
+      mediaGallery: this.processMediaGallery(rifaAPI.media_gallery || []),
       imagenes_adicionales: rifaAPI.imagenes_adicionales || [],
       terminos_condiciones: rifaAPI.terminos_condiciones,
-      max_boletos_por_persona: rifaAPI.max_boletos_por_persona
+      max_boletos_por_persona: rifaAPI.max_boletos_por_persona,
+      
+      // Datos de progreso calculados por el backend
+      progreso_general: rifaAPI.progreso_general || null,
+      niveles_completados_general: rifaAPI.niveles_completados_general || 0,
+      total_niveles_general: rifaAPI.total_niveles_general || 0,
+      porcentaje_general: rifaAPI.porcentaje_general || 0
     }
   }
 
@@ -219,33 +226,27 @@ export class RifaService {
    * Formatear premio de la API para el frontend
    */
   formatearPremio(premioAPI) {
-    // Procesar media_gallery para convertir rutas relativas a URLs completas
-    let mediaGallery = []
-    if (premioAPI.media_gallery && Array.isArray(premioAPI.media_gallery)) {
-      mediaGallery = premioAPI.media_gallery.map(imagePath => {
-        if (typeof imagePath === 'string') {
-          // Si es solo una string, procesarla como imagen
-          return this.processImageURL(imagePath)
-        }
-        return imagePath
-      })
-    }
-
     return {
       id: premioAPI.id?.toString() || '',
       codigo: premioAPI.codigo || '',
       titulo: premioAPI.titulo || '',
       descripcion: premioAPI.descripcion || '',
-      imagen: this.processImageURL(premioAPI.imagen_principal), // Procesar URL de imagen
-      imagen_principal: this.processImageURL(premioAPI.imagen_principal), // Mantener ambos para compatibilidad
+      imagen: premioAPI.imagen || premioAPI.imagen_principal, // Usar imagen procesada del backend
+      imagen_principal: premioAPI.imagen || premioAPI.imagen_principal, // Mantener ambos para compatibilidad
       orden: premioAPI.orden || 0,
       estado: premioAPI.estado || 'bloqueado',
-      desbloqueado: Boolean(premioAPI.desbloqueado), // Convertir a boolean
-      completado: Boolean(premioAPI.completado), // Convertir a boolean
+      
+      // Propiedades calculadas del backend
+      desbloqueado: Boolean(premioAPI.desbloqueado), 
+      completado: Boolean(premioAPI.completado), 
+      esta_activo: Boolean(premioAPI.esta_activo),
+      estado_texto: premioAPI.estado_texto || '',
+      premio_requerido: premioAPI.premio_requerido || '',
+      
       premio_requerido_id: premioAPI.premio_requerido_id?.toString(),
-      media_gallery: mediaGallery, // Usar el array procesado
+      media_gallery: premioAPI.media_gallery || [],
       notas_admin: premioAPI.notas_admin || '',
-      niveles: premioAPI.niveles?.map(nivel => this.formatearNivel(nivel)) || []
+      niveles: premioAPI.niveles || []
     }
   }
 
@@ -257,13 +258,17 @@ export class RifaService {
       id: nivelAPI.id?.toString() || '',
       codigo: nivelAPI.codigo || '',
       titulo: nivelAPI.titulo || '',
+      nombre: nivelAPI.nombre || nivelAPI.titulo || '', // Alias para compatibilidad
       descripcion: nivelAPI.descripcion || '',
       tickets_necesarios: nivelAPI.tickets_necesarios || 0,
       valor_aproximado: nivelAPI.valor_aproximado || 0,
-      imagen: this.processImageURL(nivelAPI.imagen), // Procesar URL de imagen
+      imagen: nivelAPI.imagen, // Usar imagen procesada del backend
       orden: nivelAPI.orden || 0,
-      es_actual: nivelAPI.es_actual || false,
-      especificaciones: nivelAPI.especificaciones || ''
+      especificaciones: nivelAPI.especificaciones || '',
+      
+      // Propiedades calculadas del backend
+      es_actual: Boolean(nivelAPI.es_actual),
+      desbloqueado: Boolean(nivelAPI.desbloqueado)
     }
   }
 
@@ -640,7 +645,64 @@ export class RifaService {
       }
     ]
   }
+
+  /**
+   * Procesar media_gallery del backend para formato esperado por MediaGallery
+   */
+  processMediaGallery(mediaGallery) {
+    if (!Array.isArray(mediaGallery)) {
+      return { images: [], videos: [] }
+    }
+
+    const images = []
+    const videos = []
+
+    mediaGallery.forEach((media, index) => {
+      if (typeof media === 'string') {
+        // Es una URL directa - determinar tipo por extensión
+        const isVideo = /\.(mp4|mov|avi|webm|mkv)$/i.test(media)
+        
+        if (isVideo) {
+          videos.push({
+            id: `video-${index}`,
+            url: media,
+            title: `Video ${index + 1}`,
+            thumbnail: null,
+            duration: null
+          })
+        } else {
+          images.push({
+            id: `image-${index}`,
+            url: media,
+            alt: `Imagen ${index + 1}`,
+            title: `Imagen ${index + 1}`
+          })
+        }
+      } else if (typeof media === 'object' && media.url) {
+        // Es un objeto con estructura
+        const isVideo = media.type === 'video' || /\.(mp4|mov|avi|webm|mkv)$/i.test(media.url)
+        
+        if (isVideo) {
+          videos.push({
+            id: media.id || `video-${index}`,
+            url: media.url,
+            title: media.title || `Video ${index + 1}`,
+            thumbnail: media.thumbnail || null,
+            duration: media.duration || null
+          })
+        } else {
+          images.push({
+            id: media.id || `image-${index}`,
+            url: media.url,
+            alt: media.alt || `Imagen ${index + 1}`,
+            title: media.title || `Imagen ${index + 1}`
+          })
+        }
+      }
+    })
+
+    return { images, videos }
+  }
 }
 
-// Singleton instance (Dependency Inversion Principle)
 export const rifaService = new RifaService()
