@@ -116,7 +116,8 @@
                                         <i class="fas fa-ticket-alt"></i>
                                     </div>
                                     <div class="stat-content">
-                                        <div class="stat-number">{{ rifa.ticketsVendidos }}/{{ rifa.tickets }}</div>
+                                        <div class="stat-number">{{ rifa.ticketsVendidos }}/{{ rifa.ticketsMinimos }}
+                                        </div>
                                         <div class="stat-label">Tickets Vendidos</div>
                                     </div>
                                 </div>
@@ -128,7 +129,7 @@
                                     <div class="stat-content">
                                         <div class="stat-number">{{ rifa.progreso_general ?
                                             rifa.progreso_general.niveles_completados : 0 }}/{{ rifa.progreso_general ?
-                                            rifa.progreso_general.total_niveles : 0 }}</div>
+                                                rifa.progreso_general.total_niveles : 0 }}</div>
                                         <div class="stat-label">Niveles Completados</div>
                                     </div>
                                 </div>
@@ -164,100 +165,10 @@
                                             :style="{ width: `${getProgressPercentage(rifa)}%` }"></div>
                                     </div>
 
-                                    <!-- Marcadores de premios en la barra -->
-                                    <div class="progress-milestones">
-                                        <div v-for="(milestone, index) in getProgressMilestones(rifa.id)"
-                                            :key="milestone.id" class="milestone" :class="{
-                                                'milestone-completed': milestone.completed,
-                                                'milestone-active': milestone.active,
-                                                'milestone-pending': !milestone.completed && !milestone.active
-                                            }" :style="{ left: `${milestone.position}%` }"
-                                            @click="handleMilestoneClick(milestone, $event)">
-                                            <div class="milestone-marker">
-                                                <i v-if="milestone.completed" class="fas fa-check"></i>
-                                                <i v-else-if="milestone.active" class="fas fa-clock"></i>
-                                                <i v-else class="fas fa-lock"></i>
-                                            </div>
-                                            <!-- Números de nivel en los marcadores -->
-                                            <div class="milestone-number">{{ index + 1 }}</div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Modal de detalles del nivel posicionado -->
-                            <div v-if="levelDetailModal" class="level-detail-tooltip" :style="{
-                                left: `${modalPosition.x}px`,
-                                top: `${modalPosition.y}px`,
-                                transform: 'translateX(-50%) translateY(-100%)'
-                            }" @click.stop>
-                                <div class="tooltip-arrow"></div>
 
-                                <div class="tooltip-header">
-                                    <h4 class="tooltip-title">{{ selectedLevel?.premio_titulo }}</h4>
-                                    <button class="tooltip-close" @click="closeLevelDetailModal">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
-
-                                <div class="tooltip-content" v-if="selectedLevel">
-                                    <div class="tooltip-level-info">
-                                        <div class="tooltip-level-image" v-if="selectedLevel.imagen">
-                                            <img :src="selectedLevel.imagen" :alt="selectedLevel.nivel_titulo"
-                                                @error="handleImageError">
-                                        </div>
-
-                                        <div class="tooltip-level-details">
-                                            <h5 class="tooltip-level-title">{{ selectedLevel.nivel_titulo }}</h5>
-                                            <p class="tooltip-level-description" v-if="selectedLevel.nivel_descripcion">
-                                                {{ selectedLevel.nivel_descripcion }}
-                                            </p>
-
-                                            <div class="tooltip-level-stats">
-                                                <div class="tooltip-stat-item">
-                                                    <i class="fas fa-ticket-alt"></i>
-                                                    <span>{{ selectedLevel.tickets }} tickets</span>
-                                                </div>
-
-                                                <div class="tooltip-stat-item" v-if="selectedLevel.valor_aproximado">
-                                                    <i class="fas fa-tag"></i>
-                                                    <span>S/ {{ selectedLevel.valor_aproximado.toFixed(2) }}</span>
-                                                </div>
-
-                                                <div class="tooltip-stat-item">
-                                                    <i class="fas fa-flag"></i>
-                                                    <span :class="{
-                                                        'status-completed': selectedLevel.completed,
-                                                        'status-active': selectedLevel.active,
-                                                        'status-pending': !selectedLevel.completed && !selectedLevel.active
-                                                    }">
-                                                        <i v-if="selectedLevel.completed" class="fas fa-check"></i>
-                                                        <i v-else-if="selectedLevel.active" class="fas fa-clock"></i>
-                                                        <i v-else class="fas fa-lock"></i>
-                                                        {{ selectedLevel.completed ? 'Completado' :
-                                                            selectedLevel.active ? 'En Progreso' : 'Bloqueado'
-                                                        }}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            <div class="tooltip-specifications"
-                                                v-if="selectedLevel.especificaciones && Object.keys(selectedLevel.especificaciones).length > 0">
-                                                <h6>Especificaciones:</h6>
-                                                <div class="tooltip-specs-grid">
-                                                    <div v-for="(value, key) in selectedLevel.especificaciones"
-                                                        :key="key" class="tooltip-spec-item">
-                                                        <span class="tooltip-spec-label">{{
-                                                            key.charAt(0).toUpperCase() + key.slice(1)
-                                                            }}:</span>
-                                                        <span class="tooltip-spec-value">{{ value }}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -354,86 +265,85 @@
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Premios y Niveles -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="prizes-header">
-                        <i class="fas fa-trophy"></i>
-                        <h2>Premios por Niveles</h2>
+                <!-- Premios y Niveles -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="prizes-header">
+                            <i class="fas fa-trophy"></i>
+                            <h2>Premios por Niveles</h2>
+                        </div>
                     </div>
-                </div>
-                <div class="card-content">
-                    <div class="prizes-list">
-                        <div v-for="(premio, premioIndex) in getPremiosProgresivos()" :key="premioIndex"
-                            class="premio-item" :class="{
-                                'premio-active': premio.esta_activo,
-                                'premio-completed': premio.completado,
-                                'premio-locked': !premio.desbloqueado
-                            }">
-                            <div class="premio-content">
-                                <div class="premio-icon">
-                                    <i :class="premio.icono || 'fas fa-gift'"></i>
-                                </div>
-                                <div class="premio-details">
-                                    <h4 class="premio-title">{{ premio.titulo }}</h4>
-                                    <p class="premio-description">{{ premio.descripcion }}</p>
-                                    <div class="premio-status-badge" :class="{
-                                        'status-active': premio.esta_activo,
-                                        'status-completed': premio.completado,
-                                        'status-locked': !premio.desbloqueado
-                                    }">
-                                        <i v-if="premio.completado" class="fas fa-check"></i>
-                                        <i v-else-if="!premio.desbloqueado" class="fas fa-lock"></i>
-                                        <i v-else class="fas fa-clock"></i>
-                                        {{ premio.estado_texto }}
+                    <div class="card-content">
+                        <div class="prizes-list">
+                            <div v-for="(premio, premioIndex) in getPremiosProgresivos()" :key="premioIndex"
+                                class="premio-item" :class="{
+                                    'premio-active': premio.esta_activo,
+                                    'premio-completed': premio.completado,
+                                    'premio-locked': !premio.desbloqueado
+                                }">
+                                <div class="premio-content">
+                                    <div class="premio-icon">
+                                        <i :class="premio.icono || 'fas fa-gift'"></i>
                                     </div>
-                                </div>
-                                <div class="premio-actions">
-                                    <button class="premio-detail-btn" @click="handlePremioClick(premio)">
-                                        <i class="fas fa-eye"></i>
-                                        Ver Detalles
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Niveles del Premio (simplificado) -->
-                            <div v-if="premio.desbloqueado && premio.niveles && premio.niveles.length > 0"
-                                class="premio-niveles">
-                                <div class="niveles-progress">
-                                    <div v-for="(nivel, nivelIndex) in premio.niveles" :key="nivelIndex"
-                                        class="nivel-mini" :class="{
-                                            'nivel-completed': nivel.desbloqueado,
-                                            'nivel-current': nivel.es_actual,
-                                            'nivel-pending': !nivel.desbloqueado && !nivel.es_actual
+                                    <div class="premio-details">
+                                        <h4 class="premio-title">{{ premio.titulo }}</h4>
+                                        <p class="premio-description">{{ premio.descripcion }}</p>
+                                        <div class="premio-status-badge" :class="{
+                                            'status-active': premio.esta_activo,
+                                            'status-completed': premio.completado,
+                                            'status-locked': !premio.desbloqueado
                                         }">
-                                        <div class="nivel-marker">
-                                            <span class="nivel-number">{{ nivelIndex + 1 }}</span>
-                                            <i v-if="nivel.desbloqueado" class="fas fa-check"></i>
-                                            <i v-else-if="nivel.es_actual" class="fas fa-clock"></i>
-                                            <i v-else class="fas fa-lock"></i>
+                                            <i v-if="premio.completado" class="fas fa-check"></i>
+                                            <i v-else-if="!premio.desbloqueado" class="fas fa-lock"></i>
+                                            <i v-else class="fas fa-clock"></i>
+                                            {{ premio.estado_texto }}
                                         </div>
-                                        <div class="nivel-info">
-                                            <div class="nivel-title">{{ nivel.titulo }}</div>
-                                            <div class="nivel-requirement">{{ nivel.tickets_necesarios }} tickets</div>
+                                    </div>
+                                    <div class="premio-actions">
+                                        <button class="premio-detail-btn" @click="handlePremioClick(premio)">
+                                            <i class="fas fa-eye"></i>
+                                            Ver Detalles
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Niveles del Premio (simplificado) -->
+                                <div v-if="premio.desbloqueado && premio.niveles && premio.niveles.length > 0"
+                                    class="premio-niveles">
+                                    <div class="niveles-progress">
+                                        <div v-for="(nivel, nivelIndex) in premio.niveles" :key="nivelIndex"
+                                            class="nivel-mini" :class="{
+                                                'nivel-completed': nivel.desbloqueado,
+                                                'nivel-current': nivel.es_actual,
+                                                'nivel-pending': !nivel.desbloqueado && !nivel.es_actual
+                                            }">
+                                            <div class="nivel-marker">
+                                                <span class="nivel-number">{{ nivelIndex + 1 }}</span>
+                                                <i v-if="nivel.desbloqueado" class="fas fa-check"></i>
+                                                <i v-else-if="nivel.es_actual" class="fas fa-clock"></i>
+                                                <i v-else class="fas fa-lock"></i>
+                                            </div>
+                                            <div class="nivel-info">
+                                                <div class="nivel-title">{{ nivel.titulo }}</div>
+                                                <div class="nivel-requirement">{{ nivel.tickets_necesarios }} tickets
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <!-- Premio Bloqueado -->
-                            <div v-if="!premio.desbloqueado" class="premio-locked-message">
-                                <i class="fas fa-lock"></i>
-                                <span>Se desbloqueará al completar: <strong>{{ premio.premio_requerido
-                                        }}</strong></span>
+                                <!-- Premio Bloqueado -->
+                                <div v-if="!premio.desbloqueado" class="premio-locked-message">
+                                    <i class="fas fa-lock"></i>
+                                    <span>Se desbloqueará al completar: <strong>{{ premio.premio_requerido
+                                            }}</strong></span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-
-
 
             <!-- Modal de pago -->
             <div v-if="paymentModal" class="modal-overlay" @click="closePaymentModal">
@@ -648,6 +558,8 @@
         <!-- Overlay para cerrar tooltip al hacer clic fuera -->
         <div v-if="levelDetailModal" class="tooltip-overlay" @click="closeLevelDetailModal"></div>
 
+        <!-- Footer -->
+        <AppFooter />
     </div>
 </template>
 
@@ -702,14 +614,17 @@ export default {
         // Función para obtener porcentaje de progreso como en Home.vue
         const getProgressPercentage = (rifaObj) => {
             if (!rifaObj) return 0
-            // Usar datos calculados del backend
-            if (rifaObj.progreso_general) {
-                return rifaObj.progreso_general.porcentaje || 0
+
+            // Usar datos calculados del backend si están disponibles
+            if (rifaObj.progreso_general && rifaObj.progreso_general.porcentaje !== undefined) {
+                return rifaObj.progreso_general.porcentaje
             }
 
-            // Fallback si no hay datos del backend
-            const maxTickets = 1500 // Máximo basado en los datos reales
-            return Math.min((rifaObj.ticketsVendidos / maxTickets) * 100, 100)
+            // Calcular porcentaje basado en tickets vendidos vs tickets totales
+            const ticketsVendidos = rifaObj.ticketsVendidos || 0
+            const totalTickets = rifaObj.tickets || 1500 // Usar tickets totales de la rifa
+
+            return Math.min((ticketsVendidos / totalTickets) * 100, 100)
         }
 
         const userTicketsForRifa = computed(() => {
@@ -961,16 +876,25 @@ export default {
             if (!todos_los_niveles || todos_los_niveles.length === 0) return []
 
             const maxTickets = todos_los_niveles[todos_los_niveles.length - 1]?.tickets_necesarios || 1
+            const ticketsVendidos = rifa.value.ticketsVendidos || 0
 
-            return todos_los_niveles.map((nivel, index) => ({
-                id: nivel.id,
-                position: (nivel.tickets_necesarios / maxTickets) * 100,
-                completed: nivel.completado,
-                active: !nivel.completado && index === 0, // El primer no completado está activo
-                titulo: nivel.titulo,
-                tickets: nivel.tickets_necesarios,
-                premio_titulo: nivel.premio_titulo
-            }))
+            return todos_los_niveles.map((nivel, index) => {
+                const completed = ticketsVendidos >= nivel.tickets_necesarios
+                const isActive = !completed && (index === 0 || ticketsVendidos >= (todos_los_niveles[index - 1]?.tickets_necesarios || 0))
+
+                return {
+                    id: nivel.id,
+                    position: Math.min((nivel.tickets_necesarios / maxTickets) * 100, 100),
+                    completed: completed,
+                    active: isActive,
+                    titulo: nivel.titulo,
+                    tickets: nivel.tickets_necesarios,
+                    premio_titulo: nivel.premio_titulo,
+                    nivel_descripcion: nivel.descripcion,
+                    valor_aproximado: nivel.valor_aproximado,
+                    especificaciones: nivel.especificaciones || {}
+                }
+            })
         }
 
         // Función para manejar click en milestone
@@ -2333,6 +2257,24 @@ export default {
     .nivel-mini {
         min-width: auto;
         width: 100%;
+    }
+
+    /* Responsive para milestones */
+    .milestone-tooltip {
+        font-size: 0.55rem;
+        padding: 4px 6px;
+        min-width: 70px;
+        top: -45px;
+    }
+
+    .milestone:hover .milestone-tooltip {
+        top: -50px;
+    }
+
+    .milestone-marker {
+        width: 20px;
+        height: 20px;
+        font-size: 0.625rem;
     }
 }
 
@@ -3735,20 +3677,43 @@ export default {
     color: var(--gray-600);
 }
 
-.milestone-number {
+.milestone-tooltip {
     position: absolute;
-    top: -25px;
+    top: -50px;
     left: 50%;
     transform: translateX(-50%);
     background: var(--white);
     color: var(--gray-700);
-    font-size: 0.625rem;
-    font-weight: 600;
-    padding: 2px 6px;
+    padding: 6px 10px;
     border-radius: var(--border-radius);
     border: 1px solid var(--gray-200);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    z-index: 5;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1010;
+    text-align: center;
+    min-width: 90px;
+    font-size: 0.625rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.milestone:hover .milestone-tooltip {
+    opacity: 1;
+    visibility: visible;
+    top: -55px;
+}
+
+.milestone-level {
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 2px;
+}
+
+.milestone-tickets {
+    font-size: 0.55rem;
+    color: var(--gray-600);
+    font-weight: 500;
 }
 
 @keyframes pulse {

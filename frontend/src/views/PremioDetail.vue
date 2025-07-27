@@ -517,6 +517,8 @@
                 </div>
             </div>
         </div>
+            <!-- Footer -->
+    <AppFooter />
     </div>
 </template>
 
