@@ -301,8 +301,6 @@
             </div>
         </div>
 
-        <AppFooter />
-
         <!-- Modal de pago (reutilizar el existente) -->
         <div v-if="paymentModal" class="modal-overlay" @click="closePaymentModal">
             <div class="modal payment-modal" @click.stop>

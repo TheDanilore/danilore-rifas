@@ -101,164 +101,156 @@
                     </div>
 
                     <!-- Progreso del Sorteo -->
-                    <div class="card full-width-section">
+                    <div class="card">
                         <div class="card-header">
                             <div class="progress-header">
-                                <i class="fas fa-target"></i>
+                                <i class="fas fa-chart-line"></i>
                                 <h2>Progreso del Sorteo</h2>
                             </div>
                         </div>
                         <div class="card-content">
-                            <!-- Layout de dos columnas como en Home -->
-                            <div class="rifa-actual-header">
-                                <div class="rifa-info">
-                                    <h2 class="rifa-title">{{ rifa.nombre }}</h2>
-                                    <p class="rifa-description">{{ rifa.descripcion }}</p>
-                                    <div class="rifa-stats">
-                                        <div class="stat-item">
-                                            <i class="fas fa-ticket-alt"></i>
-                                            <span>{{ rifa.tickets }} tickets totales</span>
-                                        </div>
-                                        <div class="stat-item">
-                                            <i class="fas fa-tag"></i>
-                                            <span>S/ {{ rifa.precio }} por ticket</span>
-                                        </div>
-                                        <div class="stat-item">
-                                            <i class="fas fa-calendar"></i>
-                                            <span>{{ formatDate(rifa.fecha_inicio) }} - {{ formatDate(rifa.fecha_fin)
-                                                }}</span>
+                            <!-- Estadísticas principales en cards -->
+                            <div class="progress-stats-grid">
+                                <div class="progress-stat-card">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-ticket-alt"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <div class="stat-number">{{ rifa.ticketsVendidos }}/{{ rifa.tickets }}</div>
+                                        <div class="stat-label">Tickets Vendidos</div>
+                                    </div>
+                                </div>
+
+                                <div class="progress-stat-card">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-trophy"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <div class="stat-number">{{ rifa.progreso_general ?
+                                            rifa.progreso_general.niveles_completados : 0 }}/{{ rifa.progreso_general ?
+                                            rifa.progreso_general.total_niveles : 0 }}</div>
+                                        <div class="stat-label">Niveles Completados</div>
+                                    </div>
+                                </div>
+
+                                <div class="progress-stat-card">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-target"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <div class="stat-number">{{ getSiguienteMeta(rifa.id) }}</div>
+                                        <div class="stat-label">Siguiente Meta</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Barra de progreso visual -->
+                            <div class="visual-progress">
+                                <div class="progress-info">
+                                    <span class="progress-label">Progreso General</span>
+                                    <span class="progress-percentage">{{ Math.round(getProgressPercentage(rifa))
+                                        }}%</span>
+                                </div>
+
+                                <!-- Mensaje de progreso dentro de la sección -->
+                                <div class="progress-alert-inline" :class="getProgressAlertClass()">
+                                    <i :class="getProgressIcon()"></i>
+                                    <span>{{ getProgressMessage() }}</span>
+                                </div>
+
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill"
+                                            :style="{ width: `${getProgressPercentage(rifa)}%` }"></div>
+                                    </div>
+
+                                    <!-- Marcadores de premios en la barra -->
+                                    <div class="progress-milestones">
+                                        <div v-for="(milestone, index) in getProgressMilestones(rifa.id)"
+                                            :key="milestone.id" class="milestone" :class="{
+                                                'milestone-completed': milestone.completed,
+                                                'milestone-active': milestone.active,
+                                                'milestone-pending': !milestone.completed && !milestone.active
+                                            }" :style="{ left: `${milestone.position}%` }"
+                                            @click="handleMilestoneClick(milestone, $event)">
+                                            <div class="milestone-marker">
+                                                <i v-if="milestone.completed" class="fas fa-check"></i>
+                                                <i v-else-if="milestone.active" class="fas fa-clock"></i>
+                                                <i v-else class="fas fa-lock"></i>
+                                            </div>
+                                            <!-- Números de nivel en los marcadores -->
+                                            <div class="milestone-number">{{ index + 1 }}</div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="rifa-progress">
-                                    <div class="progress-info">
-                                        <span class="progress-label">Progreso General</span>
-                                        <span class="progress-value">{{ rifa.progreso_general ?
-                                            rifa.progreso_general.niveles_completados : 0 }}/{{ rifa.progreso_general ?
-                                                rifa.progreso_general.total_niveles : 0 }}</span>
-                                    </div>
-                                    <div class="progress-details">
-                                        <div class="progress-detail-item">
-                                            <span class="detail-label">Niveles Completados:</span>
-                                            <span class="detail-value">{{ rifa.progreso_general ?
-                                                rifa.progreso_general.niveles_completados : 0 }}</span>
-                                        </div>
-                                        <div class="progress-detail-item">
-                                            <span class="detail-label">Total Niveles:</span>
-                                            <span class="detail-value">{{ rifa.progreso_general ?
-                                                rifa.progreso_general.total_niveles : 0 }}</span>
-                                        </div>
-                                        <div class="progress-detail-item">
-                                            <span class="detail-label">Tickets Vendidos:</span>
-                                            <span class="detail-value">{{ rifa.ticketsVendidos }}</span>
-                                        </div>
-                                        <div class="progress-detail-item">
-                                            <span class="detail-label">Siguiente Meta:</span>
-                                            <span class="detail-value">{{ getSiguienteMeta(rifa.id) }}</span>
-                                        </div>
-                                    </div>
+                            </div>
 
-                                    <!-- Barra de progreso con premios -->
-                                    <div class="progress-with-milestones">
-                                        <div class="progress-bar-container">
-                                            <div class="progress-bar">
-                                                <div class="progress-fill"
-                                                    :style="{ width: `${getProgressPercentage(rifa)}%` }"></div>
-                                            </div>
+                            <!-- Modal de detalles del nivel posicionado -->
+                            <div v-if="levelDetailModal" class="level-detail-tooltip" :style="{
+                                left: `${modalPosition.x}px`,
+                                top: `${modalPosition.y}px`,
+                                transform: 'translateX(-50%) translateY(-100%)'
+                            }" @click.stop>
+                                <div class="tooltip-arrow"></div>
 
-                                            <!-- Marcadores de premios en la barra -->
-                                            <div class="progress-milestones">
-                                                <div v-for="(milestone, index) in getProgressMilestones(rifa.id)"
-                                                    :key="milestone.id" class="milestone" :class="{
-                                                        'milestone-completed': milestone.completed,
-                                                        'milestone-active': milestone.active,
-                                                        'milestone-pending': !milestone.completed && !milestone.active
-                                                    }" :style="{ left: `${milestone.position}%` }"
-                                                    @click="handleMilestoneClick(milestone, $event)">
-                                                    <div class="milestone-marker">
-                                                        <i v-if="milestone.completed" class="fas fa-check"></i>
-                                                        <i v-else-if="milestone.active" class="fas fa-clock"></i>
+                                <div class="tooltip-header">
+                                    <h4 class="tooltip-title">{{ selectedLevel?.premio_titulo }}</h4>
+                                    <button class="tooltip-close" @click="closeLevelDetailModal">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+
+                                <div class="tooltip-content" v-if="selectedLevel">
+                                    <div class="tooltip-level-info">
+                                        <div class="tooltip-level-image" v-if="selectedLevel.imagen">
+                                            <img :src="selectedLevel.imagen" :alt="selectedLevel.nivel_titulo"
+                                                @error="handleImageError">
+                                        </div>
+
+                                        <div class="tooltip-level-details">
+                                            <h5 class="tooltip-level-title">{{ selectedLevel.nivel_titulo }}</h5>
+                                            <p class="tooltip-level-description" v-if="selectedLevel.nivel_descripcion">
+                                                {{ selectedLevel.nivel_descripcion }}
+                                            </p>
+
+                                            <div class="tooltip-level-stats">
+                                                <div class="tooltip-stat-item">
+                                                    <i class="fas fa-ticket-alt"></i>
+                                                    <span>{{ selectedLevel.tickets }} tickets</span>
+                                                </div>
+
+                                                <div class="tooltip-stat-item" v-if="selectedLevel.valor_aproximado">
+                                                    <i class="fas fa-tag"></i>
+                                                    <span>S/ {{ selectedLevel.valor_aproximado.toFixed(2) }}</span>
+                                                </div>
+
+                                                <div class="tooltip-stat-item">
+                                                    <i class="fas fa-flag"></i>
+                                                    <span :class="{
+                                                        'status-completed': selectedLevel.completed,
+                                                        'status-active': selectedLevel.active,
+                                                        'status-pending': !selectedLevel.completed && !selectedLevel.active
+                                                    }">
+                                                        <i v-if="selectedLevel.completed" class="fas fa-check"></i>
+                                                        <i v-else-if="selectedLevel.active" class="fas fa-clock"></i>
                                                         <i v-else class="fas fa-lock"></i>
-                                                    </div>
+                                                        {{ selectedLevel.completed ? 'Completado' :
+                                                            selectedLevel.active ? 'En Progreso' : 'Bloqueado'
+                                                        }}
+                                                    </span>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        <!-- Modal de detalles del nivel posicionado -->
-                                        <div v-if="levelDetailModal" class="level-detail-tooltip" :style="{
-                                            left: `${modalPosition.x}px`,
-                                            top: `${modalPosition.y}px`,
-                                            transform: 'translateX(-50%) translateY(-100%)'
-                                        }" @click.stop>
-                                            <div class="tooltip-arrow"></div>
-
-                                            <div class="tooltip-header">
-                                                <h4 class="tooltip-title">{{ selectedLevel?.premio_titulo }}</h4>
-                                                <button class="tooltip-close" @click="closeLevelDetailModal">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
-                                            </div>
-
-                                            <div class="tooltip-content" v-if="selectedLevel">
-                                                <div class="tooltip-level-info">
-                                                    <div class="tooltip-level-image" v-if="selectedLevel.imagen">
-                                                        <img :src="selectedLevel.imagen"
-                                                            :alt="selectedLevel.nivel_titulo" @error="handleImageError">
-                                                    </div>
-
-                                                    <div class="tooltip-level-details">
-                                                        <h5 class="tooltip-level-title">{{ selectedLevel.nivel_titulo }}
-                                                        </h5>
-                                                        <p class="tooltip-level-description"
-                                                            v-if="selectedLevel.nivel_descripcion">
-                                                            {{ selectedLevel.nivel_descripcion }}
-                                                        </p>
-
-                                                        <div class="tooltip-level-stats">
-                                                            <div class="tooltip-stat-item">
-                                                                <i class="fas fa-ticket-alt"></i>
-                                                                <span>{{ selectedLevel.tickets }} tickets</span>
-                                                            </div>
-
-                                                            <div class="tooltip-stat-item"
-                                                                v-if="selectedLevel.valor_aproximado">
-                                                                <i class="fas fa-tag"></i>
-                                                                <span>S/ {{ selectedLevel.valor_aproximado.toFixed(2)
-                                                                    }}</span>
-                                                            </div>
-
-                                                            <div class="tooltip-stat-item">
-                                                                <i class="fas fa-flag"></i>
-                                                                <span :class="{
-                                                                    'status-completed': selectedLevel.completed,
-                                                                    'status-active': selectedLevel.active,
-                                                                    'status-pending': !selectedLevel.completed && !selectedLevel.active
-                                                                }">
-                                                                    <i v-if="selectedLevel.completed"
-                                                                        class="fas fa-check"></i>
-                                                                    <i v-else-if="selectedLevel.active"
-                                                                        class="fas fa-clock"></i>
-                                                                    <i v-else class="fas fa-lock"></i>
-                                                                    {{ selectedLevel.completed ? 'Completado' :
-                                                                        selectedLevel.active ? 'En Progreso' : 'Bloqueado'
-                                                                    }}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="tooltip-specifications"
-                                                            v-if="selectedLevel.especificaciones && Object.keys(selectedLevel.especificaciones).length > 0">
-                                                            <h6>Especificaciones:</h6>
-                                                            <div class="tooltip-specs-grid">
-                                                                <div v-for="(value, key) in selectedLevel.especificaciones"
-                                                                    :key="key" class="tooltip-spec-item">
-                                                                    <span class="tooltip-spec-label">{{
-                                                                        key.charAt(0).toUpperCase() + key.slice(1)
-                                                                        }}:</span>
-                                                                    <span class="tooltip-spec-value">{{ value }}</span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
+                                            <div class="tooltip-specifications"
+                                                v-if="selectedLevel.especificaciones && Object.keys(selectedLevel.especificaciones).length > 0">
+                                                <h6>Especificaciones:</h6>
+                                                <div class="tooltip-specs-grid">
+                                                    <div v-for="(value, key) in selectedLevel.especificaciones"
+                                                        :key="key" class="tooltip-spec-item">
+                                                        <span class="tooltip-spec-label">{{
+                                                            key.charAt(0).toUpperCase() + key.slice(1)
+                                                            }}:</span>
+                                                        <span class="tooltip-spec-value">{{ value }}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -267,12 +259,6 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Mensaje de progreso -->
-                    <div class="progress-alert" :class="getProgressAlertClass()">
-                        <i :class="getProgressIcon()"></i>
-                        <span>{{ getProgressMessage() }}</span>
                     </div>
                 </div>
 
@@ -295,8 +281,7 @@
                                     <span>Tienes {{ userTicketsForRifa.length }} ticket(s) en esta rifa</span>
                                 </div>
                                 <div class="ticket-numbers">
-                                    <span v-for="ticket in userTicketsForRifa" :key="ticket.id"
-                                        class="ticket-number">
+                                    <span v-for="ticket in userTicketsForRifa" :key="ticket.id" class="ticket-number">
                                         #{{ ticket.numero }}
                                     </span>
                                 </div>
@@ -371,127 +356,85 @@
                 </div>
             </div>
 
-            <!-- Premios Progresivos Multinivel (Fuera del grid para ocupar todo el ancho) -->
-            <div class="card full-width-section">
+            <!-- Premios y Niveles -->
+            <div class="card">
                 <div class="card-header">
                     <div class="prizes-header">
                         <i class="fas fa-trophy"></i>
-                        <h2>Premios Progresivos</h2>
+                        <h2>Premios por Niveles</h2>
                     </div>
                 </div>
                 <div class="card-content">
-                    <div class="prizes-progression">
+                    <div class="prizes-list">
                         <div v-for="(premio, premioIndex) in getPremiosProgresivos()" :key="premioIndex"
-                            class="premio-section" :class="{
+                            class="premio-item" :class="{
                                 'premio-active': premio.esta_activo,
                                 'premio-completed': premio.completado,
                                 'premio-locked': !premio.desbloqueado
                             }">
-                            <!-- Header del Premio -->
-                            <div class="premio-header">
+                            <div class="premio-content">
                                 <div class="premio-icon">
                                     <i :class="premio.icono || 'fas fa-gift'"></i>
                                 </div>
-                                <div class="premio-info">
+                                <div class="premio-details">
                                     <h4 class="premio-title">{{ premio.titulo }}</h4>
                                     <p class="premio-description">{{ premio.descripcion }}</p>
-                                </div>
-                                <div class="premio-status">
-                                    <span class="premio-badge" :class="{
-                                        'badge-active': premio.esta_activo,
-                                        'badge-completed': premio.completado,
-                                        'badge-locked': !premio.desbloqueado
+                                    <div class="premio-status-badge" :class="{
+                                        'status-active': premio.esta_activo,
+                                        'status-completed': premio.completado,
+                                        'status-locked': !premio.desbloqueado
                                     }">
                                         <i v-if="premio.completado" class="fas fa-check"></i>
                                         <i v-else-if="!premio.desbloqueado" class="fas fa-lock"></i>
                                         <i v-else class="fas fa-clock"></i>
                                         {{ premio.estado_texto }}
-                                    </span>
+                                    </div>
+                                </div>
+                                <div class="premio-actions">
+                                    <button class="premio-detail-btn" @click="handlePremioClick(premio)">
+                                        <i class="fas fa-eye"></i>
+                                        Ver Detalles
+                                    </button>
                                 </div>
                             </div>
 
-                            <!-- Botón Ver Detalles del Premio -->
-                            <div class="premio-actions">
-                                <button class="premio-detail-btn" :class="{
-                                    'btn-primary': premio.desbloqueado,
-                                    'btn-secondary': !premio.desbloqueado
-                                }" @click="handlePremioClick(premio)">
-                                    <i class="fas fa-eye"></i>
-                                    {{ premio.desbloqueado ? 'Ver Galería y Detalles' : 'Ver Información' }}
-                                </button>
-                            </div>
-
-                            <!-- Niveles del Premio (solo si está desbloqueado) -->
-                            <div v-if="premio.desbloqueado" class="premio-niveles">
-                                <div v-for="(nivel, nivelIndex) in premio.niveles" :key="nivelIndex"
-                                    class="nivel-item" :class="{
-                                        'nivel-unlocked': nivel.desbloqueado,
-                                        'nivel-current': nivel.es_actual
-                                    }">
-                                    <div class="nivel-progress">
-                                        <div class="nivel-number" :class="{ 'unlocked': nivel.desbloqueado }">
-                                            {{ nivelIndex + 1 }}
-                                        </div>
-                                        <div class="nivel-details">
-                                            <h5 class="nivel-title">{{ nivel.titulo }}</h5>
-                                            <p class="nivel-description">{{ nivel.descripcion }}</p>
-                                            <div class="nivel-requirement">
-                                                <i class="fas fa-ticket-alt"></i>
-                                                {{ nivel.tickets_necesarios }} tickets necesarios
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Progreso del nivel actual -->
-                                    <div v-if="nivel.es_actual" class="nivel-progress-bar">
-                                        <div class="progress-info">
-                                            <span class="progress-label">Progreso actual</span>
-                                            <span class="progress-value">{{ rifa.ticketsVendidos }}/{{
-                                                nivel.tickets_necesarios }}</span>
-                                        </div>
-                                        <div class="progress-bar">
-                                            <div class="progress-fill"
-                                                :style="{ width: `${Math.min((rifa.ticketsVendidos / nivel.tickets_necesarios) * 100, 100)}%` }">
-                                            </div>
-                                        </div>
-                                        <div class="tickets-remaining">
-                                            <i class="fas fa-target"></i>
-                                            Faltan {{ Math.max(0, nivel.tickets_necesarios -
-                                                rifa.ticketsVendidos) }} tickets
-                                        </div>
-                                    </div>
-
-                                    <!-- Estado del nivel -->
-                                    <div class="nivel-status">
-                                        <span class="nivel-badge" :class="{
-                                            'badge-completed': nivel.desbloqueado,
-                                            'badge-current': nivel.es_actual,
-                                            'badge-pending': !nivel.desbloqueado && !nivel.es_actual
+                            <!-- Niveles del Premio (simplificado) -->
+                            <div v-if="premio.desbloqueado && premio.niveles && premio.niveles.length > 0"
+                                class="premio-niveles">
+                                <div class="niveles-progress">
+                                    <div v-for="(nivel, nivelIndex) in premio.niveles" :key="nivelIndex"
+                                        class="nivel-mini" :class="{
+                                            'nivel-completed': nivel.desbloqueado,
+                                            'nivel-current': nivel.es_actual,
+                                            'nivel-pending': !nivel.desbloqueado && !nivel.es_actual
                                         }">
+                                        <div class="nivel-marker">
+                                            <span class="nivel-number">{{ nivelIndex + 1 }}</span>
                                             <i v-if="nivel.desbloqueado" class="fas fa-check"></i>
                                             <i v-else-if="nivel.es_actual" class="fas fa-clock"></i>
                                             <i v-else class="fas fa-lock"></i>
-                                            {{ nivel.estado_texto }}
-                                        </span>
+                                        </div>
+                                        <div class="nivel-info">
+                                            <div class="nivel-title">{{ nivel.titulo }}</div>
+                                            <div class="nivel-requirement">{{ nivel.tickets_necesarios }} tickets</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Premio Bloqueado -->
-                            <div v-if="!premio.desbloqueado" class="premio-locked-info">
+                            <div v-if="!premio.desbloqueado" class="premio-locked-message">
                                 <i class="fas fa-lock"></i>
-                                <p>Se desbloqueará al completar: <strong>{{ premio.premio_requerido }}</strong>
-                                </p>
+                                <span>Se desbloqueará al completar: <strong>{{ premio.premio_requerido
+                                        }}</strong></span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <AppFooter />
 
-            <!-- Overlay para cerrar tooltip al hacer clic fuera -->
-            <div v-if="levelDetailModal" class="tooltip-overlay" @click="closeLevelDetailModal"></div>
+
             <!-- Modal de pago -->
             <div v-if="paymentModal" class="modal-overlay" @click="closePaymentModal">
                 <div class="modal payment-modal" @click.stop>
@@ -608,7 +551,7 @@
                                         </div>
                                         <div class="payment-warning">• <strong>Mensaje obligatorio:</strong> {{
                                             paymentCode
-                                            }}
+                                        }}
                                         </div>
                                     </div>
                                     <div class="payment-qr">
@@ -702,6 +645,9 @@
                 </div>
             </div>
         </div>
+        <!-- Overlay para cerrar tooltip al hacer clic fuera -->
+        <div v-if="levelDetailModal" class="tooltip-overlay" @click="closeLevelDetailModal"></div>
+
     </div>
 </template>
 
@@ -760,7 +706,7 @@ export default {
             if (rifaObj.progreso_general) {
                 return rifaObj.progreso_general.porcentaje || 0
             }
-            
+
             // Fallback si no hay datos del backend
             const maxTickets = 1500 // Máximo basado en los datos reales
             return Math.min((rifaObj.ticketsVendidos / maxTickets) * 100, 100)
@@ -1704,12 +1650,306 @@ export default {
     transition: width 0.3s ease;
 }
 
+/* Nuevos estilos para el progreso reorganizado */
+.progress-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.progress-stat-card {
+    background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--border-radius-lg);
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.progress-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--border-radius-full);
+    background: linear-gradient(135deg, var(--primary-purple), var(--primary-blue));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    font-weight: 500;
+}
+
+.visual-progress {
+    background: var(--gray-50);
+    border-radius: var(--border-radius-lg);
+    padding: 1rem;
+    border: 1px solid var(--gray-200);
+}
+
+.visual-progress .progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.progress-percentage {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--primary-purple);
+}
+
+/* Estilos simplificados para premios */
+.prizes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.premio-item {
+    border: 1px solid var(--gray-200);
+    border-radius: var(--border-radius-lg);
+    background: var(--white);
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.premio-item:hover {
+    border-color: var(--primary-purple);
+    box-shadow: 0 4px 12px rgba(147, 51, 234, 0.1);
+}
+
+.premio-item.premio-active {
+    border-color: var(--primary-blue);
+    background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+}
+
+.premio-item.premio-completed {
+    border-color: var(--success-green);
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+}
+
+.premio-item.premio-locked {
+    background: var(--gray-50);
+    opacity: 0.7;
+}
+
+.premio-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.premio-content .premio-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--border-radius-full);
+    background: linear-gradient(135deg, var(--primary-purple), var(--primary-blue));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+}
+
+.premio-details {
+    flex: 1;
+}
+
+.premio-details .premio-title {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--gray-900);
+}
+
+.premio-details .premio-description {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    line-height: 1.4;
+}
+
+.premio-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius);
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.premio-status-badge.status-active {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.premio-status-badge.status-completed {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.premio-status-badge.status-locked {
+    background: var(--gray-200);
+    color: var(--gray-600);
+}
+
+.premio-detail-btn {
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--primary-purple);
+    background: var(--primary-purple);
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.premio-detail-btn:hover {
+    background: var(--primary-blue);
+    border-color: var(--primary-blue);
+}
+
+.premio-niveles {
+    padding: 0 1rem 1rem 1rem;
+    border-top: 1px solid var(--gray-200);
+}
+
+.niveles-progress {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.nivel-mini {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: var(--border-radius);
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    min-width: 150px;
+}
+
+.nivel-mini.nivel-completed {
+    background: #d1fae5;
+    border-color: var(--success-green);
+}
+
+.nivel-mini.nivel-current {
+    background: #fef3c7;
+    border-color: var(--warning-yellow);
+}
+
+.nivel-marker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--border-radius-full);
+    background: var(--gray-200);
+    color: var(--gray-600);
+    font-size: 0.75rem;
+    font-weight: 600;
+    position: relative;
+}
+
+.nivel-mini.nivel-completed .nivel-marker {
+    background: var(--success-green);
+    color: white;
+}
+
+.nivel-mini.nivel-current .nivel-marker {
+    background: var(--warning-yellow);
+    color: var(--gray-900);
+}
+
+.nivel-marker .fas {
+    position: absolute;
+    font-size: 0.625rem;
+}
+
+.nivel-info {
+    flex: 1;
+}
+
+.nivel-info .nivel-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 0.125rem;
+}
+
+.nivel-info .nivel-requirement {
+    font-size: 0.625rem;
+    color: var(--gray-600);
+}
+
+.premio-locked-message {
+    padding: 1rem;
+    background: var(--gray-100);
+    border-top: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--gray-600);
+}
+
+.premio-locked-message i {
+    color: var(--gray-500);
+}
+
 .progress-alert {
     padding: 1rem;
     border-radius: var(--border-radius);
     display: flex;
     align-items: center;
     gap: 0.5rem;
+}
+
+.progress-alert-inline {
+    padding: 0.75rem 1rem;
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
 }
 
 .alert-success {
@@ -2050,6 +2290,49 @@ export default {
 
     .nivel-requirement {
         justify-content: center;
+    }
+
+    /* Responsive para nuevos estilos */
+    .progress-stats-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .progress-stat-card {
+        padding: 0.75rem;
+    }
+
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+
+    .stat-number {
+        font-size: 1.25rem;
+    }
+
+    .premio-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.75rem;
+    }
+
+    .premio-content .premio-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+        align-self: center;
+    }
+
+    .niveles-progress {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .nivel-mini {
+        min-width: auto;
+        width: 100%;
     }
 }
 
@@ -3450,6 +3733,22 @@ export default {
 .milestone-pending .milestone-marker {
     background: var(--gray-300);
     color: var(--gray-600);
+}
+
+.milestone-number {
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--white);
+    color: var(--gray-700);
+    font-size: 0.625rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--gray-200);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    z-index: 5;
 }
 
 @keyframes pulse {
