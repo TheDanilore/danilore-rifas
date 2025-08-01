@@ -15,6 +15,9 @@ Sistema completo de rifas online con **premios progresivos** usando Laravel + Vu
 - **Dashboard Administrativo**: Panel completo para gestión de rifas
 - **Notificaciones en Tiempo Real**: Email, SMS y WhatsApp
 - **Sistema de Auditoría**: Registro completo de todas las acciones
+- **Autenticación JWT**: Laravel Sanctum para seguridad API
+- **Panel Admin Completo**: Gestión de rifas, usuarios, ventas y reportes
+- **Responsive Design**: Optimizado para desktop, tablet y móvil
 
 
 ## **Sistema de Premios Multinivel:**
@@ -111,7 +114,7 @@ El sistema soporta múltiples tipos de documentos para hacerlo internacional y f
 - descripcion (TEXT)
 - precio_boleto (DECIMAL 10,2)
 - boletos_minimos (INT) # Tickets mínimos para confirmar la rifa
-- boletos_maximos (INT)
+- boletos_maximos (INT) # Tickets máximos (null = sin límite)
 - boletos_vendidos (INT) DEFAULT 0
 - imagen_principal (VARCHAR)
 - imagenes_adicionales (JSON)
@@ -119,7 +122,7 @@ El sistema soporta múltiples tipos de documentos para hacerlo internacional y f
 - fecha_inicio (DATE)
 - fecha_fin (DATE)
 - fecha_sorteo (DATETIME)
-- estado (ENUM: borrador,activa,pausada,finalizada,cancelada) DEFAULT 'borrador'
+- estado (ENUM: borrador,activa,bloqueada,pausada,finalizada,cancelada) DEFAULT 'borrador'
 - tipo (ENUM: actual, futura) DEFAULT 'futura'
 - categoria_id (BIGINT, FK)
 - codigo_unico (VARCHAR, 20, UNIQUE)
@@ -388,21 +391,30 @@ graph TD
 - **Activo**: Tickets suficientes para el nivel actual
 - **Completado**: Todos los niveles completados
 
-## 🎯 Funcionalidades Implementadas
+## 🚀 Funcionalidades Implementadas
 
-### **Frontend**
+### **Frontend (Vue.js 3)**
 - ✅ **Home**: Vista principal con rifas activas y futuras
 - ✅ **RifaDetail**: Detalle de rifa con premios progresivos
 - ✅ **PremioDetail**: Vista individual de cada premio
 - ✅ **MediaGallery**: Galería multimedia responsiva
 - ✅ **Sistema de Pagos**: Integración con Yape/Plin
+- ✅ **Autenticación**: Login/Register con persistencia
+- ✅ **Dashboard**: Panel de usuario con historial
+- ✅ **Admin Panel**: Panel administrativo completo
+- ✅ **Responsive Design**: Optimizado para móviles
 
-### **Backend API**
-- ✅ **Autenticación**: Login/registro con Laravel Sanctum
-- ✅ **Gestión de Rifas**: CRUD completo con filtros
-- ✅ **Sistema de Ventas**: Reserva y compra de boletos
-- ✅ **Progreso de Premios**: Tracking en tiempo real
-- ✅ **Categorías**: Organización de rifas
+### **Backend (Laravel 12)**
+- ✅ **API REST**: Endpoints para todas las funcionalidades
+- ✅ **Autenticación**: Laravel Sanctum con JWT
+- ✅ **Sistema de Premios**: Lógica de desbloqueo progresivo
+- ✅ **Gestión de Pagos**: Verificación y procesamiento
+- ✅ **Dashboard Admin**: Panel administrativo completo
+- ✅ **Gestión de Rifas**: CRUD completo con validaciones
+- ✅ **Gestión de Usuarios**: Control de roles y permisos
+- ✅ **Reportes y Estadísticas**: Analytics en tiempo real
+- ✅ **Upload de Archivos**: Gestión de imágenes y medios
+- ✅ **Auditoría**: Registro de todas las acciones
 
 ## 🚀 API Endpoints
 
@@ -426,7 +438,9 @@ POST /api/v1/auth/register
   "password_confirmation": "12345678",
   "telefono": "+51987654321",
   "tipo_documento": "dni",
-  "numero_documento": "12345678"
+  "numero_documento": "12345678",
+  "fecha_nacimiento": "1990-01-01",
+  "genero": "masculino"
 }
 ```
 
@@ -436,8 +450,38 @@ POST /api/v1/auth/register
   "success": true,
   "message": "Usuario registrado correctamente",
   "data": {
-    "user": { ... },
+    "user": {
+      "id": 1,
+      "name": "Juan Pérez",
+      "email": "juan@email.com",
+      "telefono": "+51987654321",
+      "tipo_documento": "dni",
+      "numero_documento": "12345678",
+      "rol": "usuario",
+      "activo": true
+    },
     "token": "1|abc123..."
+  }
+}
+```
+
+**Ejemplo de login:**
+```json
+POST /api/v1/auth/login
+{
+  "email": "juan@email.com",
+  "password": "12345678"
+}
+```
+
+**Respuesta:**
+```json
+{
+  "success": true,
+  "message": "Login exitoso",
+  "data": {
+    "user": { ... },
+    "token": "1|xyz789..."
   }
 }
 ```
@@ -455,9 +499,9 @@ GET /rifas/{codigo}/progreso # Progreso de premios
 **Parámetros de consulta:**
 - `categoria_id`: Filtrar por categoría
 - `tipo`: `actual` o `futura`
-- `estado`: `en_venta`, `confirmada`, etc.
+- `estado`: `activa`, `borrador`, `pausada`, `finalizada`, `cancelada`
 - `destacadas`: `true` para rifas destacadas
-- `per_page`: Número de resultados por página
+- `per_page`: Número de resultados por página (default: 15)
 
 **Ejemplo:**
 ```http
@@ -477,16 +521,40 @@ GET /api/v1/rifas/actuales?categoria_id=1&per_page=10
         "codigo_unico": "IPHONE15PM001",
         "precio_boleto": "10.00",
         "boletos_vendidos": 35,
-        "categoria": { ... },
+        "boletos_minimos": 100,
+        "boletos_maximos": null,
+        "porcentaje_completado": 35.0,
+        "estado": "activa",
+        "tipo": "actual",
+        "categoria": {
+          "id": 1,
+          "nombre": "Tecnología",
+          "slug": "tecnologia"
+        },
         "premios": [
           {
+            "id": 1,
+            "codigo": "p1",
             "titulo": "AirPods Pro",
-            "niveles": [ ... ]
+            "estado": "activo",
+            "niveles": [
+              {
+                "id": 1,
+                "codigo": "n1",
+                "titulo": "AirPods Pro 2da Gen",
+                "tickets_necesarios": 20,
+                "desbloqueado": true,
+                "es_actual": false
+              }
+            ]
           }
         ]
       }
     ],
-    "total": 2
+    "total": 5,
+    "per_page": 10,
+    "current_page": 1,
+    "last_page": 1
   }
 }
 ```
@@ -494,6 +562,29 @@ GET /api/v1/rifas/actuales?categoria_id=1&per_page=10
 #### **Categorías**
 ```http
 GET /categorias             # Listar categorías activas
+```
+
+**Respuesta:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "nombre": "Tecnología",
+      "slug": "tecnologia",
+      "descripcion": "Productos tecnológicos y gadgets",
+      "icono": "fas fa-laptop",
+      "color": "#3B82F6",
+      "rifas_count": 5
+    }
+  ]
+}
+```
+
+#### **Premios**
+```http
+GET /premios/{rifaCodigoUnico}/{codigoPremio} # Detalle del premio
 ```
 
 #### **Consulta de Ventas**
@@ -509,6 +600,18 @@ GET /ventas/{codigo}        # Consultar venta por código
 POST /auth/logout           # Cerrar sesión
 GET /auth/profile          # Obtener perfil
 PUT /auth/profile          # Actualizar perfil
+```
+
+**Ejemplo actualizar perfil:**
+```json
+PUT /api/v1/auth/profile
+{
+  "name": "Juan Carlos Pérez",
+  "telefono": "+51987654321",
+  "direccion": "Av. Lima 123",
+  "ciudad": "Lima",
+  "departamento": "Lima"
+}
 ```
 
 #### **Ventas**
@@ -539,27 +642,77 @@ POST /api/v1/ventas
   "success": true,
   "message": "Venta creada correctamente",
   "data": {
-    "codigo_venta": "VT20250725ABC123",
+    "codigo_venta": "VT20250801ABC123",
     "total": "30.00",
-    "fecha_expiracion": "2025-07-25T10:15:00Z",
+    "fecha_expiracion": "2025-08-01T10:15:00Z",
     "boletos": [
       {
         "numero": "0001",
         "codigo_verificacion": "A1B2C3D4E5"
+      },
+      {
+        "numero": "0025",
+        "codigo_verificacion": "B2C3D4E5F6"
+      },
+      {
+        "numero": "0100",
+        "codigo_verificacion": "C3D4E5F6G7"
       }
-    ]
+    ],
+    "tiempo_restante": 900
   }
 }
 ```
 
 **Confirmar pago:**
 ```http
-POST /api/v1/ventas/VT20250725ABC123/confirmar-pago
+POST /api/v1/ventas/VT20250801ABC123/confirmar-pago
 Content-Type: multipart/form-data
 
 numero_operacion: "123456789"
 monto_pagado: "30.00"
 comprobante: [archivo imagen]
+```
+
+### 🔧 **Endpoints Administrativos**
+*Requieren autenticación + rol admin*
+
+#### **Dashboard Admin**
+```http
+GET /admin/dashboard/stats     # Estadísticas generales
+GET /admin/activity/recent     # Actividad reciente
+```
+
+#### **Gestión de Rifas**
+```http
+GET /admin/rifas              # Lista para admin
+POST /admin/rifas             # Crear rifa
+PUT /admin/rifas/{id}         # Actualizar rifa
+DELETE /admin/rifas/{id}      # Eliminar rifa
+PATCH /admin/rifas/{id}/estado # Cambiar estado
+GET /admin/rifas/exportar     # Exportar datos
+```
+
+#### **Gestión de Usuarios**
+```http
+GET /admin/usuarios           # Lista usuarios
+POST /admin/usuarios          # Crear usuario
+PUT /admin/usuarios/{id}      # Actualizar usuario
+DELETE /admin/usuarios/{id}   # Eliminar usuario
+```
+
+#### **Reportes y Ventas**
+```http
+GET /admin/ventas             # Lista ventas
+GET /admin/ventas/reportes    # Reportes de ventas
+```
+
+#### **Upload de Archivos**
+```http
+POST /upload/rifa-image       # Subir imagen de rifa
+POST /upload/premio-image     # Subir imagen de premio
+POST /upload/nivel-image      # Subir imagen de nivel
+DELETE /upload/image          # Eliminar imagen
 ```
 
 ### 📊 **Códigos de Respuesta**
@@ -586,22 +739,37 @@ El sistema usa **Laravel Sanctum** para autenticación API:
 
 - **Reserva temporal**: Números reservados por 15 minutos
 - **Verificación en tiempo real**: Disponibilidad de números
-- **Upload de archivos**: Comprobantes de pago
+- **Upload de archivos**: Comprobantes de pago e imágenes
 - **Paginación automática**: En listados
 - **Filtros avanzados**: Por categoría, estado, etc.
 - **Relaciones optimizadas**: Carga eager loading
 - **Validaciones robustas**: En todos los endpoints
+- **Panel Admin Completo**: Gestión total del sistema
+- **Reportes en Tiempo Real**: Analytics y estadísticas
+- **Sistema de Roles**: Control de permisos granular
+- **Middleware de Seguridad**: Protección de rutas admin
+- **Estados de Rifa**: Borrador, activa, bloqueada, pausada, finalizada, cancelada
+- **Gestión de Media**: Upload y organización de imágenes/videos
+
+### **Frontend Implementado**
 - ✅ **Autenticación**: Login/Register con persistencia
 - ✅ **Dashboard**: Panel de usuario con historial
+- ✅ **Panel Admin**: Gestión completa de rifas y usuarios
 - ✅ **Responsive Design**: Optimizado para móviles
+- ✅ **Router Guards**: Protección de rutas
+- ✅ **State Management**: Manejo de estado global
+- ✅ **Error Handling**: Manejo de errores avanzado
 
-### **Backend** (Estructura preparada)
-- 🔧 **API REST**: Endpoints para todas las funcionalidades
-- 🔧 **Sistema de Premios**: Lógica de desbloqueo progresivo
-- 🔧 **Gestión de Pagos**: Verificación y procesamiento
-- 🔧 **Notificaciones**: Email, SMS y WhatsApp
-- 🔧 **Auditoría**: Registro de todas las acciones
-- 🔧 **Dashboard Admin**: Panel administrativo completo
+### **Backend Avanzado**
+- ✅ **API REST**: Endpoints para todas las funcionalidades
+- ✅ **Sistema de Premios**: Lógica de desbloqueo progresivo
+- ✅ **Gestión de Pagos**: Verificación y procesamiento
+- ✅ **Notificaciones**: Email, SMS y WhatsApp (preparado)
+- ✅ **Auditoría**: Registro de todas las acciones
+- ✅ **Dashboard Admin**: Panel administrativo completo
+- ✅ **Middleware Personalizado**: AdminMiddleware para seguridad
+- ✅ **Validaciones Avanzadas**: Request validation en todos los endpoints
+- ✅ **Manejo de Estados**: Estados complejos de rifas y premios
 
 ## 🔐 Seguridad y Validaciones
 
@@ -628,9 +796,11 @@ El sistema está optimizado para:
 ## 🚀 Instalación y Configuración
 
 ### Pre-requisitos
-- Docker Desktop
-- Docker Compose
-- Git
+- **Docker Desktop** (Windows/Mac/Linux)
+- **Docker Compose** v2.0+
+- **Git** para clonar el repositorio
+- **4GB RAM mínimo** para los contenedores
+- **Puertos disponibles**: 3000 (Frontend), 8000 (Backend), 3306 (MySQL)
 
 ### 🔧 Configuración Inicial
 
@@ -642,142 +812,369 @@ cd danilore-rifas
 
 2. **Configurar variables de entorno (backend):**
 ```bash
-# Copiar el archivo .env.example del backend
+# Navegar al directorio backend
 cd backend
+
+# Copiar el archivo de configuración
 cp .env.example .env
-# Verificar configuración en backend/.env
+
+# Editar el archivo .env con tu configuración
+# Las variables importantes ya están configuradas para Docker
+```
+
+**Variables de entorno clave en `.env`:**
+```env
+APP_NAME="Danilore Rifas"
+APP_ENV=local
+APP_KEY=base64:... # Se genera automáticamente
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=danilore_rifas
+DB_USERNAME=danilore
+DB_PASSWORD=danilore123
+
+# Laravel Sanctum para autenticación
+SANCTUM_STATEFUL_DOMAINS=localhost:3000,127.0.0.1:3000
+SESSION_DOMAIN=localhost
+
+# Configuración de archivos
+FILESYSTEM_DISK=local
 ```
 
 3. **Construir y levantar los servicios:**
 ```bash
+# Volver al directorio raíz
+cd ..
+
+# Construir y levantar todos los servicios
 docker-compose up --build -d
 ```
 
-4. **Instala las dependencias de Composer (backend):**
+4. **Instalar dependencias del backend:**
 ```bash
+# Instalar dependencias de Composer
 docker exec danilore_backend composer install
-```
 
-5. **Genera la clave de la aplicación (backend):**
-```bash
+# Generar clave de la aplicación
 docker exec danilore_backend php artisan key:generate
+
+# Generar enlace simbólico para storage
+docker exec danilore_backend php artisan storage:link
 ```
 
-6. **Ejecutar migraciones y seeders (backend y bd):**
+5. **Configurar la base de datos:**
 ```bash
+# Ejecutar migraciones
 docker exec danilore_backend php artisan migrate
+
+# Ejecutar seeders (datos de prueba)
 docker exec danilore_backend php artisan db:seed
 ```
 
-7. **Crea el enlace simbólico para el almacenamiento (Storage) (backend):**
+6. **Configurar el frontend:**
 ```bash
-docker compose exec danilore_backend php artisan storage:link
+# Instalar dependencias de Node.js
+docker exec danilore_frontend npm install
+
+# Compilar assets para desarrollo
+docker exec danilore_frontend npm run serve
 ```
 
-8. **Instala las dependencias de Node y compila los activos (assets) (frontend):**
-```bash
-docker compose exec danilore_frontend npm install
-docker compose exec danilore_frontend npm run build
-```
-
-## 📊 Servicios Disponibles
+### 📊 Servicios Disponibles
 
 | Servicio | Puerto | URL | Descripción |
 |----------|--------|-----|-------------|
-| Frontend (danilore_frontend) | 3000 | http://localhost:3000 | Aplicación Vue.js |
-| Backend (danilore_backend) | 8000 | http://localhost:8000 | API Laravel |
-| MySQL (danilore_mysql) | 3306 | localhost:3306 | Base de datos |
+| **Frontend** (Vue.js) | 3000 | http://localhost:3000 | Aplicación web principal |
+| **Backend** (Laravel) | 8000 | http://localhost:8000 | API REST y admin |
+| **MySQL** | 3306 | localhost:3306 | Base de datos |
+| **PHPMyAdmin** | 8080 | http://localhost:8080 | Administrador de BD |
 
-## 🗄️ Base de Datos
+### 🗄️ Acceso a la Base de Datos
 
-### Credenciales MySQL:
-- **Host:** localhost:3306
-- **Database:** danilore_rifas
+#### **Credenciales MySQL:**
+- **Host:** localhost (desde host) / mysql (desde contenedores)
+- **Puerto:** 3306
+- **Base de datos:** danilore_rifas
 - **Usuario:** danilore
 - **Contraseña:** danilore123
 - **Root Password:** root123
 
-## 🛠️ Comandos Útiles
+#### **PHPMyAdmin (Opcional):**
+Si quieres acceso visual a la base de datos, puedes agregar PHPMyAdmin al `docker-compose.yml`:
 
-### Docker
+```yaml
+phpmyadmin:
+  image: phpmyadmin/phpmyadmin
+  container_name: danilore_phpmyadmin
+  environment:
+    PMA_HOST: mysql
+    PMA_USER: danilore
+    PMA_PASSWORD: danilore123
+  ports:
+    - "8080:80"
+  depends_on:
+    - mysql
+  networks:
+    - danilore_network
+```
+
+### 🛠️ Comandos Útiles
+
+#### **Docker Management**
 ```bash
 # Levantar servicios
 docker-compose up -d
 
-# Ver logs
+# Ver logs en tiempo real
 docker-compose logs -f
+
+# Ver logs de un servicio específico
+docker-compose logs -f backend
 
 # Detener servicios
 docker-compose down
 
-# Reconstruir contenedores
-docker-compose up --build
+# Reconstruir contenedores (después de cambios)
+docker-compose up --build -d
+
+# Limpiar volúmenes (CUIDADO: borra la BD)
+docker-compose down -v
 ```
 
-### Laravel (Backend)
+#### **Laravel (Backend)**
 ```bash
 # Ejecutar comandos artisan
 docker exec danilore_backend php artisan migrate
 docker exec danilore_backend php artisan db:seed
 docker exec danilore_backend php artisan cache:clear
+docker exec danilore_backend php artisan config:clear
+docker exec danilore_backend php artisan route:clear
+
+# Crear migraciones
+docker exec danilore_backend php artisan make:migration create_nueva_tabla
+
+# Crear controladores
+docker exec danilore_backend php artisan make:controller NuevoController
 
 # Acceder al contenedor
 docker exec -it danilore_backend bash
+
+# Ver rutas API
+docker exec danilore_backend php artisan route:list --path=api
 ```
 
-### Vue.js (Frontend)
+#### **Vue.js (Frontend)**
 ```bash
-# Instalar dependencias
-docker exec danilore_frontend npm install
+# Instalar nuevas dependencias
+docker exec danilore_frontend npm install paquete-nuevo
 
-# Ejecutar en modo desarrollo
+# Ejecutar en modo desarrollo con hot-reload
 docker exec danilore_frontend npm run serve
+
+# Compilar para producción
+docker exec danilore_frontend npm run build
+
+# Linting de código
+docker exec danilore_frontend npm run lint
 
 # Acceder al contenedor
 docker exec -it danilore_frontend sh
 ```
 
-## 🎯 API Endpoints (Backend)
+#### **Base de Datos**
+```bash
+# Conectar a MySQL desde línea de comandos
+docker exec -it danilore_mysql mysql -u danilore -p danilore_rifas
 
-### **Rifas**
-```
-GET    /api/rifas              # Listar todas las rifas
-GET    /api/rifas/{id}         # Obtener rifa específica
-POST   /api/rifas              # Crear nueva rifa [Admin]
-PUT    /api/rifas/{id}         # Actualizar rifa [Admin]
-DELETE /api/rifas/{id}         # Eliminar rifa [Admin]
-```
+# Hacer backup de la base de datos
+docker exec danilore_mysql mysqldump -u danilore -p danilore_rifas > backup.sql
 
-### **Premios**
-```
-GET    /api/rifas/{rifaId}/premios           # Premios de una rifa
-GET    /api/premios/{id}                     # Premio específico
-POST   /api/rifas/{rifaId}/premios           # Crear premio [Admin]
-PUT    /api/premios/{id}                     # Actualizar premio [Admin]
+# Restaurar backup
+docker exec -i danilore_mysql mysql -u danilore -p danilore_rifas < backup.sql
+
+# Ver logs de MySQL
+docker logs danilore_mysql
 ```
 
-### **Niveles**
-```
-GET    /api/premios/{premioId}/niveles       # Niveles de un premio
-POST   /api/premios/{premioId}/niveles       # Crear nivel [Admin]
-PUT    /api/niveles/{id}                     # Actualizar nivel [Admin]
+### 🔍 Verificación de la Instalación
+
+1. **Verificar que todos los servicios estén corriendo:**
+```bash
+docker-compose ps
 ```
 
-### **Ventas y Boletos**
-```
-POST   /api/rifas/{id}/comprar              # Comprar tickets
-GET    /api/ventas/mis-compras               # Historial de compras [Auth]
-GET    /api/boletos/mis-boletos              # Mis boletos [Auth]
-POST   /api/pagos/confirmar                  # Confirmar pago
+2. **Probar el backend:**
+```bash
+curl http://localhost:8000/api/v1/categorias
 ```
 
-### **Autenticación**
+3. **Acceder al frontend:**
+Abrir http://localhost:3000 en el navegador
+
+4. **Probar autenticación:**
+- Registrar nuevo usuario en http://localhost:3000/register
+- Hacer login en http://localhost:3000/login
+- Acceder al admin en http://localhost:3000/admin (user: admin@danilore.com, pass: admin123)
+
+### 🐛 Solución de Problemas
+
+#### **Puerto ya en uso:**
+```bash
+# Verificar qué usa el puerto
+netstat -ano | findstr :3000
+netstat -ano | findstr :8000
+
+# Cambiar puertos en docker-compose.yml si es necesario
 ```
-POST   /api/auth/register                    # Registro de usuario
-POST   /api/auth/login                       # Iniciar sesión
-POST   /api/auth/logout                      # Cerrar sesión [Auth]
-GET    /api/auth/me                          # Perfil del usuario [Auth]
+
+#### **Problemas de permisos (Linux/Mac):**
+```bash
+# Dar permisos a los directorios de Laravel
+sudo chown -R $USER:$USER backend/storage
+sudo chown -R $USER:$USER backend/bootstrap/cache
 ```
+
+#### **Limpiar cache de Docker:**
+```bash
+docker system prune -a
+docker volume prune
+```
+
+#### **Reiniciar base de datos:**
+```bash
+# Detener servicios
+docker-compose down
+
+# Eliminar volumen de la base de datos
+docker volume rm danilore-rifas_mysql_data
+
+# Levantar servicios y ejecutar migraciones
+docker-compose up -d
+docker exec danilore_backend php artisan migrate
+docker exec danilore_backend php artisan db:seed
+```
+
+### 📱 Modo Desarrollo vs Producción
+
+#### **Desarrollo (Actual):**
+- Hot-reload habilitado
+- Debug mode activado
+- CORS configurado para localhost
+- Logs detallados
+
+#### **Para Producción:**
+```bash
+# Backend
+APP_ENV=production
+APP_DEBUG=false
+
+# Frontend
+npm run build
+
+# Configurar dominio real y SSL
+```
+
+
+### � **Credenciales por Defecto**
+
+#### **Base de Datos MySQL:**
+- **Host:** localhost:3306 (desde host) / mysql:3306 (desde contenedores)
+- **Database:** danilore_rifas
+- **Usuario:** danilore
+- **Contraseña:** danilore123
+- **Root Password:** root123
+
+#### **Usuario Admin por Defecto:**
+- **Email:** admin@danilore.com
+- **Contraseña:** admin123
+- **Rol:** Administrador
+- **Acceso:** http://localhost:3000/admin
+
+#### **Usuario de Prueba:**
+- **Email:** usuario@test.com
+- **Contraseña:** 12345678
+- **Rol:** Usuario regular
+
+## 🎯 API Endpoints Completos (Backend)
+
+### **Base URL**: `http://localhost:8000/api/v1`
+
+### **🔓 Rutas Públicas**
+```
+POST   /auth/register                    # Registro de usuario
+POST   /auth/login                       # Iniciar sesión
+
+GET    /rifas                           # Listar todas las rifas
+GET    /rifas/actuales                  # Rifas activas
+GET    /rifas/futuras                   # Rifas futuras
+GET    /rifas/destacadas                # Rifas destacadas
+GET    /rifas/{codigo}                  # Detalle de rifa
+GET    /rifas/{codigo}/progreso         # Progreso de premios
+
+GET    /categorias                      # Listar categorías activas
+GET    /premios/{rifaCode}/{premioCode} # Detalle de premio específico
+GET    /ventas/{codigo}                 # Consultar venta por código
+```
+
+### **🔐 Rutas Autenticadas** (Requieren `Authorization: Bearer {token}`)
+```
+POST   /auth/logout                     # Cerrar sesión
+GET    /auth/profile                    # Obtener perfil
+PUT    /auth/profile                    # Actualizar perfil
+
+POST   /ventas                          # Crear nueva venta
+POST   /ventas/{codigo}/confirmar-pago  # Confirmar pago con comprobante
+GET    /ventas/mis-ventas               # Historial de compras
+
+POST   /upload/rifa-image               # Subir imagen de rifa
+POST   /upload/premio-image             # Subir imagen de premio
+POST   /upload/nivel-image              # Subir imagen de nivel
+DELETE /upload/image                    # Eliminar imagen
+```
+
+### **👑 Rutas de Administración** (Requieren autenticación + rol admin)
+```
+# Dashboard y Estadísticas
+GET    /admin/dashboard/stats           # Estadísticas del dashboard
+GET    /admin/activity/recent           # Actividad reciente
+
+# Gestión de Rifas
+GET    /admin/rifas                     # Lista rifas para admin
+POST   /admin/rifas                     # Crear nueva rifa
+PUT    /admin/rifas/{id}               # Actualizar rifa
+DELETE /admin/rifas/{id}               # Eliminar rifa
+PATCH  /admin/rifas/{id}/estado        # Cambiar estado de rifa
+GET    /admin/rifas/estadisticas       # Estadísticas de rifas
+GET    /admin/rifas/exportar           # Exportar datos de rifas
+
+# Gestión de Usuarios
+GET    /admin/usuarios                  # Lista usuarios
+POST   /admin/usuarios                  # Crear nuevo usuario
+PUT    /admin/usuarios/{id}            # Actualizar usuario
+DELETE /admin/usuarios/{id}            # Eliminar usuario
+
+# Reportes y Ventas
+GET    /admin/ventas                    # Lista ventas
+GET    /admin/ventas/reportes          # Reportes de ventas
+
+# Gestión de Media
+POST   /media/premios/{id}/images       # Subir imagen de premio
+DELETE /media/premios/{id}/images       # Eliminar imagen de premio
+GET    /media/premios/{id}/images       # Obtener imágenes de premio
+PUT    /media/premios/{id}/images/reorder # Reordenar imágenes
+```
+
+### **🔧 Información Adicional**
+- **Middleware de Admin**: `AdminMiddleware` verifica rol y estado activo
+- **Rate Limiting**: Configurado en rutas sensibles
+- **CORS**: Habilitado para localhost:3000
+- **Validación**: Request validation en todos los endpoints
+- **Paginación**: Implementada en listados (default: 15 items)
+- **Eager Loading**: Optimización de consultas con relaciones
 
 ### **⚠️ Puntos de Atención**
 - Los enums deben mantenerse sincronizados entre frontend y backend
@@ -787,20 +1184,69 @@ GET    /api/auth/me                          # Perfil del usuario [Auth]
 
 ## 🚀 Producción
 
-Para producción, modificar:
-- Variables de entorno en `.env`
-- Configuraciones de Docker para optimización
-- Configurar dominio y SSL
-- Habilitar cache de Redis
-- Configurar CDN para imágenes
-- Implementar monitoring y logs
+### **Configuración para Producción**
+
+#### **Variables de Entorno (.env)**
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://tudomain.com
+
+# Base de datos de producción
+DB_HOST=tu-servidor-mysql
+DB_DATABASE=danilore_rifas_prod
+DB_USERNAME=usuario_prod
+DB_PASSWORD=contraseña_segura
+
+# Configurar CORS para dominio real
+SANCTUM_STATEFUL_DOMAINS=tudomain.com
+
+# SSL y seguridad
+FORCE_HTTPS=true
+SESSION_SECURE_COOKIE=true
+```
+
+#### **Frontend para Producción**
+```bash
+# Compilar assets optimizados
+docker exec danilore_frontend npm run build
+
+# Configurar URL de API para producción
+# Editar frontend/src/config/backend.js
+```
+
+#### **Optimizaciones Recomendadas**
+- **CDN**: Para imágenes y assets estáticos
+- **Redis**: Para cache y sesiones
+- **SSL/TLS**: Certificado HTTPS obligatorio
+- **Backup Automático**: Base de datos
+- **Monitoring**: Logs y métricas
+- **Load Balancer**: Para alta disponibilidad
+
+#### **Docker Compose para Producción**
+```yaml
+# Usar imágenes optimizadas
+# Configurar volúmenes persistentes
+# Habilitar restart policies
+# Configurar networks seguros
+```
+
+### **🔒 Seguridad Implementada**
+
+- **Laravel Sanctum**: Autenticación API segura
+- **Middleware AdminMiddleware**: Control de acceso administrativo
+- **Validación robusta**: En todos los endpoints
+- **Hash de contraseñas**: Bcrypt
+- **CORS configurado**: Solo dominios permitidos
+- **Rate limiting**: Protección contra ataques
+- **SQL Injection**: Protección con Eloquent ORM
+- **XSS Protection**: Sanitización de datos
 
 ---
 
 **Desarrollado para Danilore Rifas** 🎲
 
-### 📞 Soporte Técnico
-- **Desarrollador**: [The Danilore]
-- **Email**: [arteagagordillol@gmail.com]
-- **Versión**: 1.0.0
-- **Última actualización**: Julio 2025
+- **Desarrollador**: The Danilore
+- **Email**: arteagagordillol@gmail.com
+- **Versión**: 2.0.0
+- **Última actualización**: Agosto 2025
