@@ -625,7 +625,7 @@ El sistema está optimizado para:
 - **Tablet**: 769px-1199px (Grid compacto)
 - **Mobile**: ≤768px (Layout en columna única)
 
-## �🚀 Instalación y Configuración
+## 🚀 Instalación y Configuración
 
 ### Pre-requisitos
 - Docker Desktop
@@ -636,13 +636,15 @@ El sistema está optimizado para:
 
 1. **Clonar el repositorio:**
 ```bash
-git clone <repository-url>
+git clone https://github.com/TheDanilore/danilore-rifas.git
 cd danilore-rifas
 ```
 
-2. **Configurar variables de entorno:**
+2. **Configurar variables de entorno (backend):**
 ```bash
-# El archivo .env del backend ya está configurado
+# Copiar el archivo .env.example del backend
+cd backend
+cp .env.example .env
 # Verificar configuración en backend/.env
 ```
 
@@ -651,20 +653,40 @@ cd danilore-rifas
 docker-compose up --build -d
 ```
 
-4. **Ejecutar migraciones:**
+4. **Instala las dependencias de Composer (backend):**
+```bash
+docker exec danilore_backend composer install
+```
+
+5. **Genera la clave de la aplicación (backend):**
+```bash
+docker exec danilore_backend php artisan key:generate
+```
+
+6. **Ejecutar migraciones y seeders (backend y bd):**
 ```bash
 docker exec danilore_backend php artisan migrate
 docker exec danilore_backend php artisan db:seed
+```
+
+7. **Crea el enlace simbólico para el almacenamiento (Storage) (backend):**
+```bash
+docker compose exec danilore_backend php artisan storage:link
+```
+
+8. **Instala las dependencias de Node y compila los activos (assets) (frontend):**
+```bash
+docker compose exec danilore_frontend npm install
+docker compose exec danilore_frontend npm run build
 ```
 
 ## 📊 Servicios Disponibles
 
 | Servicio | Puerto | URL | Descripción |
 |----------|--------|-----|-------------|
-| Frontend | 3000 | http://localhost:3000 | Aplicación Vue.js |
-| Backend | 8000 | http://localhost:8000 | API Laravel |
-| MySQL | 3306 | localhost:3306 | Base de datos |
-| phpMyAdmin | 8080 | http://localhost:8080 | Gestión de BD |
+| Frontend (danilore_frontend) | 3000 | http://localhost:3000 | Aplicación Vue.js |
+| Backend (danilore_backend) | 8000 | http://localhost:8000 | API Laravel |
+| MySQL (danilore_mysql) | 3306 | localhost:3306 | Base de datos |
 
 ## 🗄️ Base de Datos
 
@@ -674,11 +696,6 @@ docker exec danilore_backend php artisan db:seed
 - **Usuario:** danilore
 - **Contraseña:** danilore123
 - **Root Password:** root123
-
-### phpMyAdmin:
-- **URL:** http://localhost:8080
-- **Usuario:** danilore
-- **Contraseña:** danilore123
 
 ## 🛠️ Comandos Útiles
 
@@ -719,25 +736,6 @@ docker exec danilore_frontend npm run serve
 # Acceder al contenedor
 docker exec -it danilore_frontend sh
 ```
-
-## � Servicios Disponibles
-
-| Servicio | Puerto | URL | Descripción |
-|----------|--------|-----|-------------|
-| Frontend | 3000 | http://localhost:3000 | Aplicación Vue.js |
-| Backend | 8000 | http://localhost:8000 | API Laravel |
-| MySQL | 3306 | localhost:3306 | Base de datos |
-| phpMyAdmin | 8080 | http://localhost:8080 | Gestión de BD |
-
-## 🗄️ Base de Datos
-
-### Credenciales MySQL:
-- **Host:** localhost:3306
-- **Database:** danilore_rifas
-- **Usuario:** danilore
-- **Contraseña:** danilore123
-- **Root Password:** root123
-
 
 ## 🎯 API Endpoints (Backend)
 
@@ -780,80 +778,6 @@ POST   /api/auth/login                       # Iniciar sesión
 POST   /api/auth/logout                      # Cerrar sesión [Auth]
 GET    /api/auth/me                          # Perfil del usuario [Auth]
 ```
-
-## 🎨 Componentes Frontend
-
-### **Componentes Principales**
-
-#### **MediaGallery.vue**
-- Galería multimedia responsiva
-- Soporte para imágenes y videos
-- Navegación con thumbnails
-- Modal fullscreen
-- Lazy loading
-
-#### **ProgressBar.vue**
-- Barra de progreso animada
-- Indicadores de niveles
-- Estados visuales (completado, actual, pendiente)
-
-#### **PremioCard.vue**
-- Tarjeta de premio con estado
-- Indicador de desbloqueo
-- Progreso de niveles
-- Botón de participación
-
-### **Vistas (Views)**
-
-#### **Home.vue**
-- Lista de rifas activas y futuras
-- Filtros por categoría y estado
-- Cards responsivas
-- Call-to-action principales
-
-#### **RifaDetail.vue**
-- Información completa de la rifa
-- Lista de premios progresivos
-- Sistema de compra de tickets
-- Modal de pago integrado
-
-#### **PremioDetail.vue**
-- Vista individual del premio
-- Galería multimedia
-- Detalle de niveles
-- Estado de participación
-
-#### **Dashboard.vue**
-- Panel del usuario
-- Historial de compras
-- Boletos activos
-- Estadísticas personales
-
-
-## 📱 Estados del Sistema
-
-### **Estados de Rifa**
-- `en_venta`: Rifa activa recibiendo compras
-- `confirmada`: Meta mínima alcanzada, rifa garantizada
-- `sorteada`: Sorteo realizado, ganadores seleccionados
-- `cancelada`: Rifa cancelada, reembolsos procesados
-
-### **Estados de Premio**
-- `bloqueado`: Premio no disponible (tickets insuficientes)
-- `activo`: Premio disponible para desbloqueo
-- `completado`: Todos los niveles del premio completados
-
-### **Estados de Boleto**
-- `reservado`: Boleto reservado temporalmente
-- `pagado`: Pago confirmado, boleto válido
-- `cancelado`: Reserva expirada o cancelada
-
-### **Estados de Venta**
-- `pendiente`: Venta creada, esperando pago
-- `pagada`: Pago confirmado y verificado
-- `cancelada`: Venta cancelada por el usuario
-- `expirada`: Tiempo de pago agotado
-
 
 ### **⚠️ Puntos de Atención**
 - Los enums deben mantenerse sincronizados entre frontend y backend
