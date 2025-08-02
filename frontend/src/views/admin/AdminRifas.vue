@@ -1,26 +1,26 @@
 <template>
-  <div class="admin-rifas">
+  <div class="admin-page">
     <AdminHeader />
     
     <!-- Hero Section -->
     <section class="admin-hero">
-      <div class="container">
-        <div class="hero-content">
-          <h1 class="hero-title">
+      <div class="admin-container">
+        <div class="admin-hero-content">
+          <h1>
             <i class="fas fa-ticket-alt"></i>
             Gestión de Rifas
           </h1>
-          <p class="hero-subtitle">
+          <p>
             Administra todas las rifas del sistema
           </p>
         </div>
         
-        <div class="hero-actions">
-          <button @click="openCreateModal" class="btn btn-primary btn-lg">
+        <div class="admin-hero-actions">
+          <button @click="openCreateModal" class="admin-btn admin-btn-primary admin-btn-lg">
             <i class="fas fa-plus"></i>
             Nueva Rifa
           </button>
-          <button @click="exportData" class="btn btn-outline btn-lg">
+          <button @click="exportData" class="admin-btn admin-btn-outline admin-btn-lg">
             <i class="fas fa-download"></i>
             Exportar
           </button>
@@ -29,45 +29,46 @@
     </section>
 
     <!-- Loading state -->
-    <div v-if="loading" class="loading-state">
+    <div v-if="loading" class="admin-loading-state">
       <i class="fas fa-spinner fa-spin"></i>
       <p>Cargando rifas...</p>
     </div>
 
     <!-- Error state -->
-    <div v-else-if="error" class="error-state">
+    <div v-else-if="error" class="admin-error-state">
       <i class="fas fa-exclamation-triangle"></i>
       <p>{{ error }}</p>
-      <button class="btn btn-primary" @click="loadRifas">Reintentar</button>
+      <button class="admin-btn admin-btn-primary" @click="loadRifas">Reintentar</button>
     </div>
 
     <!-- Filters and Stats -->
-    <section v-else class="filters-section">
-      <div class="container">
-        <div class="filters-card">
-          <div class="filters-row">
-            <div class="search-box">
+    <section v-else class="admin-filters-section">
+      <div class="admin-container">
+        <div class="admin-filters-card">
+          <div class="admin-filters-row">
+            <div class="admin-search-box">
               <i class="fas fa-search"></i>
               <input
                 v-model="searchQuery"
                 type="text"
                 placeholder="Buscar rifas..."
-                class="search-input"
+                class="admin-search-input"
                 @input="filterRifas"
               />
             </div>
             
-            <div class="filter-group">
-              <select v-model="statusFilter" class="filter-select" @change="filterRifas">
+            <div class="admin-filter-group">
+              <select v-model="statusFilter" class="admin-filter-select" @change="filterRifas">
                 <option value="">Todos los estados</option>
                 <option value="borrador">Borradores</option>
                 <option value="activa">Activas</option>
+                <option value="bloqueada">Bloqueadas</option>
                 <option value="pausada">Pausadas</option>
                 <option value="finalizada">Finalizadas</option>
                 <option value="cancelada">Canceladas</option>
               </select>
               
-              <select v-model="sortBy" class="filter-select" @change="sortRifas">
+              <select v-model="sortBy" class="admin-filter-select" @change="sortRifas">
                 <option value="fecha">Ordenar por fecha</option>
                 <option value="nombre">Ordenar por nombre</option>
                 <option value="precio">Ordenar por precio</option>
@@ -76,18 +77,22 @@
             </div>
           </div>
           
-          <div class="quick-stats">
-            <div class="quick-stat">
-              <span class="stat-number">{{ estadisticas.rifas_activas || 0 }}</span>
-              <span class="stat-label">Activas</span>
+          <div class="admin-stats">
+            <div class="admin-stat">
+              <span class="admin-stat-number">{{ estadisticas.rifas_activas || 0 }}</span>
+              <span class="admin-stat-label">Activas</span>
             </div>
-            <div class="quick-stat">
-              <span class="stat-number">S/ {{ formatMoney(estadisticas.total_ingresos || 0) }}</span>
-              <span class="stat-label">Total Ingresos</span>
+            <div class="admin-stat">
+              <span class="admin-stat-number">S/ {{ formatMoney(estadisticas.total_ingresos || 0) }}</span>
+              <span class="admin-stat-label">Total Ingresos</span>
             </div>
-            <div class="quick-stat">
-              <span class="stat-number">{{ estadisticas.total_tickets || 0 }}</span>
-              <span class="stat-label">Tickets Vendidos</span>
+            <div class="admin-stat">
+              <span class="admin-stat-number">{{ estadisticas.total_tickets || 0 }}</span>
+              <span class="admin-stat-label">Tickets Vendidos</span>
+            </div>
+            <div class="admin-stat">
+              <span class="admin-stat-number">{{ rifas.length || 0 }}</span>
+              <span class="admin-stat-label">Total Rifas</span>
             </div>
           </div>
         </div>
@@ -95,31 +100,31 @@
     </section>
 
     <!-- Rifas Table -->
-    <section class="rifas-table-section">
-      <div class="container">
-        <div class="table-card">
-          <div class="table-header">
+    <section class="admin-table-section">
+      <div class="admin-container">
+        <div class="admin-card">
+          <div class="admin-card-header">
             <h3>Lista de Rifas ({{ filteredRifas.length }})</h3>
-            <div class="table-actions">
-              <button @click="loadRifas" class="btn btn-ghost btn-sm">
+            <div class="admin-card-actions">
+              <button @click="loadRifas" class="admin-btn admin-btn-ghost admin-btn-sm">
                 <i class="fas fa-sync-alt"></i>
                 Actualizar
               </button>
             </div>
           </div>
           
-          <div v-if="filteredRifas.length === 0 && !loading" class="empty-state">
+          <div v-if="filteredRifas.length === 0 && !loading" class="admin-empty-state">
             <i class="fas fa-inbox"></i>
             <h3>No hay rifas</h3>
             <p>{{ searchQuery ? 'No se encontraron rifas que coincidan con tu búsqueda' : 'Aún no has creado ninguna rifa' }}</p>
-            <button v-if="!searchQuery" @click="openCreateModal" class="btn btn-primary">
+            <button v-if="!searchQuery" @click="openCreateModal" class="admin-btn admin-btn-primary">
               <i class="fas fa-plus"></i>
               Crear primera rifa
             </button>
           </div>
           
-          <div v-else class="table-container">
-            <table class="rifas-table">
+          <div v-else class="admin-table-container">
+            <table class="admin-table">
               <thead>
                 <tr>
                   <th>Rifa</th>
@@ -133,7 +138,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="rifa in filteredRifas" :key="rifa.id" class="table-row">
+                <tr v-for="rifa in filteredRifas" :key="rifa.id" class="admin-table-row">
                   <td>
                     <div class="rifa-info">
                       <img :src="rifa.imagen_principal || 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=100&h=100&fit=crop'" 
@@ -147,18 +152,18 @@
                     </div>
                   </td>
                   <td>
-                    <span class="status-badge" :class="getStatusClass(rifa.estado)">
+                    <span class="admin-status-badge" :class="getStatusClass(rifa.estado)">
                       {{ formatStatus(rifa.estado) }}
                     </span>
                   </td>
                   <td class="price">S/ {{ formatMoney(rifa.precio_boleto) }}</td>
                   <td>{{ rifa.boletos_minimos || 0 }} / {{ rifa.boletos_maximos || '∞' }}</td>
                   <td>
-                    <div class="progress-cell">
+                    <div class="admin-progress-cell">
                       <span>{{ rifa.boletos_vendidos || 0 }}</span>
-                      <div class="mini-progress">
+                      <div class="admin-mini-progress">
                         <div 
-                          class="progress-fill" 
+                          class="admin-progress-fill" 
                           :style="{ width: getProgressPercentage(rifa) + '%' }"
                         ></div>
                       </div>
@@ -167,17 +172,20 @@
                   <td class="price">S/ {{ formatMoney(getIngresos(rifa)) }}</td>
                   <td>{{ formatDate(rifa.fecha_fin) }}</td>
                   <td>
-                    <div class="actions-cell">
-                      <button @click="editRifa(rifa)" class="action-btn edit" title="Editar">
+                    <div class="admin-actions-cell">
+                      <button @click="editRifa(rifa)" class="admin-action-btn edit" title="Editar">
                         <i class="fas fa-edit"></i>
                       </button>
-                      <button @click="viewRifa(rifa)" class="action-btn view" title="Ver detalles">
+                      <button @click="viewRifa(rifa)" class="admin-action-btn view" title="Ver detalles">
                         <i class="fas fa-eye"></i>
                       </button>
-                      <button @click="toggleEstado(rifa)" class="action-btn toggle" :title="rifa.estado === 'activa' ? 'Pausar' : 'Activar'">
+                      <button @click="duplicateRifa(rifa)" class="admin-action-btn duplicate" title="Duplicar rifa">
+                        <i class="fas fa-copy"></i>
+                      </button>
+                      <button @click="toggleEstado(rifa)" class="admin-action-btn toggle" :title="rifa.estado === 'activa' ? 'Pausar' : 'Activar'">
                         <i :class="rifa.estado === 'activa' ? 'fas fa-pause' : 'fas fa-play'"></i>
                       </button>
-                      <button @click="deleteRifa(rifa)" class="action-btn delete" title="Eliminar">
+                      <button @click="deleteRifa(rifa)" class="admin-action-btn delete" title="Eliminar">
                         <i class="fas fa-trash"></i>
                       </button>
                     </div>
@@ -191,36 +199,38 @@
     </section>
 
     <!-- Modal para Crear/Editar Rifa -->
-    <div v-if="showCreateModal || showEditModal" class="modal-overlay" @click="closeModals">
-      <div class="modal rifa-modal" @click.stop>
-        <div class="modal-header">
+    <div v-if="showCreateModal || showEditModal" class="admin-modal-overlay" @click="closeModals">
+      <div class="admin-modal-content admin-modal-xl" @click.stop>
+        <div class="admin-modal-header">
           <h2>{{ showEditModal ? 'Editar Rifa' : 'Nueva Rifa' }}</h2>
-          <button class="close-btn" @click="closeModals">
+          <button class="admin-modal-close" @click="closeModals">
             <i class="fas fa-times"></i>
           </button>
         </div>
         
-        <div class="modal-content">
-          <form @submit.prevent="saveRifa" class="rifa-form">
-            <div class="form-grid">
-              <div class="form-group">
+        <div class="admin-modal-body">
+          <form @submit.prevent="saveRifa" class="admin-form">
+            <div class="admin-form-grid">
+              <div class="admin-form-group">
                 <label for="titulo">Título de la Rifa *</label>
                 <input 
                   id="titulo"
                   v-model="rifaForm.titulo" 
                   type="text" 
+                  class="admin-form-input"
                   required
                   autocomplete="off"
                   placeholder="Ej: iPhone 15 Pro Max"
                 >
               </div>
               
-              <div class="form-group">
+              <div class="admin-form-group">
                 <label for="codigo_unico">Código Único *</label>
                 <input 
                   id="codigo_unico"
                   v-model="rifaForm.codigo_unico" 
                   type="text" 
+                  class="admin-form-input"
                   required
                   autocomplete="off"
                   placeholder="Ej: RIFA001"
@@ -228,23 +238,25 @@
                 >
               </div>
               
-              <div class="form-group full-width">
+              <div class="admin-form-group admin-form-full-width">
                 <label for="descripcion">Descripción</label>
                 <textarea 
                   id="descripcion"
                   v-model="rifaForm.descripcion" 
+                  class="admin-form-textarea"
                   rows="3"
                   autocomplete="off"
                   placeholder="Describe la rifa y sus premios"
                 ></textarea>
               </div>
               
-              <div class="form-group">
+              <div class="admin-form-group">
                 <label for="precio_boleto">Precio por Boleto (S/) *</label>
                 <input 
                   id="precio_boleto"
                   v-model="rifaForm.precio_boleto" 
                   type="number" 
+                  class="admin-form-input"
                   step="0.01"
                   min="0.01"
                   required
@@ -253,9 +265,9 @@
                 >
               </div>
               
-              <div class="form-group">
+              <div class="admin-form-group">
                 <label for="categoria_id">Categoría</label>
-                <select id="categoria_id" v-model="rifaForm.categoria_id" autocomplete="off">
+                <select id="categoria_id" v-model="rifaForm.categoria_id" class="admin-form-select" autocomplete="off">
                   <option value="">Seleccionar categoría</option>
                   <option v-for="categoria in categorias" :key="categoria.id" :value="categoria.id">
                     {{ categoria.nombre }}
@@ -263,12 +275,13 @@
                 </select>
               </div>
               
-              <div class="form-group">
+              <div class="admin-form-group">
                 <label for="boletos_minimos">Boletos Mínimos *</label>
                 <input 
                   id="boletos_minimos"
                   v-model="rifaForm.boletos_minimos" 
                   type="number" 
+                  class="admin-form-input"
                   min="1"
                   required
                   autocomplete="off"
@@ -276,102 +289,109 @@
                 >
               </div>
               
-              <div class="form-group">
+              <div class="admin-form-group">
                 <label for="boletos_maximos">Boletos Máximos</label>
                 <input 
                   id="boletos_maximos"
                   v-model="rifaForm.boletos_maximos" 
                   type="number" 
+                  class="admin-form-input"
                   min="1"
                   autocomplete="off"
                   placeholder="500"
                 >
               </div>
               
-              <div class="form-group">
+              <div class="admin-form-group">
                 <label for="max_boletos_por_persona">Máx. Boletos por Persona</label>
                 <input 
                   id="max_boletos_por_persona"
                   v-model="rifaForm.max_boletos_por_persona" 
                   type="number" 
+                  class="admin-form-input"
                   min="1"
                   autocomplete="off"
                   placeholder="10"
                 >
               </div>
               
-              <div class="form-group">
+              <div class="admin-form-group">
                 <label for="fecha_inicio">Fecha de Inicio *</label>
                 <input 
                   id="fecha_inicio"
                   v-model="rifaForm.fecha_inicio" 
                   type="date" 
+                  class="admin-form-input"
                   required
                   autocomplete="off"
                 >
               </div>
               
-              <div class="form-group">
+              <div class="admin-form-group">
                 <label for="fecha_fin">Fecha de Fin *</label>
                 <input 
                   id="fecha_fin"
                   v-model="rifaForm.fecha_fin" 
                   type="date" 
+                  class="admin-form-input"
                   required
                   autocomplete="off"
                 >
               </div>
               
-              <div class="form-group">
+              <div class="admin-form-group">
                 <label for="fecha_sorteo">Fecha de Sorteo</label>
                 <input 
                   id="fecha_sorteo"
                   v-model="rifaForm.fecha_sorteo" 
                   type="datetime-local" 
+                  class="admin-form-input"
                   autocomplete="off"
                 >
               </div>
               
-              <div class="form-group">
+              <div class="admin-form-group">
                 <label for="tipo">Tipo de Rifa *</label>
-                <select id="tipo" v-model="rifaForm.tipo" autocomplete="off" required>
+                <select id="tipo" v-model="rifaForm.tipo" class="admin-form-select" autocomplete="off" required>
                   <option value="actual">Actual (En venta)</option>
                   <option value="futura">Futura (Programada)</option>
                 </select>
               </div>
               
-              <div class="form-group">
+              <div class="admin-form-group">
                 <label for="estado">Estado *</label>
-                <select id="estado" v-model="rifaForm.estado" autocomplete="off" required>
+                <select id="estado" v-model="rifaForm.estado" class="admin-form-select" autocomplete="off" required>
                   <option value="borrador">Borrador</option>
                   <option value="activa">Activa</option>
+                  <option value="bloqueada">Bloqueada</option>
                   <option value="pausada">Pausada</option>
                   <option value="finalizada">Finalizada</option>
                   <option value="cancelada">Cancelada</option>
                 </select>
               </div>
               
-              <div class="form-group">
+              <div class="admin-form-group">
                 <label for="orden">Orden (para rifas futuras)</label>
                 <input 
                   id="orden"
                   v-model="rifaForm.orden" 
                   type="number" 
+                  class="admin-form-input"
                   min="1"
                   autocomplete="off"
                   placeholder="1"
                 >
               </div>
               
-              <div class="form-group">
+              <div class="admin-form-group">
                 <label for="es_destacada">¿Es destacada?</label>
-                <select id="es_destacada" v-model="rifaForm.es_destacada" autocomplete="off">
+                <select id="es_destacada" v-model="rifaForm.es_destacada" class="admin-form-select" autocomplete="off">
                   <option value="false">No</option>
                   <option value="true">Sí</option>
                 </select>
               </div>
               
-              <div class="form-group full-width">
+              <div class="admin-form-group admin-form-full-width">
                 <ImageSelector
                   v-model="rifaForm.imagen_principal"
                   label="Imagen Principal de la Rifa"
@@ -379,23 +399,50 @@
                   upload-endpoint="/api/v1/upload/rifa-image"
                 />
               </div>
+
+              <div class="admin-form-group admin-form-full-width">
+                <label>Galería de Medios (Imágenes Adicionales)</label>
+                <div class="admin-media-gallery-section">
+                  <div class="admin-current-images" v-if="rifaForm.media_gallery && rifaForm.media_gallery.length > 0">
+                    <div class="admin-gallery-grid">
+                      <div v-for="(image, index) in rifaForm.media_gallery" :key="index" class="admin-gallery-item">
+                        <img :src="image" :alt="`Imagen ${index + 1}`" class="admin-gallery-thumb" />
+                        <button type="button" @click="removeGalleryImage(index)" class="admin-remove-gallery-btn">
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="admin-add-images-section">
+                    <ImageSelector
+                      v-model="newGalleryImage"
+                      label="Agregar Nueva Imagen"
+                      placeholder="https://ejemplo.com/imagen.jpg"
+                      upload-endpoint="/api/v1/upload/rifa-gallery"
+                      @change="addGalleryImage"
+                    />
+                  </div>
+                </div>
+              </div>
               
-              <div class="form-group full-width">
+              <div class="admin-form-group admin-form-full-width">
                 <label for="terminos_condiciones">Términos y Condiciones</label>
                 <textarea 
                   id="terminos_condiciones"
                   v-model="rifaForm.terminos_condiciones" 
+                  class="admin-form-textarea"
                   rows="3"
                   autocomplete="off"
                   placeholder="Términos y condiciones específicos de esta rifa"
                 ></textarea>
               </div>
               
-              <div class="form-group full-width">
+              <div class="admin-form-group admin-form-full-width">
                 <label for="notas_admin">Notas del Administrador</label>
                 <textarea 
                   id="notas_admin"
                   v-model="rifaForm.notas_admin" 
+                  class="admin-form-textarea"
                   rows="2"
                   autocomplete="off"
                   placeholder="Notas internas para el administrador"
@@ -404,34 +451,35 @@
             </div>
 
             <!-- Sección de Premios -->
-            <div class="premios-section">
-              <div class="section-header">
+            <div class="admin-premios-section">
+              <div class="admin-section-header">
                 <h3>Premios y Niveles</h3>
-                <button type="button" @click="addPremio" class="btn btn-outline btn-sm">
+                <button type="button" @click="addPremio" class="admin-btn admin-btn-outline admin-btn-sm">
                   <i class="fas fa-plus"></i>
                   Agregar Premio
                 </button>
               </div>
 
-              <div v-for="(premio, premioIndex) in rifaForm.premios" :key="premioIndex" class="premio-card">
-                <div class="premio-header">
+              <div v-for="(premio, premioIndex) in rifaForm.premios" :key="premioIndex" class="admin-premio-card">
+                <div class="admin-premio-header">
                   <h4>Premio {{ premioIndex + 1 }}</h4>
                   <button 
                     v-if="rifaForm.premios.length > 1"
                     type="button" 
                     @click="removePremio(premioIndex)" 
-                    class="btn-remove"
+                    class="admin-btn-remove"
                   >
                     <i class="fas fa-trash"></i>
                   </button>
                 </div>
 
-                <div class="premio-fields">
-                  <div class="form-group">
+                <div class="admin-premio-fields">
+                  <div class="admin-form-group">
                     <label>Código del Premio *</label>
                     <input 
                       v-model="premio.codigo" 
                       type="text" 
+                      class="admin-form-input"
                       required
                       autocomplete="off"
                       placeholder="Ej: P1, P2, P3"
@@ -439,18 +487,19 @@
                     >
                   </div>
 
-                  <div class="form-group">
+                  <div class="admin-form-group">
                     <label>Título del Premio *</label>
                     <input 
                       v-model="premio.titulo" 
                       type="text" 
+                      class="admin-form-input"
                       required
                       autocomplete="off"
                       placeholder="Ej: AirPods Pro"
                     >
                   </div>
 
-                  <div class="form-group">
+                  <div class="admin-form-group">
                     <ImageSelector
                       v-model="premio.imagen_principal"
                       label="Imagen del Premio"
@@ -459,29 +508,31 @@
                     />
                   </div>
 
-                  <div class="form-group">
+                  <div class="admin-form-group">
                     <label>Estado del Premio</label>
-                    <select v-model="premio.estado" autocomplete="off">
+                    <select v-model="premio.estado" class="admin-form-select" autocomplete="off">
                       <option value="bloqueado">Bloqueado</option>
                       <option value="activo">Activo</option>
                       <option value="completado">Completado</option>
                     </select>
                   </div>
 
-                  <div class="form-group full-width">
+                  <div class="admin-form-group admin-form-full-width">
                     <label>Descripción del Premio</label>
                     <textarea 
                       v-model="premio.descripcion" 
+                      class="admin-form-textarea"
                       rows="2"
                       autocomplete="off"
                       placeholder="Describe este premio específico"
                     ></textarea>
                   </div>
 
-                  <div class="form-group full-width">
+                  <div class="admin-form-group admin-form-full-width">
                     <label>Notas del Administrador</label>
                     <textarea 
                       v-model="premio.notas_admin" 
+                      class="admin-form-textarea"
                       rows="1"
                       autocomplete="off"
                       placeholder="Notas internas sobre este premio"
@@ -490,38 +541,39 @@
                 </div>
 
                 <!-- Niveles del Premio -->
-                <div class="niveles-section">
-                  <div class="niveles-header">
+                <div class="admin-niveles-section">
+                  <div class="admin-niveles-header">
                     <h5>Niveles del Premio</h5>
                     <button 
                       type="button" 
                       @click="addNivel(premioIndex)" 
-                      class="btn btn-outline btn-sm"
+                      class="admin-btn admin-btn-outline admin-btn-sm"
                     >
                       <i class="fas fa-plus"></i>
                       Agregar Nivel
                     </button>
                   </div>
 
-                  <div v-for="(nivel, nivelIndex) in premio.niveles" :key="nivelIndex" class="nivel-card">
-                    <div class="nivel-header">
+                  <div v-for="(nivel, nivelIndex) in premio.niveles" :key="nivelIndex" class="admin-nivel-card">
+                    <div class="admin-nivel-header">
                       <span>Nivel {{ nivelIndex + 1 }}</span>
                       <button 
                         v-if="premio.niveles.length > 1"
                         type="button" 
                         @click="removeNivel(premioIndex, nivelIndex)" 
-                        class="btn-remove-small"
+                        class="admin-btn-remove-small"
                       >
                         <i class="fas fa-times"></i>
                       </button>
                     </div>
 
-                    <div class="nivel-fields">
-                      <div class="form-group">
+                    <div class="admin-nivel-fields">
+                      <div class="admin-form-group">
                         <label>Código del Nivel *</label>
                         <input 
                           v-model="nivel.codigo" 
                           type="text" 
+                          class="admin-form-input"
                           required
                           autocomplete="off"
                           placeholder="Ej: N1, N2, N3"
@@ -529,22 +581,24 @@
                         >
                       </div>
 
-                      <div class="form-group">
+                      <div class="admin-form-group">
                         <label>Título del Nivel *</label>
                         <input 
                           v-model="nivel.titulo" 
                           type="text" 
+                          class="admin-form-input"
                           required
                           autocomplete="off"
                           placeholder="Ej: Nivel Básico"
                         >
                       </div>
 
-                      <div class="form-group">
+                      <div class="admin-form-group">
                         <label>Tickets Necesarios *</label>
                         <input 
                           v-model="nivel.tickets_necesarios" 
                           type="number" 
+                          class="admin-form-input"
                           min="1"
                           required
                           autocomplete="off"
@@ -552,11 +606,12 @@
                         >
                       </div>
 
-                      <div class="form-group">
+                      <div class="admin-form-group">
                         <label>Valor Aproximado (S/)</label>
                         <input 
                           v-model="nivel.valor_aproximado" 
                           type="number" 
+                          class="admin-form-input"
                           min="0"
                           step="0.01"
                           autocomplete="off"
@@ -564,7 +619,7 @@
                         >
                       </div>
 
-                      <div class="form-group">
+                      <div class="admin-form-group">
                         <ImageSelector
                           v-model="nivel.imagen"
                           label="Imagen del Nivel"
@@ -573,28 +628,30 @@
                         />
                       </div>
 
-                      <div class="form-group">
+                      <div class="admin-form-group">
                         <label>¿Es el nivel actual?</label>
-                        <select v-model="nivel.es_actual" autocomplete="off">
+                        <select v-model="nivel.es_actual" class="admin-form-select" autocomplete="off">
                           <option value="false">No</option>
                           <option value="true">Sí</option>
                         </select>
                       </div>
 
-                      <div class="form-group full-width">
+                      <div class="admin-form-group admin-form-full-width">
                         <label>Descripción del Nivel</label>
                         <textarea 
                           v-model="nivel.descripcion" 
+                          class="admin-form-textarea"
                           rows="2"
                           autocomplete="off"
                           placeholder="Describe este nivel específico"
                         ></textarea>
                       </div>
 
-                      <div class="form-group full-width">
+                      <div class="admin-form-group admin-form-full-width">
                         <label>Especificaciones Técnicas (JSON)</label>
                         <textarea 
                           v-model="nivel.especificaciones" 
+                          class="admin-form-textarea"
                           rows="2"
                           autocomplete="off"
                           placeholder='{"color": "negro", "memoria": "256GB"}'
@@ -606,11 +663,11 @@
               </div>
             </div>
             
-            <div class="form-actions">
-              <button type="button" @click="closeModals" class="btn btn-outline">
+            <div class="admin-form-actions">
+              <button type="button" @click="closeModals" class="admin-btn admin-btn-outline">
                 Cancelar
               </button>
-              <button type="submit" class="btn btn-primary" :disabled="formLoading">
+              <button type="submit" class="admin-btn admin-btn-primary" :disabled="formLoading">
                 <i v-if="formLoading" class="fas fa-spinner fa-spin"></i>
                 {{ showEditModal ? 'Actualizar' : 'Crear' }} Rifa
               </button>
@@ -621,27 +678,27 @@
     </div>
 
     <!-- Modal de Confirmación para Eliminar -->
-    <div v-if="showDeleteModal" class="modal-overlay" @click="closeModals">
-      <div class="modal delete-modal" @click.stop>
-        <div class="modal-header">
+    <div v-if="showDeleteModal" class="admin-modal-overlay" @click="closeModals">
+      <div class="admin-modal-content" @click.stop>
+        <div class="admin-modal-header">
           <h2>Confirmar Eliminación</h2>
-          <button class="close-btn" @click="closeModals">
+          <button class="admin-modal-close" @click="closeModals">
             <i class="fas fa-times"></i>
           </button>
         </div>
         
-        <div class="modal-content">
-          <div class="delete-warning">
+        <div class="admin-modal-body">
+          <div class="admin-delete-warning">
             <i class="fas fa-exclamation-triangle"></i>
             <p>¿Estás seguro de que deseas eliminar la rifa "<strong>{{ rifaToDelete?.titulo }}</strong>"?</p>
-            <p class="warning-text">Esta acción no se puede deshacer.</p>
+            <p class="admin-warning-text">Esta acción no se puede deshacer.</p>
           </div>
           
-          <div class="form-actions">
-            <button @click="closeModals" class="btn btn-outline">
+          <div class="admin-form-actions">
+            <button @click="closeModals" class="admin-btn admin-btn-outline">
               Cancelar
             </button>
-            <button @click="confirmDelete" class="btn btn-danger" :disabled="deleteLoading">
+            <button @click="confirmDelete" class="admin-btn admin-btn-danger" :disabled="deleteLoading">
               <i v-if="deleteLoading" class="fas fa-spinner fa-spin"></i>
               Eliminar Rifa
             </button>
@@ -649,12 +706,15 @@
         </div>
       </div>
     </div>
+    
+    <AdminFooter />
   </div>
 </template>
 
 <script>
 import { ref, computed, onMounted, reactive } from 'vue'
 import AdminHeader from '@/components/admin/AdminHeader.vue'
+import AdminFooter from '@/components/admin/AdminFooter.vue'
 import ImageSelector from '@/components/common/ImageSelector.vue'
 import { adminRifaService } from '@/services/adminRifaService'
 import { showNotification } from '@/utils/helpers'
@@ -663,6 +723,7 @@ export default {
   name: 'AdminRifas',
   components: {
     AdminHeader,
+    AdminFooter,
     ImageSelector
   },
   setup() {
@@ -689,6 +750,9 @@ export default {
     const editingRifa = ref(null)
     const rifaToDelete = ref(null)
     
+    // Variables para galería de medios
+    const newGalleryImage = ref('')
+    
     // Formulario de rifa
     const rifaForm = reactive({
       titulo: '',
@@ -704,6 +768,12 @@ export default {
       fecha_sorteo: '',
       tipo: 'actual',
       estado: 'borrador',
+      orden: 1,
+      es_destacada: false,
+      imagen_principal: '',
+      media_gallery: [],
+      terminos_condiciones: '',
+      notas_admin: '',
       orden: 1,
       es_destacada: false,
       imagen_principal: '',
@@ -854,6 +924,7 @@ export default {
         orden: 1,
         es_destacada: false,
         imagen_principal: '',
+        media_gallery: [],
         terminos_condiciones: '',
         notas_admin: '',
         premios: [
@@ -959,6 +1030,25 @@ export default {
       }
     }
     
+    // Funciones para manejar galería de medios
+    const addGalleryImage = () => {
+      if (newGalleryImage.value && newGalleryImage.value.trim()) {
+        if (!rifaForm.media_gallery) {
+          rifaForm.media_gallery = []
+        }
+        if (!rifaForm.media_gallery.includes(newGalleryImage.value)) {
+          rifaForm.media_gallery.push(newGalleryImage.value)
+          newGalleryImage.value = ''
+        }
+      }
+    }
+    
+    const removeGalleryImage = (index) => {
+      if (rifaForm.media_gallery && rifaForm.media_gallery.length > index) {
+        rifaForm.media_gallery.splice(index, 1)
+      }
+    }
+    
     const saveRifa = async () => {
       try {
         formLoading.value = true
@@ -1058,6 +1148,7 @@ export default {
         orden: rifa.orden || 1,
         es_destacada: rifa.es_destacada || false,
         imagen_principal: rifa.imagen_principal || '',
+        media_gallery: rifa.media_gallery || [],
         terminos_condiciones: rifa.terminos_condiciones || '',
         notas_admin: rifa.notas_admin || '',
         // Cargar premios y niveles si existen
@@ -1119,6 +1210,91 @@ export default {
       })
       
       showEditModal.value = true
+    }
+    
+    const duplicateRifa = (rifa) => {
+      // Llenar formulario con datos de la rifa a duplicar
+      const newCodigoUnico = generateCodigoUnico()
+      
+      Object.assign(rifaForm, {
+        titulo: `${rifa.titulo} (Copia)`,
+        codigo_unico: newCodigoUnico,
+        descripcion: rifa.descripcion || '',
+        precio_boleto: rifa.precio_boleto || 2.00,
+        categoria_id: rifa.categoria_id || '',
+        boletos_minimos: rifa.boletos_minimos || 100,
+        boletos_maximos: rifa.boletos_maximos || null,
+        max_boletos_por_persona: rifa.max_boletos_por_persona || 10,
+        fecha_inicio: '',
+        fecha_fin: '',
+        fecha_sorteo: '',
+        tipo: rifa.tipo || 'actual',
+        estado: 'borrador',
+        orden: rifa.orden || 1,
+        es_destacada: false,
+        imagen_principal: rifa.imagen_principal || '',
+        media_gallery: [...(rifa.media_gallery || [])],
+        terminos_condiciones: rifa.terminos_condiciones || '',
+        notas_admin: rifa.notas_admin || '',
+        // Duplicar premios y niveles
+        premios: rifa.premios?.length > 0 ? rifa.premios.map((premio, premioIndex) => ({
+          codigo: premio.codigo || `p${premioIndex + 1}`,
+          titulo: premio.titulo || '',
+          descripcion: premio.descripcion || '',
+          imagen_principal: premio.imagen_principal || '',
+          estado: 'bloqueado',
+          orden: premio.orden || (premioIndex + 1),
+          notas_admin: premio.notas_admin || '',
+          niveles: premio.niveles?.length > 0 ? premio.niveles.map((nivel, nivelIndex) => ({
+            codigo: nivel.codigo || `n${nivelIndex + 1}`,
+            titulo: nivel.titulo || '',
+            descripcion: nivel.descripcion || '',
+            tickets_necesarios: nivel.tickets_necesarios || 100,
+            valor_aproximado: nivel.valor_aproximado || 0,
+            imagen: nivel.imagen || '',
+            es_actual: false,
+            especificaciones: nivel.especificaciones || '',
+            orden: nivel.orden || (nivelIndex + 1)
+          })) : [
+            {
+              codigo: 'n1',
+              titulo: '',
+              descripcion: '',
+              tickets_necesarios: rifaForm.boletos_minimos || 100,
+              valor_aproximado: 0,
+              imagen: '',
+              es_actual: false,
+              especificaciones: '',
+              orden: 1
+            }
+          ]
+        })) : [
+          {
+            codigo: 'p1',
+            titulo: '',
+            descripcion: '',
+            imagen_principal: '',
+            estado: 'bloqueado',
+            orden: 1,
+            notas_admin: '',
+            niveles: [
+              {
+                codigo: 'n1',
+                titulo: '',
+                descripcion: '',
+                tickets_necesarios: rifaForm.boletos_minimos || 100,
+                valor_aproximado: 0,
+                imagen: '',
+                es_actual: false,
+                especificaciones: '',
+                orden: 1
+              }
+            ]
+          }
+        ]
+      })
+      
+      showCreateModal.value = true
     }
     
     const deleteRifa = (rifa) => {
@@ -1225,14 +1401,20 @@ export default {
     }
     
     const formatMoney = (amount) => {
-      if (typeof amount !== 'number') return '0'
-      return amount.toLocaleString('es-PE', { minimumFractionDigits: 2 })
+      if (amount === null || amount === undefined) return '0.00'
+      const numAmount = parseFloat(amount)
+      if (isNaN(numAmount)) return '0.00'
+      return numAmount.toLocaleString('es-PE', { 
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })
     }
     
     const formatStatus = (status) => {
       const statusMap = {
         borrador: 'Borrador',
         activa: 'Activa',
+        bloqueada: 'Bloqueada',
         pausada: 'Pausada',
         finalizada: 'Finalizada',
         cancelada: 'Cancelada'
@@ -1245,14 +1427,14 @@ export default {
     }
     
     const getProgressPercentage = (rifa) => {
-      const vendidos = rifa.boletos_vendidos || 0
-      const total = rifa.boletos_minimos || 1
+      const vendidos = parseFloat(rifa.boletos_vendidos) || 0
+      const total = parseFloat(rifa.boletos_minimos) || 1
       return Math.min((vendidos / total) * 100, 100)
     }
     
     const getIngresos = (rifa) => {
-      const vendidos = rifa.boletos_vendidos || 0
-      const precio = rifa.precio_boleto || 0
+      const vendidos = parseFloat(rifa.boletos_vendidos) || 0
+      const precio = parseFloat(rifa.precio_boleto) || 0
       return vendidos * precio
     }
     
@@ -1297,6 +1479,7 @@ export default {
       loadCategorias,
       saveRifa,
       editRifa,
+      duplicateRifa,
       deleteRifa,
       confirmDelete,
       toggleEstado,
@@ -1314,6 +1497,11 @@ export default {
       addNivel,
       removeNivel,
       
+      // Funciones para galería de medios
+      newGalleryImage,
+      addGalleryImage,
+      removeGalleryImage,
+      
       // Helpers
       formatDate,
       formatDateForInput,
@@ -1329,286 +1517,8 @@ export default {
 }
 </script>
 
-<style scoped>
-/* Variables CSS */
-:root {
-  --primary-purple: #8b5cf6;
-  --primary-blue: #3b82f6;
-  --success-green: #10b981;
-  --warning-orange: #f59e0b;
-  --danger-red: #ef4444;
-  --gray-50: #f9fafb;
-  --gray-100: #f3f4f6;
-  --gray-200: #e5e7eb;
-  --gray-300: #d1d5db;
-  --gray-400: #9ca3af;
-  --gray-500: #6b7280;
-  --gray-600: #4b5563;
-  --gray-700: #374151;
-  --gray-800: #1f2937;
-  --gray-900: #111827;
-  --white: #ffffff;
-  --border-radius: 0.5rem;
-  --border-radius-lg: 0.75rem;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-}
-
-/* Layout principal */
-.admin-rifas {
-  min-height: 100vh;
-  background: var(--gray-50);
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-
-/* Hero Section */
-.admin-hero {
-  background: linear-gradient(135deg, var(--primary-purple), var(--primary-blue));
-  color: var(--white);
-  padding: 3rem 0;
-}
-
-.admin-hero .container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 2rem;
-}
-
-.hero-content h1 {
-  font-size: 2rem;
-  font-weight: 700;
-  margin: 0 0 0.5rem 0;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.hero-content p {
-  font-size: 1.125rem;
-  opacity: 0.9;
-  margin: 0;
-}
-
-.hero-actions {
-  display: flex;
-  gap: 1rem;
-}
-
-/* Loading y Error states */
-.loading-state,
-.error-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-  text-align: center;
-  color: var(--gray-600);
-}
-
-.loading-state i,
-.error-state i {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.loading-state i {
-  color: var(--primary-purple);
-}
-
-.error-state i {
-  color: var(--danger-red);
-}
-
-/* Filters Section */
-.filters-section {
-  padding: 2rem 0;
-}
-
-.filters-card {
-  background: var(--white);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow);
-  padding: 1.5rem;
-}
-
-.filters-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 1.5rem;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.search-box {
-  position: relative;
-  max-width: 400px;
-}
-
-.search-box i {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--gray-400);
-}
-
-.search-input {
-  width: 100%;
-  padding: 0.75rem 1rem 0.75rem 2.5rem;
-  border: 1px solid var(--gray-300);
-  border-radius: var(--border-radius);
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: var(--primary-purple);
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
-}
-
-.filter-group {
-  display: flex;
-  gap: 1rem;
-}
-
-.filter-select {
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--gray-300);
-  border-radius: var(--border-radius);
-  font-size: 0.875rem;
-  background: var(--white);
-  transition: all 0.2s ease;
-}
-
-.filter-select:focus {
-  outline: none;
-  border-color: var(--primary-purple);
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
-}
-
-/* Quick Stats */
-.quick-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1.5rem;
-}
-
-.quick-stat {
-  text-align: center;
-  padding: 1rem;
-  background: var(--gray-50);
-  border-radius: var(--border-radius);
-}
-
-.stat-number {
-  display: block;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--primary-purple);
-  margin-bottom: 0.25rem;
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  color: var(--gray-600);
-}
-
-/* Table Section */
-.rifas-table-section {
-  padding-bottom: 3rem;
-}
-
-.table-card {
-  background: var(--white);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-}
-
-.table-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--gray-200);
-}
-
-.table-header h3 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--gray-800);
-  margin: 0;
-}
-
-.table-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-/* Empty State */
-.empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: var(--gray-500);
-}
-
-.empty-state i {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  color: var(--gray-300);
-}
-
-.empty-state h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem 0;
-  color: var(--gray-700);
-}
-
-.empty-state p {
-  margin: 0 0 1.5rem 0;
-}
-
-/* Table */
-.table-container {
-  overflow-x: auto;
-}
-
-.rifas-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.rifas-table th {
-  background: var(--gray-50);
-  padding: 1rem;
-  text-align: left;
-  font-weight: 600;
-  color: var(--gray-700);
-  font-size: 0.875rem;
-  border-bottom: 1px solid var(--gray-200);
-}
-
-.rifas-table td {
-  padding: 1rem;
-  border-bottom: 1px solid var(--gray-100);
-  vertical-align: middle;
-}
-
-.table-row:hover {
-  background: var(--gray-50);
-}
-
-/* Rifa Info */
+<style>
+/* Estilos específicos para AdminRifas que no están en admin.css */
 .rifa-info {
   display: flex;
   align-items: center;
@@ -1616,601 +1526,35 @@ export default {
 }
 
 .rifa-thumb {
-  width: 50px;
-  height: 50px;
-  border-radius: var(--border-radius);
+  width: 60px;
+  height: 60px;
+  border-radius: var(--admin-border-radius);
   object-fit: cover;
-  border: 2px solid var(--gray-200);
+  border: 2px solid var(--admin-primary-teal);
+  box-shadow: var(--admin-shadow-sm);
+  transition: transform 0.2s ease;
+}
+
+.rifa-thumb:hover {
+  transform: scale(1.05);
+  box-shadow: var(--admin-shadow);
 }
 
 .rifa-name {
   font-weight: 600;
-  color: var(--gray-800);
+  color: var(--admin-text-primary);
   margin: 0 0 0.25rem 0;
   font-size: 0.875rem;
 }
 
 .rifa-id {
   font-size: 0.75rem;
-  color: var(--gray-500);
+  color: var(--admin-text-muted);
   margin: 0;
 }
 
-/* Status Badge */
-.status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.status-borrador {
-  background: #e0e7ff;
-  color: #3730a3;
-}
-
-.status-activa {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.status-pausada {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.status-finalizada {
-  background: var(--gray-100);
-  color: var(--gray-700);
-}
-
-.status-cancelada {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-/* Price */
 .price {
   font-weight: 600;
-  color: var(--gray-800);
-}
-
-/* Progress Cell */
-.progress-cell {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.mini-progress {
-  width: 60px;
-  height: 6px;
-  background: var(--gray-200);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: var(--primary-purple);
-  transition: width 0.3s ease;
-}
-
-/* Actions Cell */
-.actions-cell {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.action-btn {
-  padding: 0.5rem;
-  border: none;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-}
-
-.action-btn.edit {
-  background: #dbeafe;
-  color: var(--primary-blue);
-}
-
-.action-btn.edit:hover {
-  background: #bfdbfe;
-}
-
-.action-btn.view {
-  background: #dcfce7;
-  color: var(--success-green);
-}
-
-.action-btn.view:hover {
-  background: #bbf7d0;
-}
-
-.action-btn.toggle {
-  background: #fef3c7;
-  color: var(--warning-orange);
-}
-
-.action-btn.toggle:hover {
-  background: #fde68a;
-}
-
-.action-btn.delete {
-  background: #fee2e2;
-  color: var(--danger-red);
-}
-
-.action-btn.delete:hover {
-  background: #fecaca;
-}
-
-/* Modales */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
-}
-
-.modal {
-  background: var(--white);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-lg);
-  max-width: 1100px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--gray-200);
-}
-
-.modal-header h2 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--gray-800);
-  margin: 0;
-}
-
-.close-btn {
-  padding: 0.5rem;
-  border: none;
-  background: none;
-  color: var(--gray-400);
-  cursor: pointer;
-  border-radius: var(--border-radius);
-  transition: all 0.2s ease;
-}
-
-.close-btn:hover {
-  background: var(--gray-100);
-  color: var(--gray-600);
-}
-
-.modal-content {
-  padding: 1.5rem;
-}
-
-/* Formulario */
-.rifa-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.form-group.full-width {
-  grid-column: 1 / -1;
-}
-
-.form-group label {
-  font-weight: 600;
-  color: var(--gray-700);
-  font-size: 0.875rem;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-  padding: 0.75rem;
-  border: 1px solid var(--gray-300);
-  border-radius: var(--border-radius);
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
-}
-
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-  outline: none;
-  border-color: var(--primary-purple);
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
-}
-
-.form-group input:disabled {
-  background: var(--gray-100);
-  color: var(--gray-500);
-  cursor: not-allowed;
-}
-
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  border-top: 1px solid var(--gray-200);
-  padding-top: 1.5rem;
-}
-
-/* Delete Modal */
-.delete-modal {
-  max-width: 400px;
-}
-
-.delete-warning {
-  text-align: center;
-  padding: 1rem 0;
-}
-
-.delete-warning i {
-  font-size: 3rem;
-  color: var(--danger-red);
-  margin-bottom: 1rem;
-}
-
-.delete-warning p {
-  color: var(--gray-700);
-  margin: 0 0 0.5rem 0;
-}
-
-.warning-text {
-  color: var(--danger-red);
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-/* Botones */
-.btn {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: var(--border-radius);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  text-decoration: none;
-  font-size: 0.875rem;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-primary {
-  background: var(--primary-purple);
-  color: var(--white);
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: #7c3aed;
-}
-
-.btn-outline {
-  background: transparent;
-  color: var(--gray-600);
-  border: 1px solid var(--gray-300);
-}
-
-.btn-outline:hover:not(:disabled) {
-  background: var(--gray-50);
-  border-color: var(--gray-400);
-}
-
-.btn-danger {
-  background: var(--danger-red);
-  color: var(--white);
-}
-
-.btn-danger:hover:not(:disabled) {
-  background: #dc2626;
-}
-
-.btn-ghost {
-  background: transparent;
-  color: var(--gray-600);
-}
-
-.btn-ghost:hover:not(:disabled) {
-  background: var(--gray-100);
-}
-
-.btn-lg {
-  padding: 1rem 2rem;
-  font-size: 1rem;
-}
-
-.btn-sm {
-  padding: 0.5rem 1rem;
-  font-size: 0.75rem;
-}
-
-/* Premios y Niveles Sections */
-.premios-section {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--gray-200);
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.section-header h3 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--gray-800);
-  margin: 0;
-}
-
-.premio-card {
-  background: var(--gray-50);
-  border: 1px solid var(--gray-200);
-  border-radius: var(--border-radius-lg);
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.premio-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.premio-header h4 {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--primary-purple);
-  margin: 0;
-}
-
-.btn-remove {
-  padding: 0.5rem;
-  border: none;
-  background: var(--danger-red);
-  color: var(--white);
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-remove:hover {
-  background: #dc2626;
-}
-
-.premio-fields {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.niveles-section {
-  background: var(--white);
-  border: 1px solid var(--gray-200);
-  border-radius: var(--border-radius);
-  padding: 1rem;
-}
-
-.niveles-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--gray-100);
-}
-
-.niveles-header h5 {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--gray-700);
-  margin: 0;
-}
-
-.nivel-card {
-  background: var(--gray-50);
-  border: 1px solid var(--gray-200);
-  border-radius: var(--border-radius);
-  padding: 1rem;
-  margin-bottom: 1rem;
-}
-
-.nivel-card:last-child {
-  margin-bottom: 0;
-}
-
-.nivel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-}
-
-.nivel-header span {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--gray-600);
-  text-transform: uppercase;
-}
-
-.btn-remove-small {
-  padding: 0.25rem;
-  border: none;
-  background: var(--danger-red);
-  color: var(--white);
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  font-size: 0.75rem;
-}
-
-.btn-remove-small:hover {
-  background: #dc2626;
-}
-
-.nivel-fields {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-}
-
-.nivel-fields .form-group {
-  margin-bottom: 0;
-}
-
-.nivel-fields .form-group.full-width {
-  grid-column: 1 / -1;
-}
-
-.nivel-fields label {
-  font-size: 0.75rem;
-  margin-bottom: 0.25rem;
-}
-
-.nivel-fields input,
-.nivel-fields textarea {
-  padding: 0.5rem;
-  font-size: 0.75rem;
-}
-
-.nivel-fields textarea {
-  resize: vertical;
-  min-height: 60px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .admin-hero .container {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .premio-fields {
-    grid-template-columns: 1fr;
-  }
-
-  .nivel-fields {
-    grid-template-columns: 1fr;
-  }
-
-  .hero-actions {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .filters-row {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .filter-group {
-    flex-direction: column;
-  }
-
-  .quick-stats {
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 1rem;
-  }
-
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .form-actions {
-    flex-direction: column;
-  }
-
-  .rifas-table {
-    font-size: 0.75rem;
-  }
-
-  .rifas-table th,
-  .rifas-table td {
-    padding: 0.5rem;
-  }
-
-  .rifa-thumb {
-    width: 40px;
-    height: 40px;
-  }
-
-  .actions-cell {
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .container {
-    padding: 0 0.5rem;
-  }
-
-  .hero-content h1 {
-    font-size: 1.5rem;
-  }
-
-  .hero-content p {
-    font-size: 1rem;
-  }
-
-  .modal {
-    margin: 0.5rem;
-    max-width: calc(100vw - 1rem);
-  }
+  color: var(--admin-text-primary);
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <footer class="admin-footer">
-    <div class="container">
+    <div class="admin-container">
       <div class="footer-content">
         <div class="footer-left">
           <div class="footer-logo">
@@ -77,114 +77,5 @@ export default {
 </script>
 
 <style scoped>
-.admin-footer {
-  background: var(--gray-800);
-  color: var(--gray-300);
-  padding: 2rem 0;
-  margin-top: auto;
-}
-
-.footer-content {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 2rem;
-  align-items: center;
-}
-
-.footer-left {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.footer-logo {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 700;
-  color: white;
-}
-
-.footer-logo i {
-  color: var(--accent-yellow);
-  font-size: 1.25rem;
-}
-
-.footer-text {
-  font-size: 0.875rem;
-  color: var(--gray-400);
-}
-
-.footer-center {
-  display: flex;
-  justify-content: center;
-}
-
-.footer-stats {
-  display: flex;
-  gap: 2rem;
-}
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.stat-label {
-  font-size: 0.75rem;
-  color: var(--gray-400);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.stat-value {
-  font-weight: 600;
-  color: white;
-  font-size: 0.875rem;
-}
-
-.footer-right {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.footer-links {
-  display: flex;
-  gap: 1.5rem;
-}
-
-.footer-link {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--gray-400);
-  text-decoration: none;
-  font-size: 0.875rem;
-  transition: color 0.3s ease;
-}
-
-.footer-link:hover {
-  color: white;
-  text-decoration: none;
-}
-
-@media (max-width: 768px) {
-  .footer-content {
-    grid-template-columns: 1fr;
-    text-align: center;
-    gap: 1.5rem;
-  }
-
-  .footer-stats {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .footer-links {
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-}
+/* Usar clases del admin.css global */
 </style>

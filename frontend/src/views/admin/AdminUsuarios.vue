@@ -2,201 +2,288 @@
   <div class="admin-usuarios">
     <AdminHeader />
     
-    <!-- Hero Section -->
-    <section class="admin-hero">
-      <div class="container">
-        <div class="hero-content">
-          <h1 class="hero-title">
-            <i class="fas fa-users"></i>
-            Gestión de Usuarios
-          </h1>
-          <p class="hero-subtitle">
-            Administra todos los usuarios del sistema
-          </p>
-        </div>
-        
-        <div class="hero-actions">
-          <button @click="showCreateUserModal = true" class="btn btn-primary btn-lg">
-            <i class="fas fa-plus"></i>
-            Crear Usuario
-          </button>
-          <button @click="exportUsers" class="btn btn-outline btn-lg">
-            <i class="fas fa-download"></i>
-            Exportar Usuarios
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Stats Cards -->
-    <section class="stats-section">
-      <div class="container">
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-icon users">
+    <main class="admin-main">
+      <div class="admin-container">
+        <!-- Page Header -->
+        <div class="admin-page-header">
+          <div class="page-title-section">
+            <h1 class="admin-page-title">
               <i class="fas fa-users"></i>
-            </div>
-            <div class="stat-content">
-              <h3 class="stat-number">{{ totalUsuarios }}</h3>
-              <p class="stat-label">Total Usuarios</p>
-              <span class="stat-change positive">
-                <i class="fas fa-arrow-up"></i>
-                +12 este mes
-              </span>
-            </div>
+              Gestión de Usuarios
+            </h1>
+            <p class="admin-page-subtitle">
+              Administra todos los usuarios del sistema
+            </p>
           </div>
           
-          <div class="stat-card">
-            <div class="stat-icon active">
-              <i class="fas fa-user-check"></i>
+          <div class="page-actions">
+            <button 
+              @click="showCreateUserModal = true" 
+              class="admin-btn primary"
+            >
+              <i class="fas fa-plus"></i>
+              Crear Usuario
+            </button>
+            <button 
+              @click="exportUsers" 
+              class="admin-btn secondary"
+            >
+              <i class="fas fa-download"></i>
+              Exportar
+            </button>
+          </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="admin-stats-grid">
+          <div class="admin-stat-card primary">
+            <div class="stat-header">
+              <div class="stat-icon">
+                <i class="fas fa-users"></i>
+              </div>
+              <div class="stat-trend positive">
+                <i class="fas fa-arrow-up"></i>
+                +12
+              </div>
             </div>
             <div class="stat-content">
-              <h3 class="stat-number">{{ usuariosActivos }}</h3>
-              <p class="stat-label">Usuarios Activos</p>
-              <span class="stat-change positive">
-                <i class="fas fa-arrow-up"></i>
-                +8 esta semana
-              </span>
+              <div class="stat-value">{{ totalUsuarios }}</div>
+              <div class="stat-label">Total Usuarios</div>
+            </div>
+            <div class="stat-footer">
+              <span class="stat-period">Este mes</span>
             </div>
           </div>
-          
-          <div class="stat-card">
-            <div class="stat-icon purchases">
-              <i class="fas fa-shopping-cart"></i>
+
+          <div class="admin-stat-card success">
+            <div class="stat-header">
+              <div class="stat-icon">
+                <i class="fas fa-user-check"></i>
+              </div>
+              <div class="stat-trend positive">
+                <i class="fas fa-arrow-up"></i>
+                +8
+              </div>
             </div>
             <div class="stat-content">
-              <h3 class="stat-number">{{ usuariosConCompras }}</h3>
-              <p class="stat-label">Con Compras</p>
-              <span class="stat-change positive">
-                <i class="fas fa-arrow-up"></i>
-                85% conversión
-              </span>
+              <div class="stat-value">{{ usuariosActivos }}</div>
+              <div class="stat-label">Usuarios Activos</div>
+            </div>
+            <div class="stat-footer">
+              <span class="stat-period">Última semana</span>
             </div>
           </div>
-          
-          <div class="stat-card">
-            <div class="stat-icon revenue">
-              <i class="fas fa-dollar-sign"></i>
+
+          <div class="admin-stat-card info">
+            <div class="stat-header">
+              <div class="stat-icon">
+                <i class="fas fa-user-plus"></i>
+              </div>
+              <div class="stat-trend positive">
+                <i class="fas fa-arrow-up"></i>
+                +5
+              </div>
             </div>
             <div class="stat-content">
-              <h3 class="stat-number">S/. {{ ingresosPorUsuario }}</h3>
-              <p class="stat-label">Promedio por Usuario</p>
-              <span class="stat-change positive">
-                <i class="fas fa-arrow-up"></i>
-                +15% vs mes anterior
-              </span>
+              <div class="stat-value">{{ nuevosUsuarios }}</div>
+              <div class="stat-label">Nuevos Hoy</div>
+            </div>
+            <div class="stat-footer">
+              <span class="stat-period">Últimas 24h</span>
+            </div>
+          </div>
+
+          <div class="admin-stat-card warning">
+            <div class="stat-header">
+              <div class="stat-icon">
+                <i class="fas fa-user-times"></i>
+              </div>
+              <div class="stat-trend negative">
+                <i class="fas fa-arrow-down"></i>
+                -2
+              </div>
+            </div>
+            <div class="stat-content">
+              <div class="stat-value">{{ usuariosInactivos }}</div>
+              <div class="stat-label">Usuarios Inactivos</div>
+            </div>
+            <div class="stat-footer">
+              <span class="stat-period">Esta semana</span>
             </div>
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- Filters -->
-    <section class="filters-section">
-      <div class="container">
-        <div class="filters-card">
-          <div class="filters-row">
-            <div class="search-box">
-              <i class="fas fa-search"></i>
-              <input
-                v-model="searchQuery"
-                type="text"
-                placeholder="Buscar usuarios por nombre, email..."
-                class="search-input"
-              />
-            </div>
-            
+        <!-- Filters and Search -->
+        <div class="admin-section">
+          <div class="admin-filters">
             <div class="filter-group">
-              <select v-model="statusFilter" class="filter-select">
+              <div class="admin-search">
+                <div class="admin-input-group">
+                  <i class="fas fa-search input-icon"></i>
+                  <input
+                    v-model="searchQuery"
+                    type="text"
+                    class="admin-input"
+                    placeholder="Buscar usuarios..."
+                    @input="handleSearch"
+                  />
+                </div>
+              </div>
+              
+              <select v-model="filterStatus" class="admin-select" @change="applyFilters">
                 <option value="">Todos los estados</option>
                 <option value="activo">Activos</option>
                 <option value="inactivo">Inactivos</option>
-                <option value="suspendido">Suspendidos</option>
+                <option value="bloqueado">Bloqueados</option>
               </select>
               
-              <select v-model="sortBy" class="filter-select">
-                <option value="fecha">Ordenar por fecha</option>
-                <option value="nombre">Ordenar por nombre</option>
-                <option value="compras">Por compras</option>
-                <option value="gasto">Por gasto total</option>
+              <select v-model="filterRole" class="admin-select" @change="applyFilters">
+                <option value="">Todos los roles</option>
+                <option value="user">Usuario</option>
+                <option value="admin">Administrador</option>
               </select>
+              
+              <button @click="clearFilters" class="admin-btn secondary sm">
+                <i class="fas fa-times"></i>
+                Limpiar
+              </button>
+            </div>
+            
+            <div class="results-info">
+              <span class="results-count">
+                {{ filteredUsuarios.length }} usuarios encontrados
+              </span>
             </div>
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- Users Table -->
-    <section class="users-table-section">
-      <div class="container">
-        <div class="table-card">
-          <div class="table-header">
-            <h3>Lista de Usuarios</h3>
-            <div class="table-actions">
-              <button class="btn btn-ghost btn-sm">
-                <i class="fas fa-filter"></i>
-                Filtros Avanzados
+        <!-- Users Table -->
+        <div class="admin-section">
+          <div class="admin-table-container">
+            <div v-if="loading" class="admin-loading">
+              <div class="loading-spinner"></div>
+              <span>Cargando usuarios...</span>
+            </div>
+
+            <div v-else-if="filteredUsuarios.length === 0" class="admin-empty-state">
+              <i class="fas fa-users"></i>
+              <h3>No hay usuarios</h3>
+              <p>No se encontraron usuarios con los criterios especificados</p>
+              <button @click="clearFilters" class="admin-btn primary">
+                <i class="fas fa-refresh"></i>
+                Limpiar filtros
               </button>
             </div>
-          </div>
-          
-          <div class="table-container">
-            <table class="users-table">
+
+            <table v-else class="admin-table">
               <thead>
                 <tr>
-                  <th>Usuario</th>
-                  <th>Estado</th>
-                  <th>Registro</th>
-                  <th>Compras</th>
-                  <th>Total Gastado</th>
-                  <th>Último Acceso</th>
+                  <th class="sortable" @click="sortBy('name')">
+                    <span>Usuario</span>
+                    <i class="fas fa-sort"></i>
+                  </th>
+                  <th class="sortable" @click="sortBy('email')">
+                    <span>Email</span>
+                    <i class="fas fa-sort"></i>
+                  </th>
+                  <th class="sortable" @click="sortBy('role')">
+                    <span>Rol</span>
+                    <i class="fas fa-sort"></i>
+                  </th>
+                  <th class="sortable" @click="sortBy('status')">
+                    <span>Estado</span>
+                    <i class="fas fa-sort"></i>
+                  </th>
+                  <th class="sortable" @click="sortBy('created_at')">
+                    <span>Registro</span>
+                    <i class="fas fa-sort"></i>
+                  </th>
+                  <th class="sortable" @click="sortBy('last_login')">
+                    <span>Último Acceso</span>
+                    <i class="fas fa-sort"></i>
+                  </th>
                   <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="usuario in filteredUsuarios" :key="usuario.id" class="table-row">
+                <tr v-for="usuario in paginatedUsuarios" :key="usuario.id" class="table-row">
                   <td>
                     <div class="user-info">
                       <div class="user-avatar">
-                        <i class="fas fa-user"></i>
+                        <img 
+                          v-if="usuario.avatar" 
+                          :src="usuario.avatar" 
+                          :alt="usuario.name"
+                          @error="handleImageError"
+                        />
+                        <i v-else class="fas fa-user"></i>
                       </div>
-                      <div>
-                        <h4 class="user-name">{{ usuario.nombre }}</h4>
-                        <p class="user-email">{{ usuario.email }}</p>
-                        <p class="user-phone">{{ usuario.telefono }}</p>
+                      <div class="user-details">
+                        <div class="user-name">{{ usuario.name }}</div>
+                        <div class="user-id">ID: {{ usuario.id }}</div>
                       </div>
                     </div>
                   </td>
                   <td>
-                    <span class="status-badge" :class="usuario.estado">
-                      {{ usuario.estado }}
+                    <div class="email-cell">
+                      <span class="email">{{ usuario.email }}</span>
+                      <span v-if="usuario.email_verified_at" class="verified-badge">
+                        <i class="fas fa-check-circle"></i>
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="role-badge" :class="usuario.role">
+                      {{ formatRole(usuario.role) }}
                     </span>
                   </td>
-                  <td>{{ formatDate(usuario.fechaRegistro) }}</td>
                   <td>
-                    <div class="purchases-cell">
-                      <span class="purchases-count">{{ usuario.totalCompras }}</span>
-                      <span class="purchases-label">compras</span>
+                    <span class="status-badge" :class="usuario.status">
+                      {{ formatStatus(usuario.status) }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="date-cell">
+                      <div class="date">{{ formatDate(usuario.created_at) }}</div>
+                      <div class="time">{{ formatTime(usuario.created_at) }}</div>
                     </div>
                   </td>
-                  <td class="amount">S/. {{ usuario.totalGastado.toLocaleString() }}</td>
                   <td>
-                    <span class="last-access">{{ formatRelativeTime(usuario.ultimoAcceso) }}</span>
+                    <div class="date-cell">
+                      <div class="date">{{ formatDate(usuario.last_login) }}</div>
+                      <div class="time">{{ formatRelativeTime(usuario.last_login) }}</div>
+                    </div>
                   </td>
                   <td>
-                    <div class="actions-cell">
-                      <button @click="viewUser(usuario)" class="action-btn view">
+                    <div class="table-actions">
+                      <button 
+                        @click="viewUser(usuario)"
+                        class="action-btn view"
+                        title="Ver detalles"
+                      >
                         <i class="fas fa-eye"></i>
                       </button>
-                      <button @click="editUser(usuario)" class="action-btn edit">
+                      <button 
+                        @click="editUser(usuario)"
+                        class="action-btn edit"
+                        title="Editar usuario"
+                      >
                         <i class="fas fa-edit"></i>
                       </button>
                       <button 
-                        @click="toggleUserStatus(usuario)" 
-                        class="action-btn"
-                        :class="usuario.estado === 'activo' ? 'suspend' : 'activate'"
+                        @click="toggleUserStatus(usuario)"
+                        class="action-btn" 
+                        :class="usuario.status === 'activo' ? 'disable' : 'enable'"
+                        :title="usuario.status === 'activo' ? 'Desactivar' : 'Activar'"
                       >
-                        <i :class="usuario.estado === 'activo' ? 'fas fa-ban' : 'fas fa-check'"></i>
+                        <i :class="usuario.status === 'activo' ? 'fas fa-ban' : 'fas fa-check'"></i>
+                      </button>
+                      <button 
+                        @click="deleteUser(usuario)"
+                        class="action-btn delete"
+                        title="Eliminar usuario"
+                      >
+                        <i class="fas fa-trash"></i>
                       </button>
                     </div>
                   </td>
@@ -204,108 +291,285 @@
               </tbody>
             </table>
           </div>
-          
-          <div class="table-pagination">
-            <div class="pagination-info">
-              Mostrando {{ filteredUsuarios.length }} de {{ usuarios.length }} usuarios
-            </div>
-            <div class="pagination-controls">
-              <button class="pagination-btn" :disabled="currentPage === 1">
-                <i class="fas fa-chevron-left"></i>
+
+          <!-- Pagination -->
+          <div v-if="totalPages > 1" class="admin-pagination">
+            <button 
+              @click="previousPage"
+              :disabled="currentPage === 1"
+              class="pagination-btn"
+            >
+              <i class="fas fa-chevron-left"></i>
+              Anterior
+            </button>
+            
+            <div class="pagination-numbers">
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                @click="goToPage(page)"
+                class="pagination-number"
+                :class="{ active: page === currentPage }"
+              >
+                {{ page }}
               </button>
-              <span class="page-number">{{ currentPage }}</span>
-              <button class="pagination-btn" :disabled="currentPage === totalPages">
-                <i class="fas fa-chevron-right"></i>
-              </button>
             </div>
+            
+            <button 
+              @click="nextPage"
+              :disabled="currentPage === totalPages"
+              class="pagination-btn"
+            >
+              Siguiente
+              <i class="fas fa-chevron-right"></i>
+            </button>
           </div>
         </div>
       </div>
-    </section>
+    </main>
 
-    <!-- Modal Crear Usuario -->
-    <div v-if="showCreateUserModal" class="modal-overlay" @click="closeCreateUserModal">
-      <div class="modal-container" @click.stop>
-        <div class="modal-header">
-          <h3>Crear Nuevo Usuario</h3>
-          <button @click="closeCreateUserModal" class="modal-close">
+    <!-- Create/Edit User Modal -->
+    <div v-if="showCreateUserModal || showEditUserModal" class="admin-modal-overlay" @click="closeModals">
+      <div class="admin-modal" @click.stop>
+        <div class="admin-modal-header">
+          <h3 class="admin-modal-title">
+            <i class="fas fa-user-plus" v-if="showCreateUserModal"></i>
+            <i class="fas fa-user-edit" v-if="showEditUserModal"></i>
+            {{ showCreateUserModal ? 'Crear Nuevo Usuario' : 'Editar Usuario' }}
+          </h3>
+          <button @click="closeModals" class="admin-modal-close">
             <i class="fas fa-times"></i>
           </button>
         </div>
-        <form @submit.prevent="createUser" class="modal-form">
-          <div class="form-row">
-            <div class="form-group">
-              <label>Nombre Completo</label>
-              <input
-                v-model="newUser.nombre"
-                type="text"
-                placeholder="Ingrese el nombre completo"
-                required
-              />
+        
+        <div class="admin-modal-body">
+          <form @submit.prevent="submitUserForm" class="admin-form">
+            <div class="admin-form-row">
+              <div class="admin-form-group">
+                <label class="admin-label">Nombre completo</label>
+                <input
+                  v-model="userForm.name"
+                  type="text"
+                  class="admin-input"
+                  placeholder="Ingresa el nombre completo"
+                  required
+                />
+              </div>
+              
+              <div class="admin-form-group">
+                <label class="admin-label">Email</label>
+                <input
+                  v-model="userForm.email"
+                  type="email"
+                  class="admin-input"
+                  placeholder="usuario@email.com"
+                  required
+                />
+              </div>
             </div>
-            <div class="form-group">
-              <label>Email</label>
-              <input
-                v-model="newUser.email"
-                type="email"
-                placeholder="usuario@email.com"
-                required
-              />
+
+            <div class="admin-form-row" v-if="showCreateUserModal">
+              <div class="admin-form-group">
+                <label class="admin-label">Contraseña</label>
+                <div class="admin-input-group">
+                  <input
+                    v-model="userForm.password"
+                    :type="showPassword ? 'text' : 'password'"
+                    class="admin-input"
+                    placeholder="••••••••"
+                    required
+                  />
+                  <button
+                    type="button"
+                    @click="showPassword = !showPassword"
+                    class="password-toggle-btn"
+                  >
+                    <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                  </button>
+                </div>
+              </div>
+              
+              <div class="admin-form-group">
+                <label class="admin-label">Confirmar contraseña</label>
+                <input
+                  v-model="userForm.password_confirmation"
+                  type="password"
+                  class="admin-input"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
             </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Teléfono</label>
+
+            <div class="admin-form-row">
+              <div class="admin-form-group">
+                <label class="admin-label">Rol</label>
+                <select v-model="userForm.role" class="admin-select" required>
+                  <option value="">Seleccionar rol</option>
+                  <option value="user">Usuario</option>
+                  <option value="admin">Administrador</option>
+                </select>
+              </div>
+              
+              <div class="admin-form-group">
+                <label class="admin-label">Estado</label>
+                <select v-model="userForm.status" class="admin-select" required>
+                  <option value="">Seleccionar estado</option>
+                  <option value="activo">Activo</option>
+                  <option value="inactivo">Inactivo</option>
+                  <option value="bloqueado">Bloqueado</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="admin-form-group">
+              <label class="admin-label">Teléfono (opcional)</label>
               <input
-                v-model="newUser.telefono"
+                v-model="userForm.phone"
                 type="tel"
-                placeholder="+51 987 654 321"
-                required
+                class="admin-input"
+                placeholder="+51 999 999 999"
               />
             </div>
-            <div class="form-group">
-              <label>Rol</label>
-              <select v-model="newUser.rol" required>
-                <option value="">Seleccionar rol</option>
-                <option value="usuario">Usuario</option>
-                <option value="admin">Administrador</option>
-              </select>
+
+            <div class="admin-form-actions">
+              <button type="button" @click="closeModals" class="admin-btn secondary">
+                Cancelar
+              </button>
+              <button type="submit" :disabled="submitting" class="admin-btn primary">
+                <i v-if="submitting" class="fas fa-spinner fa-spin"></i>
+                <i v-else class="fas fa-save"></i>
+                {{ submitting ? 'Guardando...' : 'Guardar Usuario' }}
+              </button>
             </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Contraseña Temporal</label>
-              <input
-                v-model="newUser.password"
-                type="password"
-                placeholder="Contraseña temporal"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label>Estado</label>
-              <select v-model="newUser.estado" required>
-                <option value="activo">Activo</option>
-                <option value="inactivo">Inactivo</option>
-              </select>
-            </div>
-          </div>
-          <div class="modal-actions">
-            <button type="button" @click="closeCreateUserModal" class="btn btn-ghost">
-              Cancelar
-            </button>
-            <button type="submit" class="btn btn-primary">
-              <i class="fas fa-user-plus"></i>
-              Crear Usuario
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
 
+    <!-- User Details Modal -->
+    <div v-if="showUserDetailsModal" class="admin-modal-overlay" @click="closeModals">
+      <div class="admin-modal large" @click.stop>
+        <div class="admin-modal-header">
+          <h3 class="admin-modal-title">
+            <i class="fas fa-user"></i>
+            Detalles del Usuario
+          </h3>
+          <button @click="closeModals" class="admin-modal-close">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        
+        <div class="admin-modal-body">
+          <div v-if="selectedUser" class="user-details">
+            <div class="user-header">
+              <div class="user-avatar large">
+                <img 
+                  v-if="selectedUser.avatar" 
+                  :src="selectedUser.avatar" 
+                  :alt="selectedUser.name"
+                />
+                <i v-else class="fas fa-user"></i>
+              </div>
+              <div class="user-info">
+                <h3>{{ selectedUser.name }}</h3>
+                <p>{{ selectedUser.email }}</p>
+                <div class="user-badges">
+                  <span class="role-badge" :class="selectedUser.role">
+                    {{ formatRole(selectedUser.role) }}
+                  </span>
+                  <span class="status-badge" :class="selectedUser.status">
+                    {{ formatStatus(selectedUser.status) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="user-stats">
+              <div class="stat-item">
+                <div class="stat-icon">
+                  <i class="fas fa-ticket-alt"></i>
+                </div>
+                <div class="stat-value">{{ selectedUser.total_purchases || 0 }}</div>
+                <div class="stat-label">Compras</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-icon">
+                  <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="stat-value">${{ selectedUser.total_spent || 0 }}</div>
+                <div class="stat-label">Gastado</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-icon">
+                  <i class="fas fa-trophy"></i>
+                </div>
+                <div class="stat-value">{{ selectedUser.total_wins || 0 }}</div>
+                <div class="stat-label">Premios</div>
+              </div>
+            </div>
+            
+            <div class="user-details-grid">
+              <div class="detail-group">
+                <h4>Información Personal</h4>
+                <div class="detail-item">
+                  <span class="detail-label">ID:</span>
+                  <span class="detail-value">{{ selectedUser.id }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Teléfono:</span>
+                  <span class="detail-value">{{ selectedUser.phone || 'No especificado' }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Registro:</span>
+                  <span class="detail-value">{{ formatDate(selectedUser.created_at) }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Último acceso:</span>
+                  <span class="detail-value">{{ formatDate(selectedUser.last_login) }}</span>
+                </div>
+              </div>
+              
+              <div class="detail-group">
+                <h4>Actividad Reciente</h4>
+                <div class="activity-list">
+                  <div class="activity-item">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Compró 3 tickets de "iPhone 15"</span>
+                    <small>Hace 2 horas</small>
+                  </div>
+                  <div class="activity-item">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Inició sesión</span>
+                    <small>Hace 5 horas</small>
+                  </div>
+                  <div class="activity-item">
+                    <i class="fas fa-user-edit"></i>
+                    <span>Actualizó su perfil</span>
+                    <small>Hace 1 día</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="admin-modal-footer">
+          <button @click="editUser(selectedUser)" class="admin-btn primary">
+            <i class="fas fa-edit"></i>
+            Editar Usuario
+          </button>
+          <button @click="closeModals" class="admin-btn secondary">
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+    
     <AdminFooter />
   </div>
 </template>
+             
 
 <script>
 import { ref, computed, onMounted } from 'vue'
@@ -319,812 +583,782 @@ export default {
     AdminFooter
   },
   setup() {
+    const loading = ref(false)
     const searchQuery = ref('')
-    const statusFilter = ref('')
-    const sortBy = ref('fecha')
+    const filterStatus = ref('')
+    const filterRole = ref('')
+    const sortField = ref('created_at')
+    const sortDirection = ref('desc')
     const currentPage = ref(1)
-    const showCreateUserModal = ref(false)
+    const itemsPerPage = 10
 
-    const newUser = ref({
-      nombre: '',
+    // Modals
+    const showCreateUserModal = ref(false)
+    const showEditUserModal = ref(false)
+    const showUserDetailsModal = ref(false)
+    const selectedUser = ref(null)
+    const submitting = ref(false)
+    const showPassword = ref(false)
+
+    // User form
+    const userForm = ref({
+      name: '',
       email: '',
-      telefono: '',
-      rol: '',
-      estado: 'activo',
-      password: ''
+      password: '',
+      password_confirmation: '',
+      role: '',
+      status: '',
+      phone: ''
     })
 
+    // Mock data
     const usuarios = ref([
       {
-        id: 'USR001',
-        nombre: 'Carlos Mendoza',
+        id: 1,
+        name: 'Carlos Mendoza',
         email: 'carlos.mendoza@email.com',
-        telefono: '+51 987 654 321',
-        rol: 'usuario',
-        estado: 'activo',
-        fechaRegistro: '2024-01-15',
-        totalCompras: 12,
-        totalGastado: 180,
-        ultimoAcceso: '2024-02-10T10:30:00Z'
+        role: 'user',
+        status: 'activo',
+        phone: '+51 987 654 321',
+        created_at: '2024-01-15T10:30:00Z',
+        last_login: '2024-02-10T10:30:00Z',
+        email_verified_at: '2024-01-15T10:35:00Z',
+        avatar: null,
+        total_purchases: 12,
+        total_spent: 180,
+        total_wins: 2
       },
       {
-        id: 'USR002',
-        nombre: 'María González',
+        id: 2,
+        name: 'María González',
         email: 'maria.gonzalez@email.com',
-        telefono: '+51 987 654 322',
-        rol: 'usuario',
-        estado: 'activo',
-        fechaRegistro: '2024-01-20',
-        totalCompras: 8,
-        totalGastado: 120,
-        ultimoAcceso: '2024-02-09T15:45:00Z'
+        role: 'user',
+        status: 'activo',
+        phone: '+51 987 654 322',
+        created_at: '2024-01-20T09:15:00Z',
+        last_login: '2024-02-09T15:45:00Z',
+        email_verified_at: '2024-01-20T09:20:00Z',
+        avatar: null,
+        total_purchases: 8,
+        total_spent: 120,
+        total_wins: 1
       },
       {
-        id: 'USR003',
-        nombre: 'Luis Ramírez',
+        id: 3,
+        name: 'Luis Ramírez',
         email: 'luis.ramirez@email.com',
-        telefono: '+51 987 654 323',
-        rol: 'usuario',
-        estado: 'inactivo',
-        fechaRegistro: '2024-01-10',
-        totalCompras: 5,
-        totalGastado: 75,
-        ultimoAcceso: '2024-01-25T09:15:00Z'
+        role: 'user',
+        status: 'inactivo',
+        phone: '+51 987 654 323',
+        created_at: '2024-01-10T08:00:00Z',
+        last_login: '2024-01-25T09:15:00Z',
+        email_verified_at: null,
+        avatar: null,
+        total_purchases: 5,
+        total_spent: 75,
+        total_wins: 0
       },
       {
-        id: 'USR004',
-        nombre: 'Ana Torres',
+        id: 4,
+        name: 'Ana Torres',
         email: 'ana.torres@email.com',
-        telefono: '+51 987 654 324',
-        rol: 'admin',
-        estado: 'activo',
-        fechaRegistro: '2024-02-01',
-        totalCompras: 15,
-        totalGastado: 225,
-        ultimoAcceso: '2024-02-10T14:20:00Z'
+        role: 'admin',
+        status: 'activo',
+        phone: '+51 987 654 324',
+        created_at: '2024-02-01T11:00:00Z',
+        last_login: '2024-02-10T16:30:00Z',
+        email_verified_at: '2024-02-01T11:05:00Z',
+        avatar: null,
+        total_purchases: 0,
+        total_spent: 0,
+        total_wins: 0
       },
       {
-        id: 'USR005',
-        nombre: 'José Morales',
-        email: 'jose.morales@email.com',
-        telefono: '+51 987 654 325',
-        rol: 'usuario',
-        estado: 'suspendido',
-        fechaRegistro: '2024-01-05',
-        totalCompras: 3,
-        totalGastado: 45,
-        ultimoAcceso: '2024-01-30T11:00:00Z'
+        id: 5,
+        name: 'Pedro Silva',
+        email: 'pedro.silva@email.com',
+        role: 'user',
+        status: 'bloqueado',
+        phone: '+51 987 654 325',
+        created_at: '2024-01-05T14:20:00Z',
+        last_login: '2024-01-15T12:00:00Z',
+        email_verified_at: '2024-01-05T14:25:00Z',
+        avatar: null,
+        total_purchases: 3,
+        total_spent: 45,
+        total_wins: 0
       }
     ])
+
+    // Computed properties
+    const totalUsuarios = computed(() => usuarios.value.length)
+    
+    const usuariosActivos = computed(() => 
+      usuarios.value.filter(u => u.status === 'activo').length
+    )
+    
+    const nuevosUsuarios = computed(() => {
+      const today = new Date()
+      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+      return usuarios.value.filter(u => new Date(u.created_at) >= todayStart).length
+    })
+    
+    const usuariosInactivos = computed(() => 
+      usuarios.value.filter(u => u.status === 'inactivo' || u.status === 'bloqueado').length
+    )
 
     const filteredUsuarios = computed(() => {
       let filtered = usuarios.value
 
-      // Filtro por búsqueda
+      // Search filter
       if (searchQuery.value) {
         const query = searchQuery.value.toLowerCase()
-        filtered = filtered.filter(usuario =>
-          usuario.nombre.toLowerCase().includes(query) ||
-          usuario.email.toLowerCase().includes(query) ||
-          usuario.telefono.includes(query)
+        filtered = filtered.filter(user => 
+          user.name.toLowerCase().includes(query) ||
+          user.email.toLowerCase().includes(query)
         )
       }
 
-      // Filtro por estado
-      if (statusFilter.value) {
-        filtered = filtered.filter(usuario => usuario.estado === statusFilter.value)
+      // Status filter
+      if (filterStatus.value) {
+        filtered = filtered.filter(user => user.status === filterStatus.value)
       }
+
+      // Role filter
+      if (filterRole.value) {
+        filtered = filtered.filter(user => user.role === filterRole.value)
+      }
+
+      // Sort
+      filtered.sort((a, b) => {
+        let aValue = a[sortField.value]
+        let bValue = b[sortField.value]
+        
+        if (typeof aValue === 'string') {
+          aValue = aValue.toLowerCase()
+          bValue = bValue.toLowerCase()
+        }
+        
+        if (sortDirection.value === 'asc') {
+          return aValue > bValue ? 1 : -1
+        } else {
+          return aValue < bValue ? 1 : -1
+        }
+      })
 
       return filtered
     })
 
-    const totalUsuarios = computed(() => usuarios.value.length)
-    const usuariosActivos = computed(() => usuarios.value.filter(u => u.estado === 'activo').length)
-    const usuariosConCompras = computed(() => usuarios.value.filter(u => u.totalCompras > 0).length)
-    const ingresosPorUsuario = computed(() => {
-      const total = usuarios.value.reduce((sum, u) => sum + u.totalGastado, 0)
-      return Math.round(total / usuarios.value.length)
+    const totalPages = computed(() => 
+      Math.ceil(filteredUsuarios.value.length / itemsPerPage)
+    )
+
+    const paginatedUsuarios = computed(() => {
+      const start = (currentPage.value - 1) * itemsPerPage
+      const end = start + itemsPerPage
+      return filteredUsuarios.value.slice(start, end)
     })
 
-    const totalPages = computed(() => Math.ceil(filteredUsuarios.value.length / 10))
+    const visiblePages = computed(() => {
+      const pages = []
+      const total = totalPages.value
+      const current = currentPage.value
+      
+      if (total <= 7) {
+        for (let i = 1; i <= total; i++) {
+          pages.push(i)
+        }
+      } else {
+        pages.push(1)
+        if (current > 4) pages.push('...')
+        
+        const start = Math.max(2, current - 1)
+        const end = Math.min(total - 1, current + 1)
+        
+        for (let i = start; i <= end; i++) {
+          pages.push(i)
+        }
+        
+        if (current < total - 3) pages.push('...')
+        pages.push(total)
+      }
+      
+      return pages
+    })
+
+    // Methods
+    const handleSearch = () => {
+      currentPage.value = 1
+    }
+
+    const applyFilters = () => {
+      currentPage.value = 1
+    }
+
+    const clearFilters = () => {
+      searchQuery.value = ''
+      filterStatus.value = ''
+      filterRole.value = ''
+      currentPage.value = 1
+    }
+
+    const sortBy = (field) => {
+      if (sortField.value === field) {
+        sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
+      } else {
+        sortField.value = field
+        sortDirection.value = 'asc'
+      }
+    }
+
+    const goToPage = (page) => {
+      if (page !== '...' && page >= 1 && page <= totalPages.value) {
+        currentPage.value = page
+      }
+    }
+
+    const previousPage = () => {
+      if (currentPage.value > 1) {
+        currentPage.value--
+      }
+    }
+
+    const nextPage = () => {
+      if (currentPage.value < totalPages.value) {
+        currentPage.value++
+      }
+    }
+
+    const viewUser = (user) => {
+      selectedUser.value = user
+      showUserDetailsModal.value = true
+    }
+
+    const editUser = (user) => {
+      selectedUser.value = user
+      userForm.value = {
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        phone: user.phone || '',
+        password: '',
+        password_confirmation: ''
+      }
+      showEditUserModal.value = true
+    }
+
+    const toggleUserStatus = async (user) => {
+      const newStatus = user.status === 'activo' ? 'inactivo' : 'activo'
+      
+      try {
+        // Simular API call
+        await new Promise(resolve => setTimeout(resolve, 500))
+        user.status = newStatus
+        console.log(`Usuario ${user.name} ${newStatus}`)
+      } catch (error) {
+        console.error('Error al cambiar estado:', error)
+      }
+    }
+
+    const deleteUser = async (user) => {
+      if (confirm(`¿Estás seguro de eliminar al usuario ${user.name}?`)) {
+        try {
+          // Simular API call
+          await new Promise(resolve => setTimeout(resolve, 500))
+          const index = usuarios.value.findIndex(u => u.id === user.id)
+          if (index > -1) {
+            usuarios.value.splice(index, 1)
+          }
+          console.log(`Usuario ${user.name} eliminado`)
+        } catch (error) {
+          console.error('Error al eliminar usuario:', error)
+        }
+      }
+    }
+
+    const submitUserForm = async () => {
+      submitting.value = true
+      
+      try {
+        // Validaciones
+        if (showCreateUserModal.value && userForm.value.password !== userForm.value.password_confirmation) {
+          alert('Las contraseñas no coinciden')
+          return
+        }
+
+        // Simular API call
+        await new Promise(resolve => setTimeout(resolve, 1000))
+
+        if (showCreateUserModal.value) {
+          // Crear nuevo usuario
+          const newUser = {
+            id: usuarios.value.length + 1,
+            name: userForm.value.name,
+            email: userForm.value.email,
+            role: userForm.value.role,
+            status: userForm.value.status,
+            phone: userForm.value.phone,
+            created_at: new Date().toISOString(),
+            last_login: null,
+            email_verified_at: null,
+            avatar: null,
+            total_purchases: 0,
+            total_spent: 0,
+            total_wins: 0
+          }
+          usuarios.value.push(newUser)
+          console.log('Usuario creado:', newUser)
+        } else {
+          // Editar usuario existente
+          Object.assign(selectedUser.value, {
+            name: userForm.value.name,
+            email: userForm.value.email,
+            role: userForm.value.role,
+            status: userForm.value.status,
+            phone: userForm.value.phone
+          })
+          console.log('Usuario actualizado:', selectedUser.value)
+        }
+
+        closeModals()
+      } catch (error) {
+        console.error('Error al guardar usuario:', error)
+      } finally {
+        submitting.value = false
+      }
+    }
+
+    const closeModals = () => {
+      showCreateUserModal.value = false
+      showEditUserModal.value = false
+      showUserDetailsModal.value = false
+      selectedUser.value = null
+      userForm.value = {
+        name: '',
+        email: '',
+        password: '',
+        password_confirmation: '',
+        role: '',
+        status: '',
+        phone: ''
+      }
+      showPassword.value = false
+    }
+
+    const exportUsers = () => {
+      console.log('Exportando usuarios...')
+      // Implementar exportación
+    }
 
     const formatDate = (dateString) => {
-      return new Date(dateString).toLocaleDateString('es-ES', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
+      if (!dateString) return 'N/A'
+      const date = new Date(dateString)
+      return date.toLocaleDateString('es-PE', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      })
+    }
+
+    const formatTime = (dateString) => {
+      if (!dateString) return 'N/A'
+      const date = new Date(dateString)
+      return date.toLocaleTimeString('es-PE', {
+        hour: '2-digit',
+        minute: '2-digit'
       })
     }
 
     const formatRelativeTime = (dateString) => {
+      if (!dateString) return 'Nunca'
       const date = new Date(dateString)
       const now = new Date()
-      const diffMs = now - date
-      const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-      const diffDays = Math.floor(diffHours / 24)
-
-      if (diffDays > 0) {
-        return `Hace ${diffDays} día${diffDays > 1 ? 's' : ''}`
-      } else if (diffHours > 0) {
-        return `Hace ${diffHours} hora${diffHours > 1 ? 's' : ''}`
+      const diffInHours = (now - date) / (1000 * 60 * 60)
+      
+      if (diffInHours < 1) {
+        return 'Hace pocos minutos'
+      } else if (diffInHours < 24) {
+        return `Hace ${Math.floor(diffInHours)} horas`
+      } else if (diffInHours < 168) { // 7 days
+        return `Hace ${Math.floor(diffInHours / 24)} días`
       } else {
-        return 'Hace menos de 1 hora'
+        return formatDate(dateString)
       }
     }
 
-    const viewUser = (usuario) => {
-      console.log('Ver usuario:', usuario)
-    }
-
-    const editUser = (usuario) => {
-      console.log('Editar usuario:', usuario)
-    }
-
-    const toggleUserStatus = (usuario) => {
-      const newStatus = usuario.estado === 'activo' ? 'suspendido' : 'activo'
-      const action = newStatus === 'activo' ? 'activar' : 'suspender'
-      
-      if (confirm(`¿Estás seguro de ${action} al usuario "${usuario.nombre}"?`)) {
-        usuario.estado = newStatus
-        console.log(`Usuario ${action}do:`, usuario)
+    const formatRole = (role) => {
+      const roles = {
+        'user': 'Usuario',
+        'admin': 'Administrador'
       }
+      return roles[role] || role
     }
 
-    const exportUsers = () => {
-      console.log('Exportar usuarios')
-    }
-
-    const createUser = () => {
-      const nextId = `USR${String(usuarios.value.length + 1).padStart(3, '0')}`
-      const currentDate = new Date().toISOString().split('T')[0]
-      
-      const usuario = {
-        id: nextId,
-        nombre: newUser.value.nombre,
-        email: newUser.value.email,
-        telefono: newUser.value.telefono,
-        rol: newUser.value.rol,
-        estado: newUser.value.estado,
-        fechaRegistro: currentDate,
-        totalCompras: 0,
-        totalGastado: 0,
-        ultimoAcceso: new Date().toISOString()
+    const formatStatus = (status) => {
+      const statuses = {
+        'activo': 'Activo',
+        'inactivo': 'Inactivo',
+        'bloqueado': 'Bloqueado'
       }
-      
-      usuarios.value.push(usuario)
-      closeCreateUserModal()
-      
-      alert(`Usuario ${usuario.nombre} creado exitosamente con rol ${usuario.rol}`)
+      return statuses[status] || status
     }
 
-    const closeCreateUserModal = () => {
-      showCreateUserModal.value = false
-      newUser.value = {
-        nombre: '',
-        email: '',
-        telefono: '',
-        rol: '',
-        estado: 'activo',
-        password: ''
-      }
+    const handleImageError = (event) => {
+      event.target.style.display = 'none'
+      event.target.nextElementSibling.style.display = 'flex'
     }
 
     onMounted(() => {
-      console.log('Admin Usuarios cargado')
+      // Cargar datos iniciales
     })
 
     return {
+      loading,
       searchQuery,
-      statusFilter,
-      sortBy,
+      filterStatus,
+      filterRole,
       currentPage,
-      showCreateUserModal,
-      newUser,
-      usuarios,
-      filteredUsuarios,
       totalUsuarios,
       usuariosActivos,
-      usuariosConCompras,
-      ingresosPorUsuario,
+      nuevosUsuarios,
+      usuariosInactivos,
+      filteredUsuarios,
+      paginatedUsuarios,
       totalPages,
-      formatDate,
-      formatRelativeTime,
+      visiblePages,
+      showCreateUserModal,
+      showEditUserModal,
+      showUserDetailsModal,
+      selectedUser,
+      userForm,
+      submitting,
+      showPassword,
+      handleSearch,
+      applyFilters,
+      clearFilters,
+      sortBy,
+      goToPage,
+      previousPage,
+      nextPage,
       viewUser,
       editUser,
       toggleUserStatus,
+      deleteUser,
+      submitUserForm,
+      closeModals,
       exportUsers,
-      createUser,
-      closeCreateUserModal
+      formatDate,
+      formatTime,
+      formatRelativeTime,
+      formatRole,
+      formatStatus,
+      handleImageError
     }
   }
 }
 </script>
 
 <style scoped>
-.admin-usuarios {
-  min-height: 100vh;
-  background: var(--gray-50);
-  display: flex;
-  flex-direction: column;
+/* Usar clases del admin.css global */
+
+.user-details {
+  max-width: 100%;
 }
 
-.admin-hero {
-  background: linear-gradient(135deg, var(--primary-purple), var(--primary-indigo));
-  color: white;
-  padding: 2rem 0;
-}
-
-.hero-content {
-  text-align: center;
-  margin-bottom: 1.5rem;
-}
-
-.hero-title {
-  font-size: 1.75rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
+.user-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-}
-
-.hero-subtitle {
-  font-size: 1rem;
-  opacity: 0.9;
-}
-
-.hero-actions {
-  display: flex;
-  justify-content: center;
-  gap: 0.75rem;
-}
-
-.stats-section {
-  padding: 2rem 0;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--admin-border-light);
 }
 
-.stat-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.user-avatar.large {
+  width: 80px;
+  height: 80px;
+  font-size: 2rem;
+}
+
+.user-badges {
   display: flex;
-  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.user-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
-  transition: transform 0.2s ease;
+  margin-bottom: 2rem;
 }
 
-.stat-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.stat-item {
+  background: var(--admin-bg-light);
+  border: 1px solid var(--admin-border-light);
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
 }
 
-.stat-icon {
-  width: 3rem;
-  height: 3rem;
+.stat-item .stat-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--admin-primary-teal);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 1.25rem;
+  margin: 0 auto 0.5rem;
 }
 
-.stat-icon.users {
-  background: linear-gradient(135deg, var(--primary-purple), var(--primary-indigo));
-}
-
-.stat-icon.active {
-  background: linear-gradient(135deg, var(--success-green), #34d399);
-}
-
-.stat-icon.purchases {
-  background: linear-gradient(135deg, var(--primary-blue), #3b82f6);
-}
-
-.stat-icon.revenue {
-  background: linear-gradient(135deg, var(--accent-orange), #f97316);
-}
-
-.stat-content {
-  flex: 1;
-}
-
-.stat-number {
+.stat-item .stat-value {
   font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--gray-800);
-  margin-bottom: 0.25rem;
+  font-weight: 700;
+  color: var(--admin-text-dark);
 }
 
-.stat-label {
-  color: var(--gray-600);
-  margin-bottom: 0.5rem;
+.stat-item .stat-label {
   font-size: 0.875rem;
+  color: var(--admin-text-muted);
 }
 
-.stat-change {
-  font-size: 0.8rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.stat-change.positive {
-  color: var(--success-green);
-}
-
-.filters-section {
-  padding: 0 0 1.5rem 0;
-}
-
-.filters-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-md);
-}
-
-.filters-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.user-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 2rem;
 }
 
-.search-box {
-  position: relative;
-  flex: 1;
-  max-width: 400px;
+.detail-group h4 {
+  margin: 0 0 1rem 0;
+  color: var(--admin-text-dark);
+  font-weight: 600;
 }
 
-.search-box i {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--gray-400);
-}
-
-.search-input {
-  width: 100%;
-  padding: 0.875rem 1rem 0.875rem 3rem;
-  border: 2px solid var(--gray-200);
-  border-radius: var(--border-radius);
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: var(--primary-purple);
-}
-
-.filter-group {
+.detail-item {
   display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--admin-border-light);
+}
+
+.detail-label {
+  font-weight: 500;
+  color: var(--admin-text-muted);
+}
+
+.detail-value {
+  color: var(--admin-text-dark);
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
 }
 
-.filter-select {
-  padding: 0.875rem;
-  border: 2px solid var(--gray-200);
-  border-radius: var(--border-radius);
-  background: white;
-  cursor: pointer;
-}
-
-.users-table-section {
-  padding: 0 0 3rem 0;
-  flex: 1;
-}
-
-.table-card {
-  background: white;
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-md);
-  overflow: hidden;
-}
-
-.table-header {
-  padding: 2rem;
-  border-bottom: 1px solid var(--gray-200);
+.activity-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: var(--admin-bg-light);
+  border-radius: 8px;
 }
 
-.table-header h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
+.activity-item i {
+  color: var(--admin-primary-teal);
+  width: 20px;
+  text-align: center;
 }
 
-.table-container {
-  overflow-x: auto;
+.activity-item span {
+  flex: 1;
+  font-size: 0.875rem;
 }
 
-.users-table {
-  width: 100%;
-  border-collapse: collapse;
+.activity-item small {
+  color: var(--admin-text-muted);
+  font-size: 0.75rem;
 }
 
-.users-table th {
-  background: var(--gray-50);
-  padding: 1rem;
-  text-align: left;
-  font-weight: 600;
-  color: var(--gray-700);
-  border-bottom: 1px solid var(--gray-200);
+.table-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
 }
 
-.table-row {
-  border-bottom: 1px solid var(--gray-100);
-  transition: background 0.3s ease;
+.action-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.875rem;
 }
 
-.table-row:hover {
-  background: var(--gray-50);
+.action-btn.view {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--admin-info);
 }
 
-.users-table td {
-  padding: 1rem;
-  vertical-align: middle;
+.action-btn.view:hover {
+  background: var(--admin-info);
+  color: white;
+}
+
+.action-btn.edit {
+  background: rgba(251, 191, 36, 0.1);
+  color: var(--admin-warning);
+}
+
+.action-btn.edit:hover {
+  background: var(--admin-warning);
+  color: white;
+}
+
+.action-btn.enable {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--admin-success);
+}
+
+.action-btn.enable:hover {
+  background: var(--admin-success);
+  color: white;
+}
+
+.action-btn.disable {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--admin-danger);
+}
+
+.action-btn.disable:hover {
+  background: var(--admin-danger);
+  color: white;
+}
+
+.action-btn.delete {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--admin-danger);
+}
+
+.action-btn.delete:hover {
+  background: var(--admin-danger);
+  color: white;
 }
 
 .user-info {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .user-avatar {
-  width: 3rem;
-  height: 3rem;
-  background: linear-gradient(135deg, var(--primary-purple), var(--primary-indigo));
+  width: 40px;
+  height: 40px;
+  background: var(--admin-primary-teal);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 1rem;
+  overflow: hidden;
 }
 
-.user-name {
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.user-details .user-name {
   font-weight: 600;
-  margin-bottom: 0.25rem;
+  color: var(--admin-text-dark);
+  margin: 0 0 4px 0;
 }
 
-.user-email {
-  font-size: 0.875rem;
-  color: var(--gray-600);
-  margin-bottom: 0.125rem;
-}
-
-.user-phone {
+.user-id {
   font-size: 0.75rem;
-  color: var(--gray-500);
+  color: var(--admin-text-muted);
 }
 
-.status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: var(--border-radius-full);
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.status-badge.activo {
-  background: rgba(16, 185, 129, 0.1);
-  color: var(--success-green);
-}
-
-.status-badge.inactivo {
-  background: rgba(107, 114, 128, 0.1);
-  color: var(--gray-600);
-}
-
-.status-badge.suspendido {
-  background: rgba(239, 68, 68, 0.1);
-  color: var(--danger-red);
-}
-
-.purchases-cell {
+.email-cell {
   display: flex;
-  flex-direction: column;
   align-items: center;
-}
-
-.purchases-count {
-  font-weight: 600;
-  font-size: 1.125rem;
-  color: var(--primary-purple);
-}
-
-.purchases-label {
-  font-size: 0.75rem;
-  color: var(--gray-500);
-}
-
-.amount {
-  font-weight: 600;
-  color: var(--success-green);
-}
-
-.last-access {
-  font-size: 0.875rem;
-  color: var(--gray-600);
-}
-
-.actions-cell {
-  display: flex;
   gap: 0.5rem;
 }
 
-.action-btn {
-  width: 2rem;
-  height: 2rem;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
-.action-btn.view {
-  background: rgba(107, 114, 128, 0.1);
-  color: var(--gray-600);
-}
-
-.action-btn.edit {
-  background: rgba(79, 70, 229, 0.1);
-  color: var(--primary-blue);
-}
-
-.action-btn.suspend {
-  background: rgba(239, 68, 68, 0.1);
-  color: var(--danger-red);
-}
-
-.action-btn.activate {
-  background: rgba(16, 185, 129, 0.1);
-  color: var(--success-green);
-}
-
-.action-btn:hover {
-  transform: scale(1.1);
-}
-
-.table-pagination {
-  padding: 1.5rem 2rem;
-  border-top: 1px solid var(--gray-200);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.pagination-info {
-  color: var(--gray-600);
+.verified-badge {
+  color: var(--admin-success);
   font-size: 0.875rem;
 }
 
-.pagination-controls {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+.role-badge,
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
-.pagination-btn {
-  width: 2rem;
-  height: 2rem;
-  border: 1px solid var(--gray-300);
-  background: white;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
+.role-badge.user {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--admin-info);
 }
 
-.pagination-btn:hover:not(:disabled) {
-  background: var(--primary-purple);
-  color: white;
-  border-color: var(--primary-purple);
+.role-badge.admin {
+  background: rgba(147, 51, 234, 0.1);
+  color: #9333ea;
 }
 
-.pagination-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.status-badge.activo {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--admin-success);
 }
 
-.page-number {
-  font-weight: 600;
+.status-badge.inactivo {
+  background: rgba(156, 163, 175, 0.1);
+  color: #6b7280;
 }
 
-@media (max-width: 1024px) {
-  .filters-row {
-    flex-direction: column;
-    gap: 1rem;
-  }
+.status-badge.bloqueado {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--admin-danger);
+}
 
-  .search-box {
-    max-width: none;
-  }
+.date-cell .date {
+  font-weight: 500;
+  color: var(--admin-text-dark);
+}
 
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.date-cell .time {
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
 }
 
 @media (max-width: 768px) {
-  .hero-title {
-    font-size: 2rem;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .stats-grid {
+  .user-details-grid {
     grid-template-columns: 1fr;
   }
-
-  .table-header {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
+  
+  .user-stats {
+    grid-template-columns: 1fr;
   }
-
-  .users-table {
-    font-size: 0.75rem;
-  }
-
-  .user-info {
+  
+  .user-header {
     flex-direction: column;
     text-align: center;
   }
-}
-
-/* Modal Styles - Diseño Compacto */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  width: 90%;
-  max-width: 420px;
-  max-height: 85vh;
-  overflow-y: auto;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--gray-200);
-}
-
-.modal-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 1.25rem;
-  color: var(--gray-400);
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 4px;
-  width: 1.75rem;
-  height: 1.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.close-btn:hover {
-  background: var(--gray-100);
-  color: var(--gray-600);
-}
-
-.modal-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-}
-
-.form-label {
-  font-weight: 500;
-  color: var(--text-primary);
-  font-size: 0.8rem;
-}
-
-.form-input, .form-select {
-  padding: 0.6rem;
-  border: 1px solid var(--gray-300);
-  border-radius: 6px;
-  font-size: 0.9rem;
-  transition: border-color 0.2s ease;
-}
-
-.form-input:focus, .form-select:focus {
-  outline: none;
-  border-color: var(--primary-purple);
-  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1);
-}
-
-.form-actions {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--gray-200);
-}
-
-.btn-cancel {
-  padding: 0.6rem 1.25rem;
-  border: 1px solid var(--gray-300);
-  background: white;
-  color: var(--gray-700);
-  border-radius: 6px;
-  font-weight: 500;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-cancel:hover {
-  background: var(--gray-50);
-  border-color: var(--gray-400);
-}
-
-.btn-create {
-  padding: 0.6rem 1.25rem;
-  background: var(--primary-purple);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-weight: 500;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-create:hover {
-  background: var(--primary-purple-dark);
+  
+  .table-actions {
+    flex-wrap: wrap;
+  }
 }
 </style>
+       

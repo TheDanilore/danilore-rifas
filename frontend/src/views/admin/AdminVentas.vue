@@ -2,247 +2,464 @@
   <div class="admin-ventas">
     <AdminHeader />
     
-    <!-- Hero Section -->
-    <section class="admin-hero">
-      <div class="container">
-        <div class="hero-content">
-          <h1 class="hero-title">
-            <i class="fas fa-chart-bar"></i>
-            Reportes de Ventas
-          </h1>
-          <p class="hero-subtitle">
-            Analiza las ventas y estadísticas del negocio
-          </p>
+    <main class="admin-main">
+      <div class="admin-container">
+        <!-- Page Header -->
+        <div class="admin-page-header">
+          <div class="page-title-section">
+            <h1 class="admin-page-title">
+              <i class="fas fa-chart-bar"></i>
+              Reportes de Ventas
+            </h1>
+            <p class="admin-page-subtitle">
+              Analiza las ventas y estadísticas del negocio
+            </p>
+          </div>
+          
+          <div class="page-actions">
+            <div class="date-range-picker">
+              <input 
+                type="date" 
+                v-model="dateRange.start" 
+                class="admin-input sm"
+                style="max-width: 150px"
+              />
+              <span class="date-separator">a</span>
+              <input 
+                type="date" 
+                v-model="dateRange.end" 
+                class="admin-input sm"
+                style="max-width: 150px"
+              />
+            </div>
+            <button @click="exportReport" class="admin-btn secondary">
+              <i class="fas fa-download"></i>
+              Exportar
+            </button>
+          </div>
+        </div>
+
+        <!-- Revenue Stats -->
+        <div class="admin-stats-grid">
+          <div class="admin-stat-card featured primary">
+            <div class="stat-header">
+              <div class="stat-icon">
+                <i class="fas fa-dollar-sign"></i>
+              </div>
+              <div class="stat-trend positive">
+                <i class="fas fa-arrow-up"></i>
+                +23.5%
+              </div>
+            </div>
+            <div class="stat-content">
+              <div class="stat-value">S/. {{ formatPrice(totalIngresos) }}</div>
+              <div class="stat-label">Ingresos Totales</div>
+            </div>
+            <div class="stat-footer">
+              <span class="stat-period">vs mes anterior</span>
+            </div>
+          </div>
+
+          <div class="admin-stat-card success">
+            <div class="stat-header">
+              <div class="stat-icon">
+                <i class="fas fa-shopping-cart"></i>
+              </div>
+              <div class="stat-trend positive">
+                <i class="fas fa-arrow-up"></i>
+                +15%
+              </div>
+            </div>
+            <div class="stat-content">
+              <div class="stat-value">{{ totalVentas }}</div>
+              <div class="stat-label">Ventas Realizadas</div>
+            </div>
+            <div class="stat-footer">
+              <span class="stat-period">Este mes</span>
+            </div>
+          </div>
+
+          <div class="admin-stat-card info">
+            <div class="stat-header">
+              <div class="stat-icon">
+                <i class="fas fa-calculator"></i>
+              </div>
+              <div class="stat-trend positive">
+                <i class="fas fa-arrow-up"></i>
+                +8%
+              </div>
+            </div>
+            <div class="stat-content">
+              <div class="stat-value">S/. {{ formatPrice(promedioVenta) }}</div>
+              <div class="stat-label">Promedio por Venta</div>
+            </div>
+            <div class="stat-footer">
+              <span class="stat-period">Este mes</span>
+            </div>
+          </div>
+
+          <div class="admin-stat-card warning">
+            <div class="stat-header">
+              <div class="stat-icon">
+                <i class="fas fa-hourglass-half"></i>
+              </div>
+              <div class="stat-trend negative">
+                <i class="fas fa-arrow-down"></i>
+                -5%
+              </div>
+            </div>
+            <div class="stat-content">
+              <div class="stat-value">{{ ventasPendientes }}</div>
+              <div class="stat-label">Ventas Pendientes</div>
+            </div>
+            <div class="stat-footer">
+              <span class="stat-period">Requieren atención</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filters and Search -->
+        <div class="admin-section">
+          <div class="admin-filters">
+            <div class="filter-group">
+              <div class="admin-search">
+                <div class="admin-input-group">
+                  <i class="fas fa-search input-icon"></i>
+                  <input
+                    v-model="searchQuery"
+                    type="text"
+                    class="admin-input"
+                    placeholder="Buscar ventas..."
+                    @input="handleSearch"
+                  />
+                </div>
+              </div>
+              
+              <select v-model="filterStatus" class="admin-select" @change="applyFilters">
+                <option value="">Todos los estados</option>
+                <option value="completada">Completadas</option>
+                <option value="pendiente">Pendientes</option>
+                <option value="cancelada">Canceladas</option>
+              </select>
+              
+              <select v-model="filterPaymentMethod" class="admin-select" @change="applyFilters">
+                <option value="">Todos los métodos</option>
+                <option value="yape">Yape</option>
+                <option value="plin">Plin</option>
+                <option value="transferencia">Transferencia</option>
+              </select>
+              
+              <button @click="clearFilters" class="admin-btn secondary sm">
+                <i class="fas fa-times"></i>
+                Limpiar
+              </button>
+            </div>
+            
+            <div class="results-info">
+              <span class="results-count">
+                {{ filteredVentas.length }} ventas encontradas
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sales Table -->
+        <div class="admin-section">
+          <div class="admin-table-container">
+            <div v-if="loading" class="admin-loading">
+              <div class="loading-spinner"></div>
+              <span>Cargando ventas...</span>
+            </div>
+
+            <div v-else-if="filteredVentas.length === 0" class="admin-empty-state">
+              <i class="fas fa-chart-bar"></i>
+              <h3>No hay ventas</h3>
+              <p>No se encontraron ventas con los criterios especificados</p>
+              <button @click="clearFilters" class="admin-btn primary">
+                <i class="fas fa-refresh"></i>
+                Limpiar filtros
+              </button>
+            </div>
+
+            <table v-else class="admin-table">
+              <thead>
+                <tr>
+                  <th class="sortable" @click="sortBy('id')">
+                    <span>ID</span>
+                    <i class="fas fa-sort"></i>
+                  </th>
+                  <th class="sortable" @click="sortBy('usuario')">
+                    <span>Cliente</span>
+                    <i class="fas fa-sort"></i>
+                  </th>
+                  <th class="sortable" @click="sortBy('rifa')">
+                    <span>Rifa</span>
+                    <i class="fas fa-sort"></i>
+                  </th>
+                  <th class="sortable" @click="sortBy('cantidad')">
+                    <span>Cantidad</span>
+                    <i class="fas fa-sort"></i>
+                  </th>
+                  <th class="sortable" @click="sortBy('monto')">
+                    <span>Monto</span>
+                    <i class="fas fa-sort"></i>
+                  </th>
+                  <th class="sortable" @click="sortBy('metodo_pago')">
+                    <span>Método de Pago</span>
+                    <i class="fas fa-sort"></i>
+                  </th>
+                  <th class="sortable" @click="sortBy('estado')">
+                    <span>Estado</span>
+                    <i class="fas fa-sort"></i>
+                  </th>
+                  <th class="sortable" @click="sortBy('created_at')">
+                    <span>Fecha</span>
+                    <i class="fas fa-sort"></i>
+                  </th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="venta in paginatedVentas" :key="venta.id" class="table-row">
+                  <td>
+                    <div class="sale-id">
+                      <span class="id-badge">#{{ venta.id }}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="user-info">
+                      <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                      </div>
+                      <div class="user-details">
+                        <div class="user-name">{{ venta.usuario?.name }}</div>
+                        <div class="user-email">{{ venta.usuario?.email }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="rifa-info">
+                      <div class="rifa-title">{{ venta.rifa?.titulo }}</div>
+                      <div class="rifa-price">S/. {{ formatPrice(venta.rifa?.precio) }}</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="quantity-cell">
+                      <span class="quantity-badge">{{ venta.cantidad }} tickets</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="amount-cell">
+                      <span class="amount">S/. {{ formatPrice(venta.monto) }}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="payment-method" :class="venta.metodo_pago">
+                      {{ formatPaymentMethod(venta.metodo_pago) }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="status-badge" :class="venta.estado">
+                      {{ formatStatus(venta.estado) }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="date-cell">
+                      <div class="date">{{ formatDate(venta.created_at) }}</div>
+                      <div class="time">{{ formatTime(venta.created_at) }}</div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="table-actions">
+                      <button 
+                        @click="viewSale(venta)"
+                        class="action-btn view"
+                        title="Ver detalles"
+                      >
+                        <i class="fas fa-eye"></i>
+                      </button>
+                      <button 
+                        v-if="venta.estado === 'pendiente'"
+                        @click="approveSale(venta)"
+                        class="action-btn approve"
+                        title="Aprobar venta"
+                      >
+                        <i class="fas fa-check"></i>
+                      </button>
+                      <button 
+                        v-if="venta.estado === 'pendiente'"
+                        @click="rejectSale(venta)"
+                        class="action-btn reject"
+                        title="Rechazar venta"
+                      >
+                        <i class="fas fa-times"></i>
+                      </button>
+                      <button 
+                        @click="downloadReceipt(venta)"
+                        class="action-btn download"
+                        title="Descargar comprobante"
+                      >
+                        <i class="fas fa-download"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div v-if="totalPages > 1" class="admin-pagination">
+            <button 
+              @click="previousPage"
+              :disabled="currentPage === 1"
+              class="pagination-btn"
+            >
+              <i class="fas fa-chevron-left"></i>
+              Anterior
+            </button>
+            
+            <div class="pagination-numbers">
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                @click="goToPage(page)"
+                class="pagination-number"
+                :class="{ active: page === currentPage }"
+              >
+                {{ page }}
+              </button>
+            </div>
+            
+            <button 
+              @click="nextPage"
+              :disabled="currentPage === totalPages"
+              class="pagination-btn"
+            >
+              Siguiente
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Sale Details Modal -->
+    <div v-if="showSaleDetailsModal" class="admin-modal-overlay" @click="closeSaleModal">
+      <div class="admin-modal large" @click.stop>
+        <div class="admin-modal-header">
+          <h3 class="admin-modal-title">
+            <i class="fas fa-receipt"></i>
+            Detalles de la Venta #{{ selectedSale?.id }}
+          </h3>
+          <button @click="closeSaleModal" class="admin-modal-close">
+            <i class="fas fa-times"></i>
+          </button>
         </div>
         
-        <div class="hero-actions">
-          <div class="date-range-picker">
-            <input type="date" v-model="dateRange.start" class="date-input" />
-            <span class="date-separator">a</span>
-            <input type="date" v-model="dateRange.end" class="date-input" />
+        <div class="admin-modal-body">
+          <div v-if="selectedSale" class="sale-details">
+            <div class="sale-header">
+              <div class="sale-status-large" :class="selectedSale.estado">
+                <i :class="getStatusIcon(selectedSale.estado)"></i>
+                {{ formatStatus(selectedSale.estado) }}
+              </div>
+              <div class="sale-amount-large">
+                S/. {{ formatPrice(selectedSale.monto) }}
+              </div>
+            </div>
+            
+            <div class="sale-details-grid">
+              <div class="detail-group">
+                <h4>Información de la Venta</h4>
+                <div class="detail-item">
+                  <span class="detail-label">ID de Venta:</span>
+                  <span class="detail-value">#{{ selectedSale.id }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Fecha:</span>
+                  <span class="detail-value">{{ formatDate(selectedSale.created_at) }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Cantidad:</span>
+                  <span class="detail-value">{{ selectedSale.cantidad }} tickets</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Método de Pago:</span>
+                  <span class="detail-value">{{ formatPaymentMethod(selectedSale.metodo_pago) }}</span>
+                </div>
+              </div>
+              
+              <div class="detail-group">
+                <h4>Información del Cliente</h4>
+                <div class="detail-item">
+                  <span class="detail-label">Nombre:</span>
+                  <span class="detail-value">{{ selectedSale.usuario?.name }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Email:</span>
+                  <span class="detail-value">{{ selectedSale.usuario?.email }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Teléfono:</span>
+                  <span class="detail-value">{{ selectedSale.usuario?.phone || 'No especificado' }}</span>
+                </div>
+              </div>
+              
+              <div class="detail-group">
+                <h4>Información de la Rifa</h4>
+                <div class="detail-item">
+                  <span class="detail-label">Título:</span>
+                  <span class="detail-value">{{ selectedSale.rifa?.titulo }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Precio por ticket:</span>
+                  <span class="detail-value">S/. {{ formatPrice(selectedSale.rifa?.precio) }}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div v-if="selectedSale.comprobante_pago" class="payment-proof">
+              <h4>Comprobante de Pago</h4>
+              <div class="proof-image">
+                <img :src="selectedSale.comprobante_pago" alt="Comprobante de pago" />
+              </div>
+            </div>
           </div>
-          <button @click="exportReport" class="btn btn-outline btn-lg">
+        </div>
+        
+        <div class="admin-modal-footer">
+          <button 
+            v-if="selectedSale?.estado === 'pendiente'"
+            @click="approveSale(selectedSale)"
+            class="admin-btn success"
+          >
+            <i class="fas fa-check"></i>
+            Aprobar Venta
+          </button>
+          <button 
+            v-if="selectedSale?.estado === 'pendiente'"
+            @click="rejectSale(selectedSale)"
+            class="admin-btn danger"
+          >
+            <i class="fas fa-times"></i>
+            Rechazar Venta
+          </button>
+          <button @click="downloadReceipt(selectedSale)" class="admin-btn secondary">
             <i class="fas fa-download"></i>
-            Exportar Reporte
+            Descargar
+          </button>
+          <button @click="closeSaleModal" class="admin-btn secondary">
+            Cerrar
           </button>
         </div>
       </div>
-    </section>
-
-    <!-- Revenue Stats -->
-    <section class="revenue-section">
-      <div class="container">
-        <div class="revenue-grid">
-          <div class="revenue-card featured">
-            <div class="revenue-icon">
-              <i class="fas fa-dollar-sign"></i>
-            </div>
-            <div class="revenue-content">
-              <h3 class="revenue-amount">S/. {{ totalIngresos.toLocaleString() }}</h3>
-              <p class="revenue-label">Ingresos Totales</p>
-              <div class="revenue-period">Este mes</div>
-              <span class="revenue-change positive">
-                <i class="fas fa-arrow-up"></i>
-                +23.5% vs mes anterior
-              </span>
-            </div>
-          </div>
-          
-          <div class="revenue-card">
-            <div class="revenue-icon sales">
-              <i class="fas fa-shopping-cart"></i>
-            </div>
-            <div class="revenue-content">
-              <h3 class="revenue-amount">{{ totalVentas }}</h3>
-              <p class="revenue-label">Ventas Totales</p>
-              <span class="revenue-change positive">
-                <i class="fas fa-arrow-up"></i>
-                +18.2%
-              </span>
-            </div>
-          </div>
-          
-          <div class="revenue-card">
-            <div class="revenue-icon tickets">
-              <i class="fas fa-ticket-alt"></i>
-            </div>
-            <div class="revenue-content">
-              <h3 class="revenue-amount">{{ ticketsVendidos }}</h3>
-              <p class="revenue-label">Tickets Vendidos</p>
-              <span class="revenue-change positive">
-                <i class="fas fa-arrow-up"></i>
-                +15.7%
-              </span>
-            </div>
-          </div>
-          
-          <div class="revenue-card">
-            <div class="revenue-icon average">
-              <i class="fas fa-chart-line"></i>
-            </div>
-            <div class="revenue-content">
-              <h3 class="revenue-amount">S/. {{ promedioVenta }}</h3>
-              <p class="revenue-label">Promedio por Venta</p>
-              <span class="revenue-change positive">
-                <i class="fas fa-arrow-up"></i>
-                +8.3%
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Charts Section -->
-    <section class="charts-section">
-      <div class="container">
-        <div class="charts-grid">
-          <!-- Sales Chart -->
-          <div class="chart-card large">
-            <div class="chart-header">
-              <h3>Ventas de los Últimos 30 Días</h3>
-              <div class="chart-filters">
-                <button class="filter-btn active">30D</button>
-                <button class="filter-btn">90D</button>
-                <button class="filter-btn">1A</button>
-              </div>
-            </div>
-            <div class="chart-placeholder">
-              <i class="fas fa-chart-area"></i>
-              <p>Gráfico de ventas temporales</p>
-              <div class="mock-chart">
-                <div class="chart-bars">
-                  <div class="chart-bar" style="height: 60%"></div>
-                  <div class="chart-bar" style="height: 80%"></div>
-                  <div class="chart-bar" style="height: 45%"></div>
-                  <div class="chart-bar" style="height: 90%"></div>
-                  <div class="chart-bar" style="height: 70%"></div>
-                  <div class="chart-bar" style="height: 55%"></div>
-                  <div class="chart-bar" style="height: 85%"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Top Rifas -->
-          <div class="chart-card">
-            <div class="chart-header">
-              <h3>Top Rifas por Ingresos</h3>
-            </div>
-            <div class="top-rifas">
-              <div
-                v-for="(rifa, index) in topRifas"
-                :key="rifa.id"
-                class="top-rifa-item"
-              >
-                <div class="rifa-rank">{{ index + 1 }}</div>
-                <div class="rifa-info">
-                  <h4 class="rifa-name">{{ rifa.nombre }}</h4>
-                  <p class="rifa-sales">{{ rifa.ventasCount }} ventas</p>
-                </div>
-                <div class="rifa-revenue">
-                  S/. {{ rifa.ingresos.toLocaleString() }}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Sales by Method -->
-    <section class="payment-methods-section">
-      <div class="container">
-        <div class="methods-grid">
-          <div class="methods-card">
-            <h3>Métodos de Pago</h3>
-            <div class="methods-list">
-              <div
-                v-for="method in paymentMethods"
-                :key="method.name"
-                class="method-item"
-              >
-                <div class="method-info">
-                  <div class="method-icon" :style="{ background: method.color }">
-                    <i :class="method.icon"></i>
-                  </div>
-                  <div>
-                    <h4 class="method-name">{{ method.name }}</h4>
-                    <p class="method-count">{{ method.transactions }} transacciones</p>
-                  </div>
-                </div>
-                <div class="method-amount">
-                  <span class="amount">S/. {{ method.amount.toLocaleString() }}</span>
-                  <span class="percentage">{{ method.percentage }}%</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="methods-card">
-            <h3>Ventas por Hora</h3>
-            <div class="hourly-chart">
-              <div
-                v-for="hour in hourlyData"
-                :key="hour.hour"
-                class="hour-bar"
-              >
-                <div class="bar-fill" :style="{ height: hour.percentage + '%' }"></div>
-                <span class="hour-label">{{ hour.hour }}h</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Recent Transactions -->
-    <section class="transactions-section">
-      <div class="container">
-        <div class="transactions-card">
-          <div class="transactions-header">
-            <h3>Transacciones Recientes</h3>
-            <button class="btn btn-ghost btn-sm">
-              <i class="fas fa-external-link-alt"></i>
-              Ver Todas
-            </button>
-          </div>
-          
-          <div class="transactions-list">
-            <div
-              v-for="transaction in recentTransactions"
-              :key="transaction.id"
-              class="transaction-item"
-            >
-              <div class="transaction-icon" :class="transaction.status">
-                <i :class="transaction.icon"></i>
-              </div>
-              <div class="transaction-details">
-                <h4 class="transaction-user">{{ transaction.usuario }}</h4>
-                <p class="transaction-rifa">{{ transaction.rifa }}</p>
-                <span class="transaction-time">{{ formatRelativeTime(transaction.fecha) }}</span>
-              </div>
-              <div class="transaction-method">
-                <span class="method-badge" :class="transaction.metodo.toLowerCase()">
-                  {{ transaction.metodo }}
-                </span>
-              </div>
-              <div class="transaction-amount">
-                <span class="amount">S/. {{ transaction.monto }}</span>
-                <span class="status" :class="transaction.status">
-                  {{ transaction.estadoTexto }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
+    </div>
+    
     <AdminFooter />
   </div>
 </template>
-
+        
 <script>
 import { ref, computed, onMounted } from 'vue'
 import AdminHeader from '@/components/admin/AdminHeader.vue'
@@ -255,739 +472,690 @@ export default {
     AdminFooter
   },
   setup() {
+    const loading = ref(false)
+    const searchQuery = ref('')
+    const filterStatus = ref('')
+    const filterPaymentMethod = ref('')
+    const sortField = ref('created_at')
+    const sortDirection = ref('desc')
+    const currentPage = ref(1)
+    const itemsPerPage = 10
+
+    // Modals
+    const showSaleDetailsModal = ref(false)
+    const selectedSale = ref(null)
+
+    // Date range
     const dateRange = ref({
       start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       end: new Date().toISOString().split('T')[0]
     })
 
-    const salesData = ref({
-      totalIngresos: 45230,
-      totalVentas: 892,
-      ticketsVendidos: 3420,
-      promedioVenta: 51
+    // Stats data
+    const totalIngresos = ref(45230)
+    const totalVentas = ref(892)
+    const promedioVenta = ref(51)
+    const ventasPendientes = ref(12)
+
+    // Mock sales data
+    const ventas = ref([
+      {
+        id: 1,
+        usuario: {
+          name: 'Carlos Mendoza',
+          email: 'carlos@email.com',
+          phone: '+51 987 654 321'
+        },
+        rifa: {
+          titulo: 'iPhone 15 Pro Max',
+          precio: 15
+        },
+        cantidad: 3,
+        monto: 45,
+        metodo_pago: 'yape',
+        estado: 'completada',
+        created_at: '2024-01-15T10:30:00Z',
+        comprobante_pago: '/images/comprobantes/comp1.jpg'
+      },
+      {
+        id: 2,
+        usuario: {
+          name: 'María García',
+          email: 'maria@email.com',
+          phone: '+51 987 654 322'
+        },
+        rifa: {
+          titulo: 'MacBook Pro M3',
+          precio: 25
+        },
+        cantidad: 2,
+        monto: 50,
+        metodo_pago: 'plin',
+        estado: 'pendiente',
+        created_at: '2024-01-15T09:15:00Z',
+        comprobante_pago: '/images/comprobantes/comp2.jpg'
+      },
+      {
+        id: 3,
+        usuario: {
+          name: 'Luis Torres',
+          email: 'luis@email.com',
+          phone: '+51 987 654 323'
+        },
+        rifa: {
+          titulo: 'AirPods Pro',
+          precio: 8
+        },
+        cantidad: 5,
+        monto: 40,
+        metodo_pago: 'transferencia',
+        estado: 'completada',
+        created_at: '2024-01-14T16:20:00Z',
+        comprobante_pago: null
+      },
+      {
+        id: 4,
+        usuario: {
+          name: 'Ana Silva',
+          email: 'ana@email.com',
+          phone: '+51 987 654 324'
+        },
+        rifa: {
+          titulo: 'Samsung Galaxy S24',
+          precio: 12
+        },
+        cantidad: 4,
+        monto: 48,
+        metodo_pago: 'yape',
+        estado: 'cancelada',
+        created_at: '2024-01-14T11:45:00Z',
+        comprobante_pago: '/images/comprobantes/comp4.jpg'
+      }
+    ])
+
+    // Computed properties
+    const filteredVentas = computed(() => {
+      let filtered = ventas.value
+
+      // Search filter
+      if (searchQuery.value) {
+        const query = searchQuery.value.toLowerCase()
+        filtered = filtered.filter(venta => 
+          venta.usuario.name.toLowerCase().includes(query) ||
+          venta.usuario.email.toLowerCase().includes(query) ||
+          venta.rifa.titulo.toLowerCase().includes(query) ||
+          venta.id.toString().includes(query)
+        )
+      }
+
+      // Status filter
+      if (filterStatus.value) {
+        filtered = filtered.filter(venta => venta.estado === filterStatus.value)
+      }
+
+      // Payment method filter
+      if (filterPaymentMethod.value) {
+        filtered = filtered.filter(venta => venta.metodo_pago === filterPaymentMethod.value)
+      }
+
+      // Sort
+      filtered.sort((a, b) => {
+        let aValue = a[sortField.value]
+        let bValue = b[sortField.value]
+        
+        if (sortField.value === 'usuario') {
+          aValue = a.usuario.name
+          bValue = b.usuario.name
+        } else if (sortField.value === 'rifa') {
+          aValue = a.rifa.titulo
+          bValue = b.rifa.titulo
+        }
+        
+        if (typeof aValue === 'string') {
+          aValue = aValue.toLowerCase()
+          bValue = bValue.toLowerCase()
+        }
+        
+        if (sortDirection.value === 'asc') {
+          return aValue > bValue ? 1 : -1
+        } else {
+          return aValue < bValue ? 1 : -1
+        }
+      })
+
+      return filtered
     })
 
-    const topRifas = ref([
-      {
-        id: 'RF001',
-        nombre: 'iPhone 15 Pro Max',
-        ventasCount: 450,
-        ingresos: 6750
-      },
-      {
-        id: 'RF002',
-        nombre: 'MacBook Pro M3',
-        ventasCount: 280,
-        ingresos: 7000
-      },
-      {
-        id: 'RF003',
-        nombre: 'PlayStation 5',
-        ventasCount: 320,
-        ingresos: 6400
-      },
-      {
-        id: 'RF004',
-        nombre: 'AirPods Pro',
-        ventasCount: 180,
-        ingresos: 1800
-      }
-    ])
+    const totalPages = computed(() => 
+      Math.ceil(filteredVentas.value.length / itemsPerPage)
+    )
 
-    const paymentMethods = ref([
-      {
-        name: 'Yape',
-        icon: 'fas fa-mobile-alt',
-        color: 'linear-gradient(135deg, #8B1538, #B91C5C)',
-        transactions: 567,
-        amount: 28350,
-        percentage: 62.7
-      },
-      {
-        name: 'Plin',
-        icon: 'fas fa-credit-card',
-        color: 'linear-gradient(135deg, #059669, #10B981)',
-        transactions: 234,
-        amount: 11700,
-        percentage: 25.9
-      },
-      {
-        name: 'Transferencia',
-        icon: 'fas fa-university',
-        color: 'linear-gradient(135deg, #2563EB, #3B82F6)',
-        transactions: 91,
-        amount: 5180,
-        percentage: 11.4
-      }
-    ])
+    const paginatedVentas = computed(() => {
+      const start = (currentPage.value - 1) * itemsPerPage
+      const end = start + itemsPerPage
+      return filteredVentas.value.slice(start, end)
+    })
 
-    const hourlyData = ref([
-      { hour: 0, percentage: 15 },
-      { hour: 6, percentage: 25 },
-      { hour: 12, percentage: 85 },
-      { hour: 18, percentage: 70 },
-      { hour: 24, percentage: 30 }
-    ])
-
-    const recentTransactions = ref([
-      {
-        id: 'TXN001',
-        usuario: 'Carlos Mendoza',
-        rifa: 'iPhone 15 Pro Max - Ticket #234',
-        monto: 15,
-        metodo: 'Yape',
-        fecha: '2024-02-10T14:30:00Z',
-        status: 'success',
-        estadoTexto: 'Completado',
-        icon: 'fas fa-check-circle'
-      },
-      {
-        id: 'TXN002',
-        usuario: 'María González',
-        rifa: 'MacBook Pro M3 - Ticket #156',
-        monto: 25,
-        metodo: 'Plin',
-        fecha: '2024-02-10T13:45:00Z',
-        status: 'success',
-        estadoTexto: 'Completado',
-        icon: 'fas fa-check-circle'
-      },
-      {
-        id: 'TXN003',
-        usuario: 'Luis Ramírez',
-        rifa: 'PlayStation 5 - Ticket #089',
-        monto: 20,
-        metodo: 'Yape',
-        fecha: '2024-02-10T12:20:00Z',
-        status: 'pending',
-        estadoTexto: 'Pendiente',
-        icon: 'fas fa-clock'
-      },
-      {
-        id: 'TXN004',
-        usuario: 'Ana Torres',
-        rifa: 'AirPods Pro - Ticket #067',
-        monto: 10,
-        metodo: 'Transferencia',
-        fecha: '2024-02-10T11:15:00Z',
-        status: 'success',
-        estadoTexto: 'Completado',
-        icon: 'fas fa-check-circle'
-      }
-    ])
-
-    const totalIngresos = computed(() => salesData.value.totalIngresos)
-    const totalVentas = computed(() => salesData.value.totalVentas)
-    const ticketsVendidos = computed(() => salesData.value.ticketsVendidos)
-    const promedioVenta = computed(() => salesData.value.promedioVenta)
-
-    const formatRelativeTime = (dateString) => {
-      const date = new Date(dateString)
-      const now = new Date()
-      const diffMs = now - date
-      const diffMinutes = Math.floor(diffMs / (1000 * 60))
-      const diffHours = Math.floor(diffMinutes / 60)
-
-      if (diffHours > 0) {
-        return `Hace ${diffHours} hora${diffHours > 1 ? 's' : ''}`
-      } else if (diffMinutes > 0) {
-        return `Hace ${diffMinutes} minuto${diffMinutes > 1 ? 's' : ''}`
+    const visiblePages = computed(() => {
+      const pages = []
+      const total = totalPages.value
+      const current = currentPage.value
+      
+      if (total <= 7) {
+        for (let i = 1; i <= total; i++) {
+          pages.push(i)
+        }
       } else {
-        return 'Ahora mismo'
+        pages.push(1)
+        if (current > 4) pages.push('...')
+        
+        const start = Math.max(2, current - 1)
+        const end = Math.min(total - 1, current + 1)
+        
+        for (let i = start; i <= end; i++) {
+          pages.push(i)
+        }
+        
+        if (current < total - 3) pages.push('...')
+        pages.push(total)
       }
+      
+      return pages
+    })
+
+    // Methods
+    const handleSearch = () => {
+      currentPage.value = 1
+    }
+
+    const applyFilters = () => {
+      currentPage.value = 1
+    }
+
+    const clearFilters = () => {
+      searchQuery.value = ''
+      filterStatus.value = ''
+      filterPaymentMethod.value = ''
+      currentPage.value = 1
+    }
+
+    const sortBy = (field) => {
+      if (sortField.value === field) {
+        sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
+      } else {
+        sortField.value = field
+        sortDirection.value = 'asc'
+      }
+    }
+
+    const goToPage = (page) => {
+      if (page !== '...' && page >= 1 && page <= totalPages.value) {
+        currentPage.value = page
+      }
+    }
+
+    const previousPage = () => {
+      if (currentPage.value > 1) {
+        currentPage.value--
+      }
+    }
+
+    const nextPage = () => {
+      if (currentPage.value < totalPages.value) {
+        currentPage.value++
+      }
+    }
+
+    const viewSale = (sale) => {
+      selectedSale.value = sale
+      showSaleDetailsModal.value = true
+    }
+
+    const approveSale = async (sale) => {
+      try {
+        // Simular API call
+        await new Promise(resolve => setTimeout(resolve, 500))
+        sale.estado = 'completada'
+        console.log(`Venta ${sale.id} aprobada`)
+        closeSaleModal()
+      } catch (error) {
+        console.error('Error al aprobar venta:', error)
+      }
+    }
+
+    const rejectSale = async (sale) => {
+      if (confirm(`¿Estás seguro de rechazar la venta #${sale.id}?`)) {
+        try {
+          // Simular API call
+          await new Promise(resolve => setTimeout(resolve, 500))
+          sale.estado = 'cancelada'
+          console.log(`Venta ${sale.id} rechazada`)
+          closeSaleModal()
+        } catch (error) {
+          console.error('Error al rechazar venta:', error)
+        }
+      }
+    }
+
+    const downloadReceipt = (sale) => {
+      console.log(`Descargando comprobante de venta ${sale.id}`)
+      // Implementar descarga
+    }
+
+    const closeSaleModal = () => {
+      showSaleDetailsModal.value = false
+      selectedSale.value = null
     }
 
     const exportReport = () => {
-      console.log('Exportar reporte de ventas')
+      console.log('Exportando reporte de ventas...')
+      // Implementar exportación
+    }
+
+    const formatPrice = (price) => {
+      return new Intl.NumberFormat('es-PE', {
+        style: 'decimal',
+        minimumFractionDigits: 2
+      }).format(price)
+    }
+
+    const formatDate = (dateString) => {
+      if (!dateString) return 'N/A'
+      const date = new Date(dateString)
+      return date.toLocaleDateString('es-PE', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      })
+    }
+
+    const formatTime = (dateString) => {
+      if (!dateString) return 'N/A'
+      const date = new Date(dateString)
+      return date.toLocaleTimeString('es-PE', {
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    }
+
+    const formatStatus = (status) => {
+      const statuses = {
+        'completada': 'Completada',
+        'pendiente': 'Pendiente',
+        'cancelada': 'Cancelada'
+      }
+      return statuses[status] || status
+    }
+
+    const formatPaymentMethod = (method) => {
+      const methods = {
+        'yape': 'Yape',
+        'plin': 'Plin',
+        'transferencia': 'Transferencia Bancaria'
+      }
+      return methods[method] || method
+    }
+
+    const getStatusIcon = (status) => {
+      const icons = {
+        'completada': 'fas fa-check-circle',
+        'pendiente': 'fas fa-clock',
+        'cancelada': 'fas fa-times-circle'
+      }
+      return icons[status] || 'fas fa-question-circle'
     }
 
     onMounted(() => {
-      console.log('Admin Ventas cargado')
+      // Cargar datos iniciales
     })
 
     return {
+      loading,
+      searchQuery,
+      filterStatus,
+      filterPaymentMethod,
+      currentPage,
       dateRange,
       totalIngresos,
       totalVentas,
-      ticketsVendidos,
       promedioVenta,
-      topRifas,
-      paymentMethods,
-      hourlyData,
-      recentTransactions,
-      formatRelativeTime,
-      exportReport
+      ventasPendientes,
+      filteredVentas,
+      paginatedVentas,
+      totalPages,
+      visiblePages,
+      showSaleDetailsModal,
+      selectedSale,
+      handleSearch,
+      applyFilters,
+      clearFilters,
+      sortBy,
+      goToPage,
+      previousPage,
+      nextPage,
+      viewSale,
+      approveSale,
+      rejectSale,
+      downloadReceipt,
+      closeSaleModal,
+      exportReport,
+      formatPrice,
+      formatDate,
+      formatTime,
+      formatStatus,
+      formatPaymentMethod,
+      getStatusIcon
     }
   }
 }
 </script>
 
 <style scoped>
-.admin-ventas {
-  min-height: 100vh;
-  background: var(--gray-50);
-  display: flex;
-  flex-direction: column;
-}
-
-.admin-hero {
-  background: linear-gradient(135deg, var(--primary-purple), var(--primary-indigo));
-  color: white;
-  padding: 3rem 0;
-}
-
-.hero-content {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.hero-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-}
-
-.hero-subtitle {
-  font-size: 1.125rem;
-  opacity: 0.9;
-}
-
-.hero-actions {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 2rem;
-}
+/* Usar clases del admin.css global */
 
 .date-range-picker {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 0.75rem 1.5rem;
-  border-radius: var(--border-radius-full);
-}
-
-.date-input {
-  background: transparent;
-  border: none;
-  color: white;
-  font-size: 1rem;
-}
-
-.date-input:focus {
-  outline: none;
-}
-
-.date-separator {
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: 600;
-}
-
-.revenue-section {
-  padding: 3rem 0;
-}
-
-.revenue-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 2rem;
-}
-
-.revenue-card {
-  background: white;
-  padding: 2rem;
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-md);
-  transition: transform 0.3s ease;
-}
-
-.revenue-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-}
-
-.revenue-card.featured {
-  background: linear-gradient(135deg, var(--primary-purple), var(--primary-indigo));
-  color: white;
-}
-
-.revenue-icon {
-  width: 4rem;
-  height: 4rem;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.revenue-card:not(.featured) .revenue-icon {
-  background: linear-gradient(135deg, var(--primary-purple), var(--primary-indigo));
-}
-
-.revenue-icon.sales {
-  background: linear-gradient(135deg, var(--success-green), #34d399);
-}
-
-.revenue-icon.tickets {
-  background: linear-gradient(135deg, var(--primary-blue), #3b82f6);
-}
-
-.revenue-icon.average {
-  background: linear-gradient(135deg, var(--accent-orange), #f97316);
-}
-
-.revenue-amount {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-}
-
-.revenue-card:not(.featured) .revenue-amount {
-  color: var(--gray-800);
-}
-
-.revenue-label {
-  font-size: 1rem;
-  margin-bottom: 0.5rem;
-  opacity: 0.9;
-}
-
-.revenue-card:not(.featured) .revenue-label {
-  color: var(--gray-600);
-}
-
-.revenue-period {
-  font-size: 0.875rem;
-  opacity: 0.8;
-  margin-bottom: 1rem;
-}
-
-.revenue-change {
-  font-size: 0.875rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.revenue-change.positive {
-  color: #34d399;
-}
-
-.revenue-card:not(.featured) .revenue-change.positive {
-  color: var(--success-green);
-}
-
-.charts-section {
-  padding: 0 0 3rem 0;
-}
-
-.charts-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 2rem;
-}
-
-.chart-card {
-  background: white;
-  padding: 2rem;
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-md);
-}
-
-.chart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--gray-200);
-}
-
-.chart-header h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
-.chart-filters {
-  display: flex;
   gap: 0.5rem;
 }
 
-.filter-btn {
-  padding: 0.5rem 1rem;
-  border: 1px solid var(--gray-300);
-  background: white;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  font-size: 0.875rem;
-  transition: all 0.3s ease;
+.date-separator {
+  color: var(--admin-text-muted);
+  font-weight: 500;
 }
 
-.filter-btn.active,
-.filter-btn:hover {
-  background: var(--primary-purple);
-  color: white;
-  border-color: var(--primary-purple);
+.sale-details {
+  max-width: 100%;
 }
 
-.chart-placeholder {
-  height: 300px;
+.sale-header {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  color: var(--gray-400);
-  position: relative;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--admin-border-light);
 }
 
-.chart-placeholder i {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.mock-chart {
-  position: absolute;
-  bottom: 2rem;
-  left: 2rem;
-  right: 2rem;
-}
-
-.chart-bars {
-  display: flex;
-  align-items: end;
-  gap: 1rem;
-  height: 100px;
-}
-
-.chart-bar {
-  flex: 1;
-  background: linear-gradient(135deg, var(--primary-purple), var(--primary-indigo));
-  border-radius: 4px;
-  min-height: 20px;
-  opacity: 0.8;
-}
-
-.top-rifas {
-  space-y: 1rem;
-}
-
-.top-rifa-item {
+.sale-status-large {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: var(--gray-50);
-  border-radius: var(--border-radius);
-  margin-bottom: 1rem;
-}
-
-.rifa-rank {
-  width: 2rem;
-  height: 2rem;
-  background: var(--primary-purple);
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 0.875rem;
-}
-
-.rifa-info {
-  flex: 1;
-}
-
-.rifa-name {
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
   font-weight: 600;
-  margin-bottom: 0.25rem;
+  font-size: 1.1rem;
 }
 
-.rifa-sales {
-  font-size: 0.875rem;
-  color: var(--gray-600);
+.sale-status-large.completada {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--admin-success);
 }
 
-.rifa-revenue {
+.sale-status-large.pendiente {
+  background: rgba(251, 191, 36, 0.1);
+  color: var(--admin-warning);
+}
+
+.sale-status-large.cancelada {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--admin-danger);
+}
+
+.sale-amount-large {
+  font-size: 2rem;
   font-weight: 700;
-  color: var(--success-green);
+  color: var(--admin-primary-teal);
 }
 
-.payment-methods-section {
-  padding: 0 0 3rem 0;
-}
-
-.methods-grid {
+.sale-details-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
-}
-
-.methods-card {
-  background: white;
-  padding: 2rem;
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-md);
-}
-
-.methods-card h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
   margin-bottom: 2rem;
 }
 
-.methods-list {
-  space-y: 1rem;
+.detail-group h4 {
+  margin: 0 0 1rem 0;
+  color: var(--admin-text-dark);
+  font-weight: 600;
 }
 
-.method-item {
+.detail-item {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-  background: var(--gray-50);
-  border-radius: var(--border-radius);
-  margin-bottom: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--admin-border-light);
 }
 
-.method-info {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+.detail-label {
+  font-weight: 500;
+  color: var(--admin-text-muted);
 }
 
-.method-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1rem;
+.detail-value {
+  color: var(--admin-text-dark);
+  font-weight: 500;
 }
 
-.method-name {
+.payment-proof {
+  margin-top: 2rem;
+}
+
+.payment-proof h4 {
+  margin: 0 0 1rem 0;
+  color: var(--admin-text-dark);
   font-weight: 600;
-  margin-bottom: 0.25rem;
 }
 
-.method-count {
-  font-size: 0.875rem;
-  color: var(--gray-600);
-}
-
-.method-amount {
-  text-align: right;
-}
-
-.amount {
-  display: block;
-  font-weight: 700;
-  color: var(--gray-800);
-}
-
-.percentage {
-  font-size: 0.875rem;
-  color: var(--gray-600);
-}
-
-.hourly-chart {
-  display: flex;
-  align-items: end;
-  gap: 1rem;
-  height: 200px;
-  padding: 1rem 0;
-}
-
-.hour-bar {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  height: 100%;
-}
-
-.bar-fill {
-  width: 100%;
-  background: linear-gradient(135deg, var(--primary-purple), var(--primary-indigo));
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
-  min-height: 10px;
-}
-
-.hour-label {
-  font-size: 0.75rem;
-  color: var(--gray-600);
-}
-
-.transactions-section {
-  padding: 0 0 3rem 0;
-  flex: 1;
-}
-
-.transactions-card {
-  background: white;
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-md);
+.proof-image {
+  border: 1px solid var(--admin-border-light);
+  border-radius: 8px;
   overflow: hidden;
+  max-width: 300px;
 }
 
-.transactions-header {
-  padding: 2rem;
-  border-bottom: 1px solid var(--gray-200);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.proof-image img {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
-.transactions-header h3 {
-  font-size: 1.25rem;
+.sale-id .id-badge {
+  background: var(--admin-primary-teal);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
-.transactions-list {
-  padding: 1rem 0;
-}
-
-.transaction-item {
+.user-info {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 1rem 2rem;
-  border-bottom: 1px solid var(--gray-100);
-  transition: background 0.3s ease;
 }
 
-.transaction-item:hover {
-  background: var(--gray-50);
-}
-
-.transaction-icon {
-  width: 2.5rem;
-  height: 2.5rem;
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  background: var(--admin-primary-teal);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 1rem;
 }
 
-.transaction-icon.success {
-  background: var(--success-green);
-}
-
-.transaction-icon.pending {
-  background: var(--warning-yellow);
-}
-
-.transaction-details {
-  flex: 1;
-}
-
-.transaction-user {
+.user-details .user-name {
   font-weight: 600;
-  margin-bottom: 0.25rem;
+  color: var(--admin-text-dark);
+  margin: 0 0 4px 0;
 }
 
-.transaction-rifa {
+.user-details .user-email {
   font-size: 0.875rem;
-  color: var(--gray-600);
-  margin-bottom: 0.25rem;
+  color: var(--admin-text-muted);
 }
 
-.transaction-time {
-  font-size: 0.75rem;
-  color: var(--gray-500);
-}
-
-.method-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: var(--border-radius-full);
-  font-size: 0.75rem;
+.rifa-info .rifa-title {
   font-weight: 600;
+  color: var(--admin-text-dark);
+  margin: 0 0 4px 0;
 }
 
-.method-badge.yape {
-  background: rgba(139, 21, 56, 0.1);
-  color: #8B1538;
+.rifa-info .rifa-price {
+  font-size: 0.875rem;
+  color: var(--admin-text-muted);
 }
 
-.method-badge.plin {
-  background: rgba(5, 150, 105, 0.1);
-  color: #059669;
+.quantity-cell .quantity-badge {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--admin-info);
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
-.method-badge.transferencia {
-  background: rgba(37, 99, 235, 0.1);
-  color: #2563EB;
-}
-
-.transaction-amount {
-  text-align: right;
-}
-
-.transaction-amount .amount {
+.amount-cell .amount {
   font-weight: 700;
-  font-size: 1rem;
-  color: var(--gray-800);
+  color: var(--admin-primary-teal);
+  font-size: 1.1rem;
 }
 
-.transaction-amount .status {
+.payment-method {
+  padding: 4px 12px;
+  border-radius: 12px;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 
-.transaction-amount .status.success {
-  color: var(--success-green);
+.payment-method.yape {
+  background: rgba(147, 51, 234, 0.1);
+  color: #9333ea;
 }
 
-.transaction-amount .status.pending {
-  color: var(--warning-yellow);
+.payment-method.plin {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--admin-success);
 }
 
-@media (max-width: 1024px) {
-  .revenue-grid {
-    grid-template-columns: 1fr 1fr;
-  }
+.payment-method.transferencia {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--admin-info);
+}
 
-  .charts-grid,
-  .methods-grid {
-    grid-template-columns: 1fr;
-  }
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-badge.completada {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--admin-success);
+}
+
+.status-badge.pendiente {
+  background: rgba(251, 191, 36, 0.1);
+  color: var(--admin-warning);
+}
+
+.status-badge.cancelada {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--admin-danger);
+}
+
+.date-cell .date {
+  font-weight: 500;
+  color: var(--admin-text-dark);
+}
+
+.date-cell .time {
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+}
+
+.table-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.action-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.875rem;
+}
+
+.action-btn.view {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--admin-info);
+}
+
+.action-btn.view:hover {
+  background: var(--admin-info);
+  color: white;
+}
+
+.action-btn.approve {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--admin-success);
+}
+
+.action-btn.approve:hover {
+  background: var(--admin-success);
+  color: white;
+}
+
+.action-btn.reject {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--admin-danger);
+}
+
+.action-btn.reject:hover {
+  background: var(--admin-danger);
+  color: white;
+}
+
+.action-btn.download {
+  background: rgba(251, 191, 36, 0.1);
+  color: var(--admin-warning);
+}
+
+.action-btn.download:hover {
+  background: var(--admin-warning);
+  color: white;
 }
 
 @media (max-width: 768px) {
-  .hero-title {
-    font-size: 2rem;
+  .date-range-picker {
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.25rem;
   }
-
-  .hero-actions {
+  
+  .sale-header {
     flex-direction: column;
     gap: 1rem;
+    text-align: center;
   }
-
-  .revenue-grid {
+  
+  .sale-details-grid {
     grid-template-columns: 1fr;
   }
-
-  .transaction-item {
-    flex-direction: column;
-    align-items: flex-start;
-    text-align: left;
+  
+  .table-actions {
+    flex-wrap: wrap;
   }
 }
 </style>
+      

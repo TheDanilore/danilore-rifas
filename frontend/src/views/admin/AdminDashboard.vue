@@ -2,152 +2,203 @@
   <div class="admin-dashboard">
     <AdminHeader />
     
-    <!-- Dashboard Stats -->
-    <section class="admin-hero">
-      <div class="container">
-        <div class="hero-content">
-          <h1 class="hero-title">
-            <i class="fas fa-tachometer-alt"></i>
-            Panel de Administración
-          </h1>
-          <p class="hero-subtitle">
-            Gestiona todas las operaciones de Danilore Rifas
-          </p>
-        </div>
-        
-        <div class="stats-grid">
-          <div class="stat-card" v-for="stat in stats" :key="stat.id">
-            <div class="stat-icon" :style="{ background: stat.color }">
-              <i :class="stat.icon"></i>
-            </div>
-            <div class="stat-content">
-              <h3 class="stat-number">{{ stat.value }}</h3>
-              <p class="stat-label">{{ stat.label }}</p>
-              <span class="stat-change" :class="stat.changeType">
-                <i :class="stat.changeIcon"></i>
-                {{ stat.change }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Quick Actions -->
-    <section class="quick-actions">
-      <div class="container">
-        <h2 class="section-title">Acciones Rápidas</h2>
-        <div class="actions-grid">
-          <router-link
-            v-for="action in quickActions"
-            :key="action.id"
-            :to="action.route"
-            class="action-card"
-          >
-            <div class="action-icon">
-              <i :class="action.icon"></i>
-            </div>
-            <h3 class="action-title">{{ action.title }}</h3>
-            <p class="action-description">{{ action.description }}</p>
-            <div class="action-arrow">
-              <i class="fas fa-arrow-right"></i>
-            </div>
-          </router-link>
-        </div>
-      </div>
-    </section>
-
-    <!-- Recent Activity -->
-    <section class="recent-activity">
-      <div class="container">
-        <div class="activity-header">
-          <h2 class="section-title">Actividad Reciente</h2>
-          <button class="btn btn-outline">
-            <i class="fas fa-refresh"></i>
-            Actualizar
-          </button>
-        </div>
-        
-        <div class="activity-list">
-          <div
-            v-for="activity in recentActivity"
-            :key="activity.id"
-            class="activity-item"
-          >
-            <div class="activity-icon" :class="activity.type">
-              <i :class="activity.icon"></i>
-            </div>
-            <div class="activity-content">
-              <h4 class="activity-title">{{ activity.title }}</h4>
-              <p class="activity-description">{{ activity.description }}</p>
-              <span class="activity-time">{{ activity.time }}</span>
-            </div>
-            <div class="activity-status" :class="activity.status">
-              {{ activity.statusText }}
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Charts Section -->
-    <section class="charts-section">
-      <div class="container">
-        <div class="charts-grid">
-          <div class="chart-card">
-            <div class="chart-header">
-              <h3>Ventas de la Semana</h3>
-              <div class="chart-filters">
-                <button class="filter-btn active">7D</button>
-                <button class="filter-btn">30D</button>
-                <button class="filter-btn">90D</button>
-              </div>
-            </div>
-            <div class="chart-placeholder">
-              <i class="fas fa-chart-line"></i>
-              <p>Gráfico de ventas aquí</p>
-            </div>
+    <!-- Dashboard Content -->
+    <main class="admin-main">
+      <div class="admin-container">
+        <!-- Page Header -->
+        <div class="admin-page-header">
+          <div class="page-title-section">
+            <h1 class="admin-page-title">
+              <i class="fas fa-tachometer-alt"></i>
+              Dashboard
+            </h1>
+            <p class="admin-page-subtitle">
+              Resumen general de Danilore Rifas
+            </p>
           </div>
           
-          <div class="chart-card">
-            <div class="chart-header">
-              <h3>Rifas Más Populares</h3>
+          <div class="page-actions">
+            <button class="admin-btn secondary" @click="refreshData">
+              <i class="fas fa-sync-alt" :class="{ 'fa-spin': loading }"></i>
+              Actualizar
+            </button>
+          </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="admin-stats-grid">
+          <div 
+            v-for="stat in stats" 
+            :key="stat.id"
+            class="admin-stat-card"
+            :class="stat.type"
+          >
+            <div class="stat-header">
+              <div class="stat-icon">
+                <i :class="stat.icon"></i>
+              </div>
+              <div class="stat-trend" :class="stat.trendType">
+                <i :class="stat.trendIcon"></i>
+                {{ stat.trend }}
+              </div>
             </div>
-            <div class="popular-rifas">
-              <div
-                v-for="rifa in popularRifas"
-                :key="rifa.id"
-                class="popular-rifa-item"
-              >
-                <div class="rifa-info">
-                  <h4>{{ rifa.nombre }}</h4>
-                  <p>{{ rifa.tickets }} tickets vendidos</p>
-                </div>
-                <div class="rifa-progress">
-                  <div class="progress-bar">
-                    <div 
-                      class="progress-fill" 
-                      :style="{ width: rifa.percentage + '%' }"
-                    ></div>
+            
+            <div class="stat-content">
+              <div class="stat-value">{{ stat.value }}</div>
+              <div class="stat-label">{{ stat.label }}</div>
+            </div>
+            
+            <div class="stat-footer">
+              <span class="stat-period">{{ stat.period }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="admin-section">
+          <h2 class="admin-section-title">Acciones Rápidas</h2>
+          <div class="admin-actions-grid">
+            <router-link
+              v-for="action in quickActions"
+              :key="action.id"
+              :to="action.route"
+              class="admin-action-card"
+            >
+              <div class="action-icon">
+                <i :class="action.icon"></i>
+              </div>
+              <div class="action-content">
+                <h3 class="action-title">{{ action.title }}</h3>
+                <p class="action-description">{{ action.description }}</p>
+              </div>
+              <div class="action-arrow">
+                <i class="fas fa-arrow-right"></i>
+              </div>
+            </router-link>
+          </div>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="admin-dashboard-grid">
+          <!-- Recent Rifas -->
+          <div class="admin-widget">
+            <div class="widget-header">
+              <h3 class="widget-title">
+                <i class="fas fa-ticket-alt"></i>
+                Rifas Recientes
+              </h3>
+              <router-link to="/admin/rifas" class="widget-action">
+                Ver todas
+              </router-link>
+            </div>
+            
+            <div class="widget-content">
+              <div v-if="recentRifas.length === 0" class="admin-empty-state">
+                <i class="fas fa-ticket-alt"></i>
+                <p>No hay rifas recientes</p>
+              </div>
+              
+              <div v-else class="rifas-list">
+                <div 
+                  v-for="rifa in recentRifas" 
+                  :key="rifa.id"
+                  class="rifa-item"
+                >
+                  <div class="rifa-image">
+                    <img 
+                      :src="rifa.image || '/images/default-rifa.jpg'" 
+                      :alt="rifa.titulo"
+                      @error="handleImageError"
+                    />
                   </div>
-                  <span class="percentage">{{ rifa.percentage }}%</span>
+                  
+                  <div class="rifa-info">
+                    <h4 class="rifa-title">{{ rifa.titulo }}</h4>
+                    <p class="rifa-price">${{ formatPrice(rifa.precio) }}</p>
+                    <div class="rifa-meta">
+                      <span class="rifa-status" :class="rifa.estado">
+                        {{ formatStatus(rifa.estado) }}
+                      </span>
+                      <span class="rifa-date">
+                        {{ formatDate(rifa.created_at) }}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div class="rifa-actions">
+                    <router-link 
+                      :to="`/admin/rifas/${rifa.id}`"
+                      class="admin-btn sm secondary"
+                    >
+                      Ver
+                    </router-link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Sales -->
+          <div class="admin-widget">
+            <div class="widget-header">
+              <h3 class="widget-title">
+                <i class="fas fa-chart-line"></i>
+                Ventas Recientes
+              </h3>
+              <router-link to="/admin/ventas" class="widget-action">
+                Ver todas
+              </router-link>
+            </div>
+            
+            <div class="widget-content">
+              <div v-if="recentSales.length === 0" class="admin-empty-state">
+                <i class="fas fa-chart-line"></i>
+                <p>No hay ventas recientes</p>
+              </div>
+              
+              <div v-else class="sales-list">
+                <div 
+                  v-for="sale in recentSales" 
+                  :key="sale.id"
+                  class="sale-item"
+                >
+                  <div class="sale-user">
+                    <div class="user-avatar">
+                      <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-info">
+                      <div class="user-name">{{ sale.usuario?.name }}</div>
+                      <div class="user-email">{{ sale.usuario?.email }}</div>
+                    </div>
+                  </div>
+                  
+                  <div class="sale-details">
+                    <div class="sale-amount">${{ formatPrice(sale.monto) }}</div>
+                    <div class="sale-rifa">{{ sale.rifa?.titulo }}</div>
+                    <div class="sale-date">{{ formatDate(sale.created_at) }}</div>
+                  </div>
+                  
+                  <div class="sale-status">
+                    <span class="status-badge" :class="sale.estado">
+                      {{ formatSaleStatus(sale.estado) }}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </section>
-
+    </main>
+    
     <AdminFooter />
   </div>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import AdminHeader from '@/components/admin/AdminHeader.vue'
 import AdminFooter from '@/components/admin/AdminFooter.vue'
-import { adminService } from '@/services/adminService.js'
 
 export default {
   name: 'AdminDashboard',
@@ -156,651 +207,404 @@ export default {
     AdminFooter
   },
   setup() {
-    const stats = ref([])
-    const recentActivity = ref([
+    const loading = ref(false)
+    const error = ref(null)
+    
+    const stats = ref([
       {
         id: 1,
-        title: 'Nueva compra de ticket',
-        description: 'Usuario Carlos Mendoza compró 3 tickets de iPhone 15',
-        time: 'Hace 5 minutos',
-        type: 'sale',
-        icon: 'fas fa-shopping-cart',
-        status: 'success',
-        statusText: 'Completado'
+        type: 'primary',
+        icon: 'fas fa-ticket-alt',
+        value: '24',
+        label: 'Rifas Activas',
+        trend: '+12%',
+        trendType: 'positive',
+        trendIcon: 'fas fa-arrow-up',
+        period: 'vs mes anterior'
       },
       {
         id: 2,
-        title: 'Rifa finalizada',
-        description: 'Rifa "MacBook Pro M3" ha sido sorteada',
-        time: 'Hace 1 hora',
-        type: 'rifa',
-        icon: 'fas fa-trophy',
-        status: 'completed',
-        statusText: 'Finalizada'
+        type: 'success', 
+        icon: 'fas fa-dollar-sign',
+        value: '$12,350',
+        label: 'Ingresos del Mes',
+        trend: '+8.5%',
+        trendType: 'positive',
+        trendIcon: 'fas fa-arrow-up',
+        period: 'vs mes anterior'
       },
       {
         id: 3,
-        title: 'Nuevo usuario registrado',
-        description: 'María González se registró en la plataforma',
-        time: 'Hace 2 horas',
-        type: 'user',
-        icon: 'fas fa-user-plus',
-        status: 'info',
-        statusText: 'Nuevo'
+        type: 'info',
+        icon: 'fas fa-users',
+        value: '1,247',
+        label: 'Usuarios Registrados',
+        trend: '+15%',
+        trendType: 'positive',
+        trendIcon: 'fas fa-arrow-up',
+        period: 'vs mes anterior'
       },
       {
         id: 4,
-        title: 'Pago verificado',
-        description: 'Pago Yape de S/. 15 verificado correctamente',
-        time: 'Hace 3 horas',
-        type: 'payment',
-        icon: 'fas fa-credit-card',
-        status: 'success',
-        statusText: 'Verificado'
+        type: 'warning',
+        icon: 'fas fa-chart-line',
+        value: '89',
+        label: 'Ventas Hoy',
+        trend: '-2.1%',
+        trendType: 'negative',
+        trendIcon: 'fas fa-arrow-down',
+        period: 'vs ayer'
       }
     ])
-    const loading = ref(true)
-    const error = ref(null)
 
-    const loadDashboardData = async () => {
-      try {
-        loading.value = true
-        
-        // Cargar estadísticas
-        const statsData = await adminService.getDashboardStats()
-        
-        // Formatear estadísticas para la vista
-        stats.value = [
-          {
-            id: 1,
-            label: 'Ventas del Mes',
-            value: `S/. ${statsData.ventas.total_mes.toLocaleString()}`,
-            change: '+12.5%',
-            changeType: 'positive',
-            changeIcon: 'fas fa-arrow-up',
-            icon: 'fas fa-dollar-sign',
-            color: 'linear-gradient(135deg, var(--success-green), #34d399)'
-          },
-          {
-            id: 2,
-            label: 'Rifas Activas',
-            value: statsData.rifas.activas.toString(),
-            change: `${statsData.rifas.total} total`,
-            changeType: 'info',
-            changeIcon: 'fas fa-info-circle',
-            icon: 'fas fa-ticket-alt',
-            color: 'linear-gradient(135deg, var(--primary-purple), var(--primary-indigo))'
-          },
-          {
-            id: 3,
-            label: 'Usuarios Registrados',
-            value: statsData.usuarios.total.toLocaleString(),
-            change: `+${statsData.usuarios.nuevos_mes} este mes`,
-            changeType: 'positive',
-            changeIcon: 'fas fa-arrow-up',
-            icon: 'fas fa-users',
-            color: 'linear-gradient(135deg, var(--primary-blue), #3b82f6)'
-          },
-          {
-            id: 4,
-            label: 'Tickets Vendidos',
-            value: statsData.ventas.tickets_vendidos.toLocaleString(),
-            change: `${statsData.ventas.pendientes} pendientes`,
-            changeType: 'warning',
-            changeIcon: 'fas fa-clock',
-            icon: 'fas fa-chart-line',
-            color: 'linear-gradient(135deg, var(--accent-orange), #f97316)'
-          }
-        ]
+    const quickActions = ref([
+      {
+        id: 1,
+        title: 'Nueva Rifa',
+        description: 'Crear una nueva rifa',
+        icon: 'fas fa-plus-circle',
+        route: '/admin/rifas/nueva'
+      },
+      {
+        id: 2,
+        title: 'Gestionar Usuarios',
+        description: 'Ver y administrar usuarios',
+        icon: 'fas fa-users-cog',
+        route: '/admin/usuarios'
+      },
+      {
+        id: 3,
+        title: 'Ver Ventas',
+        description: 'Revisar historial de ventas',
+        icon: 'fas fa-chart-bar',
+        route: '/admin/ventas'
+      },
+      {
+        id: 4,
+        title: 'Configuración',
+        description: 'Ajustes del sistema',
+        icon: 'fas fa-cog',
+        route: '/admin/settings'
+      }
+    ])
 
-        // Cargar actividad reciente si el servicio funciona
-        try {
-          const activityData = await adminService.getRecentActivity()
-          if (activityData && activityData.length > 0) {
-            recentActivity.value = activityData
-          }
-        } catch (activityError) {
-          console.log('Usando datos de ejemplo para actividad reciente')
+    const recentRifas = ref([
+      {
+        id: 1,
+        titulo: 'iPhone 15 Pro Max',
+        precio: 15,
+        estado: 'activa',
+        image: '/images/iphone15.jpg',
+        created_at: '2024-01-15T10:00:00Z'
+      },
+      {
+        id: 2,
+        titulo: 'MacBook Pro M3',
+        precio: 25,
+        estado: 'completada',
+        image: '/images/macbook.jpg',
+        created_at: '2024-01-14T08:30:00Z'
+      },
+      {
+        id: 3,
+        titulo: 'AirPods Pro',
+        precio: 8,
+        estado: 'pendiente',
+        image: '/images/airpods.jpg',
+        created_at: '2024-01-13T15:20:00Z'
+      }
+    ])
+
+    const recentSales = ref([
+      {
+        id: 1,
+        monto: 45,
+        estado: 'completada',
+        created_at: '2024-01-15T11:30:00Z',
+        usuario: {
+          name: 'Carlos Mendoza',
+          email: 'carlos@email.com'
+        },
+        rifa: {
+          titulo: 'iPhone 15 Pro Max'
         }
-        
+      },
+      {
+        id: 2,
+        monto: 75,
+        estado: 'pendiente',
+        created_at: '2024-01-15T09:15:00Z',
+        usuario: {
+          name: 'María García',
+          email: 'maria@email.com'
+        },
+        rifa: {
+          titulo: 'MacBook Pro M3'
+        }
+      }
+    ])
+
+    const refreshData = async () => {
+      loading.value = true
+      try {
+        // Simular carga de datos
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        console.log('Datos actualizados')
       } catch (err) {
-        console.error('Error al cargar datos del dashboard:', err)
-        error.value = 'Error al cargar los datos del dashboard'
-        
-        // Fallback con datos de ejemplo
-        stats.value = [
-          {
-            id: 1,
-            label: 'Ventas Totales',
-            value: 'S/. 45,230',
-            change: '+12.5%',
-            changeType: 'positive',
-            changeIcon: 'fas fa-arrow-up',
-            icon: 'fas fa-dollar-sign',
-            color: 'linear-gradient(135deg, var(--success-green), #34d399)'
-          },
-          {
-            id: 2,
-            label: 'Rifas Activas',
-            value: '8',
-            change: '+2',
-            changeType: 'positive',
-            changeIcon: 'fas fa-arrow-up',
-            icon: 'fas fa-ticket-alt',
-            color: 'linear-gradient(135deg, var(--primary-purple), var(--primary-indigo))'
-          },
-          {
-            id: 3,
-            label: 'Usuarios Registrados',
-            value: '1,247',
-            change: '+8.3%',
-            changeType: 'positive',
-            changeIcon: 'fas fa-arrow-up',
-            icon: 'fas fa-users',
-            color: 'linear-gradient(135deg, var(--primary-blue), #3b82f6)'
-          },
-          {
-            id: 4,
-            label: 'Tickets Vendidos',
-            value: '3,892',
-            change: '+15.2%',
-            changeType: 'positive',
-            changeIcon: 'fas fa-arrow-up',
-            icon: 'fas fa-chart-line',
-            color: 'linear-gradient(135deg, var(--accent-orange), #f97316)'
-          }
-        ]
+        error.value = 'Error al actualizar datos'
+        console.error(err)
       } finally {
         loading.value = false
       }
     }
 
-    const quickActions = ref([
-      {
-        id: 1,
-        title: 'Crear Nueva Rifa',
-        description: 'Configura una nueva rifa con todos los detalles',
-        icon: 'fas fa-plus-circle',
-        route: '/admin/rifas?action=create'
-      },
-      {
-        id: 2,
-        title: 'Gestionar Rifas',
-        description: 'Ver, editar y administrar rifas existentes',
-        icon: 'fas fa-cogs',
-        route: '/admin/rifas'
-      },
-      {
-        id: 3,
-        title: 'Ver Usuarios',
-        description: 'Administrar usuarios y sus perfiles',
-        icon: 'fas fa-user-friends',
-        route: '/admin/usuarios'
-      },
-      {
-        id: 4,
-        title: 'Reportes de Ventas',
-        description: 'Analizar ventas y estadísticas detalladas',
-        icon: 'fas fa-chart-bar',
-        route: '/admin/ventas'
-      }
-    ])
+    const formatPrice = (price) => {
+      return new Intl.NumberFormat('es-PE', {
+        style: 'decimal',
+        minimumFractionDigits: 2
+      }).format(price)
+    }
 
-    const popularRifas = ref([
-      {
-        id: 1,
-        nombre: 'iPhone 15 Pro Max',
-        tickets: 450,
-        percentage: 90
-      },
-      {
-        id: 2,
-        nombre: 'MacBook Pro M3',
-        tickets: 280,
-        percentage: 70
-      },
-      {
-        id: 3,
-        nombre: 'PlayStation 5',
-        tickets: 320,
-        percentage: 80
-      },
-      {
-        id: 4,
-        nombre: 'AirPods Pro',
-        tickets: 180,
-        percentage: 45
+    const formatDate = (dateString) => {
+      const date = new Date(dateString)
+      return date.toLocaleDateString('es-PE', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      })
+    }
+
+    const formatStatus = (status) => {
+      const statusMap = {
+        'activa': 'Activa',
+        'completada': 'Completada',
+        'pendiente': 'Pendiente',
+        'cancelada': 'Cancelada'
       }
-    ])
+      return statusMap[status] || status
+    }
+
+    const formatSaleStatus = (status) => {
+      const statusMap = {
+        'completada': 'Completada',
+        'pendiente': 'Pendiente',
+        'cancelada': 'Cancelada'
+      }
+      return statusMap[status] || status
+    }
+
+    const handleImageError = (event) => {
+      event.target.src = '/images/default-rifa.jpg'
+    }
 
     onMounted(() => {
-      loadDashboardData()
+      refreshData()
     })
 
     return {
-      stats,
-      quickActions,
-      recentActivity,
-      popularRifas,
       loading,
       error,
-      loadDashboardData
+      stats,
+      quickActions,
+      recentRifas,
+      recentSales,
+      refreshData,
+      formatPrice,
+      formatDate,
+      formatStatus,
+      formatSaleStatus,
+      handleImageError
     }
   }
 }
 </script>
 
 <style scoped>
-.admin-dashboard {
-  min-height: 100vh;
-  background: var(--gray-50);
-}
+/* Usar clases del admin.css global */
 
-.admin-hero {
-  background: linear-gradient(135deg, var(--primary-purple), var(--primary-indigo));
-  color: white;
-  padding: 2rem 0;
-}
-
-.hero-content {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.hero-title {
-  font-size: 1.75rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-}
-
-.hero-subtitle {
-  font-size: 1rem;
-  opacity: 0.9;
-}
-
-.stats-grid {
+.admin-dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   gap: 1.5rem;
+  margin-top: 2rem;
 }
 
-.stat-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  transition: transform 0.2s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.stat-icon {
-  width: 3rem;
-  height: 3rem;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.25rem;
-}
-
-.stat-content {
-  flex: 1;
-}
-
-.stat-number {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--gray-800);
-  margin-bottom: 0.25rem;
-}
-
-.stat-label {
-  color: var(--gray-600);
-  margin-bottom: 0.5rem;
-  font-size: 0.875rem;
-}
-
-.stat-change {
-  font-size: 0.8rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.stat-change.positive {
-  color: var(--success-green);
-}
-
-.quick-actions {
-  padding: 2rem 0;
-}
-
-.section-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--gray-800);
-  margin-bottom: 1.5rem;
-}
-
-.actions-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
-}
-
-.action-card {
-  background: white;
-  padding: 2rem;
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-md);
-  text-decoration: none;
-  color: var(--gray-800);
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.action-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(135deg, var(--primary-purple), var(--primary-indigo));
-}
-
-.action-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-  text-decoration: none;
-  color: var(--gray-800);
-}
-
-.action-icon {
-  width: 3.5rem;
-  height: 3.5rem;
-  background: linear-gradient(135deg, var(--primary-purple), var(--primary-indigo));
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.25rem;
-  margin-bottom: 1.5rem;
-}
-
-.action-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.action-description {
-  color: var(--gray-600);
-  margin-bottom: 1rem;
-}
-
-.action-arrow {
-  color: var(--primary-purple);
-  font-size: 1rem;
-}
-
-.recent-activity {
-  padding: 3rem 0;
-  background: white;
-}
-
-.activity-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-}
-
-.activity-list {
-  space-y: 1rem;
-}
-
-.activity-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.5rem;
-  background: var(--gray-50);
-  border-radius: var(--border-radius-lg);
-  border-left: 4px solid var(--primary-purple);
-  margin-bottom: 1rem;
-}
-
-.activity-icon {
-  width: 3rem;
-  height: 3rem;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1rem;
-}
-
-.activity-icon.sale {
-  background: var(--success-green);
-}
-
-.activity-icon.rifa {
-  background: var(--accent-orange);
-}
-
-.activity-icon.user {
-  background: var(--primary-blue);
-}
-
-.activity-icon.payment {
-  background: var(--primary-purple);
-}
-
-.activity-content {
-  flex: 1;
-}
-
-.activity-title {
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
-.activity-description {
-  color: var(--gray-600);
-  font-size: 0.875rem;
-  margin-bottom: 0.25rem;
-}
-
-.activity-time {
-  color: var(--gray-500);
-  font-size: 0.75rem;
-}
-
-.activity-status {
-  padding: 0.25rem 0.75rem;
-  border-radius: var(--border-radius-full);
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.activity-status.success {
-  background: rgba(16, 185, 129, 0.1);
-  color: var(--success-green);
-}
-
-.activity-status.completed {
-  background: rgba(245, 158, 11, 0.1);
-  color: var(--warning-yellow);
-}
-
-.activity-status.info {
-  background: rgba(79, 70, 229, 0.1);
-  color: var(--primary-blue);
-}
-
-.charts-section {
-  padding: 3rem 0;
-}
-
-.charts-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 2rem;
-}
-
-.chart-card {
-  background: white;
-  padding: 2rem;
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-md);
-}
-
-.chart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--gray-200);
-}
-
-.chart-header h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
-.chart-filters {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.filter-btn {
-  padding: 0.5rem 1rem;
-  border: 1px solid var(--gray-300);
-  background: white;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  font-size: 0.875rem;
-  transition: all 0.3s ease;
-}
-
-.filter-btn.active,
-.filter-btn:hover {
-  background: var(--primary-purple);
-  color: white;
-  border-color: var(--primary-purple);
-}
-
-.chart-placeholder {
-  height: 300px;
+.rifas-list,
+.sales-list {
   display: flex;
   flex-direction: column;
+  gap: 1rem;
+}
+
+.rifa-item,
+.sale-item {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  color: var(--gray-400);
-  font-size: 3rem;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--admin-bg-light);
+  border: 1px solid var(--admin-border-light);
+  border-radius: 8px;
+  transition: all 0.3s ease;
 }
 
-.chart-placeholder p {
-  font-size: 1rem;
-  margin-top: 1rem;
+.rifa-item:hover,
+.sale-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.popular-rifas {
-  space-y: 1.5rem;
+.rifa-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
-.popular-rifa-item {
-  margin-bottom: 1.5rem;
+.rifa-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .rifa-info {
-  margin-bottom: 0.75rem;
+  flex: 1;
 }
 
-.rifa-info h4 {
+.rifa-title {
   font-weight: 600;
-  margin-bottom: 0.25rem;
+  color: var(--admin-text-dark);
+  margin: 0 0 4px 0;
+  font-size: 0.95rem;
 }
 
-.rifa-info p {
-  color: var(--gray-600);
-  font-size: 0.875rem;
+.rifa-price {
+  font-weight: 700;
+  color: var(--admin-primary-teal);
+  margin: 0 0 8px 0;
 }
 
-.rifa-progress {
+.rifa-meta {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.rifa-status {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.rifa-status.activa {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--admin-success);
+}
+
+.rifa-status.completada {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--admin-info);
+}
+
+.rifa-status.pendiente {
+  background: rgba(251, 191, 36, 0.1);
+  color: var(--admin-warning);
+}
+
+.rifa-date {
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+}
+
+.sale-user {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
+  min-width: 200px;
 }
 
-.progress-bar {
-  flex: 1;
-  height: 8px;
-  background: var(--gray-200);
-  border-radius: var(--border-radius-full);
-  overflow: hidden;
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  background: var(--admin-primary-teal);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.9rem;
 }
 
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(135deg, var(--primary-purple), var(--primary-indigo));
-  transition: width 0.3s ease;
-}
-
-.percentage {
-  font-size: 0.875rem;
+.user-name {
   font-weight: 600;
-  color: var(--gray-700);
-  min-width: 3rem;
+  color: var(--admin-text-dark);
+  font-size: 0.9rem;
+}
+
+.user-email {
+  font-size: 0.8rem;
+  color: var(--admin-text-muted);
+}
+
+.sale-details {
+  flex: 1;
+  text-align: center;
+}
+
+.sale-amount {
+  font-weight: 700;
+  color: var(--admin-primary-teal);
+  font-size: 1.1rem;
+}
+
+.sale-rifa {
+  font-size: 0.85rem;
+  color: var(--admin-text-dark);
+  margin: 4px 0;
+}
+
+.sale-date {
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+}
+
+.sale-status {
   text-align: right;
 }
 
-@media (max-width: 1024px) {
-  .charts-grid {
-    grid-template-columns: 1fr;
-  }
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-badge.completada {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--admin-success);
+}
+
+.status-badge.pendiente {
+  background: rgba(251, 191, 36, 0.1);
+  color: var(--admin-warning);
 }
 
 @media (max-width: 768px) {
-  .hero-title {
-    font-size: 2rem;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .stats-grid,
-  .actions-grid {
+  .admin-dashboard-grid {
     grid-template-columns: 1fr;
   }
-
-  .activity-header {
+  
+  .rifa-item,
+  .sale-item {
     flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
+    text-align: center;
   }
-
-  .activity-item {
-    flex-direction: column;
-    align-items: flex-start;
-    text-align: left;
+  
+  .sale-user {
+    min-width: auto;
   }
 }
 </style>
+        
