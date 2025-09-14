@@ -3,8 +3,9 @@ import App from './App.vue'
 import router from './router'
 import { useAuthStore } from './store/auth'
 
-// Importar CSS global compartido para admin
-import '@/assets/css/admin.css'
+// Importar estilos globales
+import '@/assets/styles/main.css'
+import '@/assets/styles/components/admin.css'
 
 // Configurar feature flags para evitar warnings
 if (typeof __VUE_PROD_HYDRATION_MISMATCH_DETAILS__ === 'undefined') {
