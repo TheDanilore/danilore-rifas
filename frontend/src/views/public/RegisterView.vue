@@ -1,6 +1,6 @@
 <template>
-  <div class="register-container">
-    <div class="register-card">
+  <div class="auth-container">
+    <div class="auth-card auth-card--wide">
       <div class="auth-header">
         <div class="auth-logo">
           <i class="fas fa-trophy"></i>
@@ -9,7 +9,7 @@
         <p class="auth-subtitle">Únete a miles de personas que ya participan</p>
       </div>
 
-      <div class="register-content">
+      <div class="auth-content">
         <form @submit.prevent="handleRegister">
           <!-- Mensaje de error -->
           <div v-if="errorMessage" class="error-message">
@@ -346,154 +346,66 @@ export default {
 </script>
 
 <style scoped>
-.register-container {
-  min-height: calc(100vh - 4rem);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem 1rem;
-}
-
-.register-card {
-  width: 100%;
-  max-width: 600px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-xl);
-  overflow: hidden;
-}
-
-.auth-header {
-  text-align: center;
-  padding: 2rem 2rem 1rem;
-}
-
-.auth-logo {
-  background: linear-gradient(135deg, var(--primary-purple), var(--primary-pink));
-  padding: 1rem;
-  border-radius: var(--border-radius-full);
-  display: inline-flex;
-  margin-bottom: 1rem;
-}
-
-.auth-logo i {
-  font-size: 2rem;
-  color: var(--white);
-}
-
-.auth-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--primary-purple), var(--primary-blue));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 0.5rem;
-}
-
-.auth-subtitle {
-  color: var(--gray-600);
-  font-size: 0.875rem;
-}
-
-.register-content {
-  padding: 2rem;
-}
-
+/* Estilos específicos de RegisterView que no están en auth.css */
 .form-section {
-  margin-bottom: 2rem;
+  margin-bottom: var(--spacing-8);
 }
 
 .section-title {
-  font-size: 1.125rem;
-  font-weight: 600;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
   color: var(--gray-800);
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
+  margin-bottom: var(--spacing-4);
+  padding-bottom: var(--spacing-2);
   border-bottom: 1px solid var(--gray-200);
-}
-
-.error-message {
-  background: linear-gradient(135deg, #fee2e2, #fecaca);
-  border: 1px solid #fca5a5;
-  color: #dc2626;
-  padding: 0.75rem 1rem;
-  border-radius: var(--border-radius);
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  animation: slideDown 0.3s ease-out;
-}
-
-.error-message i {
-  flex-shrink: 0;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-4);
 }
 
-.form-group {
-  margin-bottom: 1rem;
+.form-help {
+  font-size: var(--font-size-xs);
+  color: var(--gray-500);
+  margin-top: var(--spacing-1);
+  line-height: var(--line-height-tight);
 }
 
-.form-label {
-  display: block;
-  font-weight: 500;
+.checkbox-group {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-4);
+}
+
+.checkbox-group input[type="checkbox"] {
+  margin-top: 0.25rem;
+  flex-shrink: 0;
+}
+
+.checkbox-label {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
   color: var(--gray-700);
-  margin-bottom: 0.5rem;
-  font-size: 0.875rem;
 }
 
-.input-group {
-  position: relative;
+.checkbox-label a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: var(--transition-fast);
 }
 
-.input-icon {
-  position: absolute;
-  left: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--gray-400);
-  z-index: 1;
-}
-
-.form-input {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  padding-left: 2.5rem;
-  border: 1px solid var(--gray-300);
-  border-radius: var(--border-radius);
-  font-size: 1rem;
-  transition: all 0.3s ease;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: var(--primary-purple);
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+.checkbox-label a:hover {
+  text-decoration: underline;
+  color: var(--primary-dark);
 }
 
 .password-toggle {
   position: absolute;
-  right: 0.75rem;
+  right: var(--spacing-3);
   top: 50%;
   transform: translateY(-50%);
   background: none;
@@ -501,116 +413,25 @@ export default {
   color: var(--gray-400);
   cursor: pointer;
   z-index: 1;
+  padding: var(--spacing-1);
+  border-radius: var(--border-radius-sm);
+  transition: var(--transition-fast);
 }
 
 .password-toggle:hover {
   color: var(--gray-600);
+  background: var(--gray-100);
 }
 
-.form-help {
-  font-size: 0.75rem;
-  color: var(--gray-500);
-  margin-top: 0.25rem;
-}
-
-.checkbox-group {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.checkbox-group input[type="checkbox"] {
-  margin-top: 0.25rem;
-}
-
-.checkbox-label {
-  font-size: 0.875rem;
-  line-height: 1.4;
-}
-
-.checkbox-label a {
-  color: var(--primary-purple);
-  text-decoration: none;
-}
-
-.checkbox-label a:hover {
-  text-decoration: underline;
-}
-
-.divider {
-  position: relative;
-  margin: 1.5rem 0;
-  text-align: center;
-}
-
-.divider::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: var(--gray-300);
-}
-
-.divider span {
-  background: var(--white);
-  padding: 0 1rem;
-  color: var(--gray-500);
-  font-size: 0.875rem;
-}
-
-.social-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.social-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem;
-  border: 1px solid var(--gray-300);
-  border-radius: var(--border-radius);
-  text-decoration: none;
-  color: var(--gray-700);
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-.social-btn:hover {
-  background: var(--gray-50);
-  border-color: var(--gray-400);
-}
-
-.google-icon {
-  width: 1rem;
-  height: 1rem;
-}
-
-.auth-footer {
-  text-align: center;
-  padding: 1rem 2rem;
-  border-top: 1px solid var(--gray-200);
-  font-size: 0.875rem;
-}
-
-.auth-footer a {
-  color: var(--primary-purple);
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.auth-footer a:hover {
-  text-decoration: underline;
-}
-
+/* Responsive adjustments */
 @media (max-width: 768px) {
   .form-row {
     grid-template-columns: 1fr;
+    gap: var(--spacing-3);
+  }
+  
+  .auth-card--wide {
+    margin: var(--spacing-2);
   }
 }
 </style>

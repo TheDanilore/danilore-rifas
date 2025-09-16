@@ -10,6 +10,14 @@
   --secondary-color: #10b981;
   --accent-color: #f59e0b;
   
+  /* Colores basados en el logo */
+  --primary-purple: #5B2C87;  /* Púrpura principal del logo */
+  --primary-blue: #4F46E5;    /* Azul más suave y moderno */
+  --primary-indigo: #6366F1;  /* Indigo complementario */
+  --primary-gold: #D97706;    /* Dorado más sutil */
+  --accent-yellow: #F59E0B;   /* Amarillo accent */
+  --accent-orange: #EA580C;   /* Naranja suave */
+  
   /* Colores de estado */
   --success-color: #10b981;
   --success-light: #d1fae5;
@@ -150,6 +158,18 @@
   --admin-primary-light: #5eead4;
   --admin-sidebar-width: 256px;
   --admin-header-height: 64px;
+  
+  /* Public/User theme specific */
+  --header-height: 70px;
+  --footer-height: 200px;
+  --navbar-height: 60px;
+  
+  /* Backgrounds */
+  --background-primary: #ffffff;
+  --background-secondary: #f8fafc;
+  --background-tertiary: #f1f5f9;
+  --background-dark: #1e293b;
+  --background-gradient: linear-gradient(135deg, #faf5ff 0%, #f3f4f6 50%, #fef3c7 100%);
 }
 
 /* Dark mode support */

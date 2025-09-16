@@ -3,8 +3,14 @@ import App from './App.vue'
 import router from './router'
 import { useAuthStore } from './store/auth'
 
-// Importar estilos globales
+// Importar estilos globales en el orden correcto
 import '@/assets/styles/main.css'
+import '@/assets/styles/components/layout.css'
+import '@/assets/styles/components/hero.css'
+import '@/assets/styles/components/navigation.css'
+import '@/assets/styles/components/forms.css'
+import '@/assets/styles/components/auth.css'
+import '@/assets/styles/components/store.css'
 import '@/assets/styles/components/admin.css'
 
 // Configurar feature flags para evitar warnings

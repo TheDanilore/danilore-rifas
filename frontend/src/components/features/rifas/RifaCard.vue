@@ -1,34 +1,36 @@
 <template>
-  <div class="rifa-card" :class="{ 'rifa-card--blocked': rifa.isPreview, 'rifa-card--preview': rifa.isPreview }" @click="navigateToDetail">
-    <div class="rifa-image">
+  <div class="rifa-card rifa-card-enhanced"
+    :class="{ 'rifa-card--blocked': rifa.isPreview, 'rifa-card--preview': rifa.isPreview }" @click="navigateToDetail">
+    <div class="rifa-image rifa-image-enhanced">
       <img :src="rifa.imagen" :alt="rifa.nombre" @error="handleImageError">
-      <div class="rifa-status" :class="`status-${rifa.estado}`">
+      <div class="rifa-status rifa-status-enhanced" :class="`status-${rifa.estado}`">
         {{ getEstadoTexto(rifa.estado) }}
       </div>
       <div v-if="rifa.isPreview" class="rifa-lock-overlay">
         <i class="fas fa-lock"></i>
         <span>Próximamente</span>
       </div>
-      <div class="rifa-price" :class="{ 'price-disabled': rifa.isPreview }">
+      <div class="rifa-price rifa-price-badge" :class="{ 'price-disabled': rifa.isPreview }">
         S/ {{ rifa.precio }}
       </div>
     </div>
 
-    <div class="rifa-content">
-      <h3 class="rifa-title" :class="{ 'title-disabled': rifa.isPreview }">{{ rifa.nombre }}</h3>
-      
-      <div class="rifa-progress" :class="{ 'progress-disabled': rifa.isPreview }">
-        <div class="progress-info">
-          <span class="progress-label">Progreso</span>
-          <span class="progress-value">{{ rifa.ticketsVendidos }}/{{ rifa.ticketsMinimos }}</span>
+    <div class="rifa-content rifa-content-enhanced">
+      <h3 class="rifa-title rifa-title-enhanced" :class="{ 'title-disabled': rifa.isPreview }">{{ rifa.nombre }}</h3>
+
+      <div class="rifa-progress rifa-progress-enhanced" :class="{ 'progress-disabled': rifa.isPreview }">
+        <div class="progress-header">
+          <span class="progress-label progress-label-enhanced">Progreso</span>
+          <span class="progress-value progress-value-enhanced">{{ rifa.ticketsVendidos }}/{{ rifa.ticketsMinimos
+          }}</span>
         </div>
-        <div class="progress-bar">
-          <div class="progress-fill" :style="{ width: progressPercentage + '%' }"></div>
+        <div class="progress-bar progress-bar-enhanced">
+          <div class="progress-fill progress-fill-enhanced" :style="{ width: progressPercentage + '%' }"></div>
         </div>
         <p class="progress-message">{{ getMensajeMotivacional(rifa) }}</p>
       </div>
 
-      <div class="rifa-meta">
+      <div class="rifa-meta rifa-meta-enhanced">
         <div class="rifa-prizes">
           <i class="fas fa-star"></i>
           <span>Premios: {{ rifa.premiosDesbloqueados || 0 }}/{{ rifa.totalPremios }}</span>
@@ -39,13 +41,10 @@
         </div>
       </div>
 
-      <div class="rifa-action">
-        <button 
-          class="btn rifa-btn" 
-          :class="{ 'btn-disabled': rifa.isPreview }"
+      <div class="rifa-action rifa-action-enhanced">
+        <button class="btn rifa-btn rifa-btn-enhanced" :class="{ 'btn-disabled': rifa.isPreview }"
           :disabled="rifa.estado === 'cancelada' || rifa.estado === 'sorteada' || rifa.isPreview"
-          @click.stop="handleAction"
-        >
+          @click.stop="handleAction">
           {{ rifa.isPreview ? '🔒 Bloqueada' : getButtonText(rifa.estado) }}
         </button>
       </div>

@@ -2,7 +2,11 @@
    ADMIN CSS COMPARTIDO - DANILORE RIFAS
    ========================================================================== */
 
-/* Variables CSS Globales para Admin */
+/* NOTA: Importa variables.css primero para usar variables globales como:
+   --admin-sidebar-width, --admin-header-height, etc.
+   Las variables locales complementan las globales para casos específicos. */
+
+/* Variables CSS Locales adicionales para Admin */
 :root {
   /* Colores principales - Tema Teal/Emerald/Cyan */
   --admin-primary-teal: #14b8a6;

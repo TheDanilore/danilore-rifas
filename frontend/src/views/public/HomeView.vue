@@ -3,18 +3,31 @@
     <AppHeader />
     
     <!-- Hero Section -->
-    <section class="hero">
+    <section class="hero hero-enhanced">
       <div class="hero-bg"></div>
       <div class="container">
-        <div class="hero-content">
-          <div class="hero-icons">
-            <i class="fas fa-trophy trophy-icon"></i>
-            <h1 class="hero-title">Danilore Rifas</h1>
-            <i class="fas fa-trophy trophy-icon"></i>
+        <div class="hero-content hero-content-enhanced">
+          <div class="hero-badge">
+            <i class="fas fa-star"></i>
+            <span>¡Nueva temporada de rifas!</span>
           </div>
-          <p class="hero-subtitle">
+          
+          <h1 class="hero-title hero-title-enhanced">Danilore Rifas</h1>
+          <p class="hero-subtitle hero-subtitle-enhanced">
             🎉 Participa, gana y celebra desde <span class="price-highlight">S/2</span>
           </p>
+          
+          <div class="hero-cta-group">
+            <a href="#rifa-actual" class="cta-primary">
+              <i class="fas fa-rocket"></i>
+              Ver Rifas Activas
+            </a>
+            <router-link to="/como-funciona" class="cta-secondary">
+              <i class="fas fa-info-circle"></i>
+              ¿Cómo Funciona?
+            </router-link>
+          </div>
+          
           <div class="hero-features">
             <div class="feature-badge">
               <i class="fas fa-bolt"></i>
@@ -37,11 +50,11 @@
     <section id="rifa-actual" class="rifa-actual-section">
       <div class="container">
         <!-- Filtros -->
-        <div class="filters">
+        <div class="filters filters-enhanced">
           <button 
             v-for="filter in filters" 
             :key="filter.value"
-            class="filter-btn" 
+            class="filter-btn filter-btn-enhanced" 
             :class="{ active: currentFilter === filter.value }"
             @click="setFilter(filter.value)"
           >
@@ -50,23 +63,26 @@
           </button>
         </div>
 
-        <div v-if="loading" class="loading-state">
+        <div v-if="loading" class="loading-state loading-state-enhanced">
           <i class="fas fa-spinner fa-spin"></i>
-          <p>Cargando rifas...</p>
+          <h3 class="state-title">Cargando rifas...</h3>
+          <p class="state-message">Estamos buscando las mejores rifas para ti</p>
         </div>
 
-        <div v-else-if="error" class="error-state">
+        <div v-else-if="error" class="error-state error-state-enhanced">
           <i class="fas fa-exclamation-triangle"></i>
-          <p>Error al cargar las rifas: {{ error }}</p>
-          <button class="btn btn-primary" @click="loadRifas">Reintentar</button>
+          <h3 class="state-title">¡Ups! Algo salió mal</h3>
+          <p class="state-message">Error al cargar las rifas: {{ error }}</p>
+          <button class="btn btn-primary cta-primary" @click="loadRifas" style="margin-top: var(--spacing-4);">
+            <i class="fas fa-redo"></i>
+            Reintentar
+          </button>
         </div>
 
-        <div v-else-if="filteredRifas.length === 0" class="empty-state">
-          <div class="empty-icon">
-            <i class="fas fa-search"></i>
-          </div>
-          <h3>No hay rifas disponibles</h3>
-          <p>No se encontraron rifas para el filtro seleccionado.</p>
+        <div v-else-if="filteredRifas.length === 0" class="empty-state empty-state-enhanced">
+          <i class="fas fa-search"></i>
+          <h3 class="state-title">No hay rifas disponibles</h3>
+          <p class="state-message">No se encontraron rifas para el filtro seleccionado. Prueba con otro filtro o vuelve más tarde.</p>
         </div>
 
         <!-- Mostrar rifas según el filtro -->
@@ -333,11 +349,11 @@
 
           <!-- Para rifas futuras, mostrar solo las rifas -->
           <div v-else class="rifas-futuras-container">
-            <div class="rifas-grid">
+            <div class="rifas-grid rifas-grid-enhanced">
               <div 
                 v-for="rifa in filteredRifas" 
                 :key="rifa.id"
-                class="rifa-card"
+                class="rifa-card rifa-card-enhanced"
                 @click="handleRifaClick(rifa)"
               >
                 <!-- Imagen de la rifa -->

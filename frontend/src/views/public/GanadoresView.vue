@@ -3,7 +3,7 @@
     <AppHeader />
 
     <!-- Hero Section -->
-    <section class="hero">
+    <section class="hero hero-enhanced hero-secondary">
       <div class="hero-bg"></div>
       <div class="container">
         <div class="hero-content">

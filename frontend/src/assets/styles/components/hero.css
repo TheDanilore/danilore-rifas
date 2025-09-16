@@ -1,0 +1,177 @@
+/* ==========================================================================
+   ESTILOS BASE DE HERO SECTIONS - DANILORE RIFAS
+   ========================================================================== */
+
+/* Estilos base para todas las secciones hero de la aplicación */
+
+/* ==========================================================================
+   HERO BASE
+   ========================================================================== */
+
+.hero {
+  position: relative;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(249, 250, 251, 0.9) 100%
+  );
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%236366f1' fill-opacity='0.03'%3E%3Ccircle cx='20' cy='20' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  width: 100%;
+  padding: var(--spacing-12) 0;
+}
+
+.hero-title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  margin-bottom: var(--spacing-4);
+  color: var(--gray-900);
+}
+
+.hero-subtitle {
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  color: var(--gray-600);
+  margin-bottom: var(--spacing-6);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: var(--line-height-relaxed);
+}
+
+.hero-description {
+  font-size: var(--font-size-lg);
+  color: var(--gray-600);
+  margin-bottom: var(--spacing-8);
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: var(--line-height-relaxed);
+}
+
+/* ==========================================================================
+   HERO VARIANTES ESPECÍFICAS
+   ========================================================================== */
+
+/* Hero para páginas secundarias */
+.hero-secondary {
+  min-height: 300px;
+  background: linear-gradient(135deg, 
+    rgba(91, 44, 135, 0.05) 0%,
+    rgba(79, 70, 229, 0.05) 100%
+  );
+}
+
+.hero-secondary .hero-title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  color: var(--primary-color);
+}
+
+/* Hero para páginas de contenido */
+.hero-content-page {
+  min-height: 250px;
+  background: linear-gradient(135deg, 
+    rgba(249, 250, 251, 0.9) 0%,
+    rgba(255, 255, 255, 0.9) 100%
+  );
+}
+
+.hero-content-page .hero-content {
+  padding: var(--spacing-8) 0;
+}
+
+/* Hero para páginas de admin */
+.hero-admin {
+  background: linear-gradient(135deg, 
+    rgba(91, 44, 135, 0.1) 0%,
+    rgba(79, 70, 229, 0.1) 100%
+  );
+  border-bottom: 1px solid rgba(91, 44, 135, 0.2);
+}
+
+/* Hero para dashboard de usuario */
+.hero-dashboard {
+  background: linear-gradient(135deg, 
+    rgba(16, 185, 129, 0.05) 0%,
+    rgba(59, 130, 246, 0.05) 100%
+  );
+}
+
+/* ==========================================================================
+   ELEMENTOS DECORATIVOS
+   ========================================================================== */
+
+.hero-decoration {
+  position: absolute;
+  inset: 0;
+  opacity: 0.1;
+  z-index: 1;
+  background: radial-gradient(circle at 30% 20%, var(--primary-color) 0%, transparent 50%),
+              radial-gradient(circle at 80% 80%, var(--secondary-color) 0%, transparent 50%),
+              radial-gradient(circle at 40% 40%, var(--accent-yellow) 0%, transparent 50%);
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: inherit;
+}
+
+/* ==========================================================================
+   RESPONSIVE HERO
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .hero {
+    min-height: 300px;
+  }
+  
+  .hero-content {
+    padding: var(--spacing-8) 0;
+  }
+  
+  .hero-secondary,
+  .hero-content-page {
+    min-height: 200px;
+  }
+  
+  .hero-secondary .hero-content,
+  .hero-content-page .hero-content {
+    padding: var(--spacing-6) 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    min-height: 250px;
+  }
+  
+  .hero-content {
+    padding: var(--spacing-6) 0;
+  }
+  
+  .hero-title {
+    margin-bottom: var(--spacing-3);
+  }
+  
+  .hero-subtitle {
+    margin-bottom: var(--spacing-4);
+  }
+}

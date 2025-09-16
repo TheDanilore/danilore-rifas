@@ -1,53 +1,67 @@
 <template>
-  <header class="header">
-    <div class="container">
-      <div class="header-content">
-        <router-link to="/" class="logo">
-          <img src="@/assets/images/logo-sin-fondo.png" alt="Logo" height="75px">
-        </router-link>
-
-        <nav class="nav-desktop">
-          <router-link to="/">Inicio</router-link>
-          <router-link to="/ganadores">Ganadores</router-link>
-          <router-link to="/como-funciona">Cómo Funciona</router-link>
-          <router-link to="/terminos-condiciones">Términos</router-link>
-        </nav>
-
-        <div class="header-actions">
-          <div v-if="!isAuthenticated" class="auth-buttons">
-            <router-link to="/login" class="btn btn-outline">Iniciar Sesión</router-link>
-            <router-link to="/register" class="btn btn-primary">Registrarse</router-link>
-          </div>
-          
-          <div v-else class="user-menu">
-            <button class="user-button" @click="toggleDropdown">
-              <div class="user-avatar">
-                <i class="fas fa-user"></i>
-              </div>
-              <span>{{ user?.nombre || 'Usuario' }}</span>
-              <i class="fas fa-chevron-down"></i>
-            </button>
-            <div class="dropdown-menu" :class="{ show: showDropdown }">
-              <router-link to="/dashboard" @click="closeDropdown">
-                <i class="fas fa-user"></i> Mi Perfil
-              </router-link>
-              <router-link to="/dashboard" @click="closeDropdown">
-                <i class="fas fa-ticket-alt"></i> Mis Rifas
-              </router-link>
-              <router-link to="/dashboard" @click="closeDropdown">
-                <i class="fas fa-history"></i> Historial
-              </router-link>
-              <hr>
-              <a href="#" @click="handleLogout">
-                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-              </a>
-            </div>
-          </div>
-
-          <button class="mobile-menu-btn" @click="toggleMobileMenu">
-            <i class="fas fa-bars"></i>
-          </button>
+  <header class="header app-header" :class="{ scrolled: isScrolled }">
+    <div class="container header-container">
+      <router-link to="/" class="logo logo-enhanced">
+        <div class="logo-icon">
+          <i class="fas fa-trophy"></i>
         </div>
+        <div class="logo-content">
+          <h1 class="logo-text">Danilore</h1>
+          <p class="logo-subtitle">Rifas</p>
+        </div>
+      </router-link>
+
+      <nav class="nav-desktop main-nav">
+        <ul class="nav-links">
+          <li><router-link to="/" class="nav-link"><i class="fas fa-home"></i>Inicio</router-link></li>
+          <li><router-link to="/ganadores" class="nav-link"><i class="fas fa-crown"></i>Ganadores</router-link></li>
+          <li><router-link to="/como-funciona" class="nav-link"><i class="fas fa-question-circle"></i>Cómo
+              Funciona</router-link></li>
+          <li><router-link to="/terminos-condiciones" class="nav-link"><i
+                class="fas fa-file-contract"></i>Términos</router-link></li>
+        </ul>
+      </nav>
+
+      <div class="header-actions">
+        <div v-if="!isAuthenticated" class="auth-buttons">
+          <router-link to="/login" class="login-btn">
+            <i class="fas fa-sign-in-alt"></i>
+            Iniciar Sesión
+          </router-link>
+          <router-link to="/register" class="register-btn">
+            <i class="fas fa-user-plus"></i>
+            Registrarse
+          </router-link>
+        </div>
+
+        <div v-else class="user-menu">
+          <button class="user-button" @click="toggleDropdown">
+            <div class="user-avatar">
+              <i class="fas fa-user"></i>
+            </div>
+            <span>{{ user?.nombre || 'Usuario' }}</span>
+            <i class="fas fa-chevron-down"></i>
+          </button>
+          <div class="dropdown-menu" :class="{ show: showDropdown }">
+            <router-link to="/dashboard" @click="closeDropdown">
+              <i class="fas fa-user"></i> Mi Perfil
+            </router-link>
+            <router-link to="/dashboard" @click="closeDropdown">
+              <i class="fas fa-ticket-alt"></i> Mis Rifas
+            </router-link>
+            <router-link to="/dashboard" @click="closeDropdown">
+              <i class="fas fa-history"></i> Historial
+            </router-link>
+            <hr>
+            <a href="#" @click="handleLogout">
+              <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+            </a>
+          </div>
+        </div>
+
+        <button class="mobile-menu-btn" @click="toggleMobileMenu">
+          <i class="fas fa-bars"></i>
+        </button>
       </div>
     </div>
 
@@ -65,7 +79,7 @@
         <router-link to="/ganadores" @click="closeMobileMenu">Ganadores</router-link>
         <router-link to="/como-funciona" @click="closeMobileMenu">Cómo Funciona</router-link>
         <router-link to="/terminos-condiciones" @click="closeMobileMenu">Términos</router-link>
-        
+
         <div v-if="!isAuthenticated" class="mobile-auth">
           <router-link to="/login" class="btn btn-outline" @click="closeMobileMenu">
             Iniciar Sesión
@@ -74,7 +88,7 @@
             Registrarse
           </router-link>
         </div>
-        
+
         <div v-else class="mobile-user">
           <div class="mobile-user-info">
             <i class="fas fa-user"></i>
@@ -91,7 +105,7 @@
 </template>
 
 <script>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/store/auth'
 
 export default {
@@ -100,6 +114,11 @@ export default {
     const { isAuthenticated, user, logout } = useAuthStore()
     const showDropdown = ref(false)
     const showMobileMenu = ref(false)
+    const isScrolled = ref(false)
+
+    const handleScroll = () => {
+      isScrolled.value = window.scrollY > 50
+    }
 
     const toggleDropdown = () => {
       showDropdown.value = !showDropdown.value
@@ -130,11 +149,26 @@ export default {
       showMobileMenu.value = false
     }
 
+    onMounted(() => {
+      window.addEventListener('scroll', handleScroll)
+      // Cerrar dropdown al hacer click fuera
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.user-menu')) {
+          showDropdown.value = false
+        }
+      })
+    })
+
+    onUnmounted(() => {
+      window.removeEventListener('scroll', handleScroll)
+    })
+
     return {
       isAuthenticated,
       user,
       showDropdown,
       showMobileMenu,
+      isScrolled,
       toggleDropdown,
       closeDropdown,
       toggleMobileMenu,
@@ -354,8 +388,13 @@ export default {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 /* Forzar que esté oculto en desktop */
@@ -485,7 +524,7 @@ export default {
   .mobile-menu {
     display: block;
   }
-  
+
   .header-content {
     position: relative;
   }
