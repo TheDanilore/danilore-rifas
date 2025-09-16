@@ -1,10 +1,10 @@
 /* ==========================================================================
-   ESTILOS DE FORMULARIOS - DANILORE RIFAS
+   ESTILOS DE FORMULARIOS MEJORADOS - DANILORE RIFAS
    ========================================================================== */
 
 /* Form Group */
 .form-group {
-  margin-bottom: var(--spacing-6);
+  margin-bottom: 1rem;
 }
 
 .form-group:last-child {
@@ -14,44 +14,47 @@
 /* Labels */
 .form-label {
   display: block;
-  margin-bottom: var(--spacing-2);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--gray-700);
-  line-height: var(--line-height-tight);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
 }
 
 .form-label.required::after {
   content: ' *';
-  color: var(--error-color);
+  color: #ef4444;
 }
 
-/* Inputs */
+/* Input Groups ya están definidos en auth.css */
+
+/* Inputs mejorados */
 .form-input {
-  display: block;
   width: 100%;
-  padding: var(--spacing-3) var(--spacing-4);
-  font-size: var(--font-size-base);
-  line-height: var(--line-height-normal);
-  color: var(--gray-800);
-  background-color: var(--white);
-  border: var(--border-width-1) solid var(--gray-300);
-  border-radius: var(--border-radius-md);
-  transition: var(--transition-fast);
+  padding: 0.875rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  background: white;
+  transition: all 0.2s ease;
+  color: #374151;
+  font-family: inherit;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
+
 .form-input:disabled {
-  background-color: var(--gray-100);
-  color: var(--gray-500);
+  background-color: #f9fafb;
+  color: #9ca3af;
   cursor: not-allowed;
 }
 
+/* Resto de estilos de forms */
 .form-input.error {
   border-color: var(--error-color);
 }

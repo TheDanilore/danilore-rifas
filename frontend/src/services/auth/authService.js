@@ -8,15 +8,20 @@ export class AuthService {
     try {
       console.log('Datos enviados para registro:', userData)
       const response = await apiClient.post('/auth/register', {
-        name: userData.nombre,
+        nombres: userData.nombres,
+        apellidos: userData.apellidos,
+        telefono: userData.telefono, // Enviar con el nombre correcto que espera el backend
         email: userData.email,
         password: userData.password,
-        password_confirmation: userData.password_confirmation,
-        telefono: userData.telefono,
         tipo_documento: userData.tipo_documento,
         numero_documento: userData.numero_documento,
         fecha_nacimiento: userData.fecha_nacimiento,
-        genero: userData.genero
+        genero: userData.genero,
+        direccion: userData.direccion,
+        ciudad: userData.ciudad,
+        departamento: userData.departamento,
+        codigo_postal: userData.codigo_postal,
+        pais: userData.pais
       })
       
       console.log('Respuesta del registro:', response)
@@ -42,7 +47,7 @@ export class AuthService {
     try {
       console.log('Datos enviados para login:', credentials)
       const response = await apiClient.post('/auth/login', {
-        email: credentials.email,
+        identifier: credentials.identifier,
         password: credentials.password
       })
       

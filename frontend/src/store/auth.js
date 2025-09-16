@@ -139,11 +139,11 @@ export function useAuthStore() {
     try {
       // Llamar al servicio de registro real
       const user = await authService.register({
-        nombre: userData.nombre,
+        nombres: userData.nombres,
+        apellidos: userData.apellidos,
+        celular: userData.celular,
         email: userData.email,
         password: userData.password,
-        password_confirmation: userData.password_confirmation,
-        telefono: userData.telefono,
         tipo_documento: userData.tipo_documento,
         numero_documento: userData.numero_documento,
         fecha_nacimiento: userData.fecha_nacimiento,

@@ -27,14 +27,20 @@ class AuthController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'name' => 'required|string|max:255',
-                'email' => 'required|string|email|max:255|unique:users',
-                'password' => 'required|string|min:8|confirmed',
-                'telefono' => 'required|string|max:15',
-                'tipo_documento' => 'required|in:dni,ce,passport,ruc,otros',
-                'numero_documento' => 'required|string|max:20',
-                'fecha_nacimiento' => 'nullable|date',
-                'genero' => 'nullable|in:masculino,femenino,otro',
+                'nombres' => 'required|string|max:100',
+                'apellidos' => 'required|string|max:100',
+                'telefono' => 'required|string|max:20|unique:users,telefono', // Permitir más caracteres para códigos de país
+                'email' => 'sometimes|nullable|string|email|max:255|unique:users',
+                'password' => 'required|string|min:8',
+                'tipo_documento' => 'required|string|in:dni,ce,passport,ruc,otros',
+                'numero_documento' => 'required|string|max:20|unique:users,numero_documento',
+                'fecha_nacimiento' => 'required|date|before:today',
+                'genero' => 'required|string|in:masculino,femenino,otro,no_especificar',
+                'direccion' => 'sometimes|nullable|string|max:500',
+                'ciudad' => 'sometimes|nullable|string|max:100',
+                'departamento' => 'sometimes|nullable|string|max:100',
+                'codigo_postal' => 'sometimes|nullable|string|max:10',
+                'pais' => 'sometimes|string|max:3',
                 'device_name' => 'sometimes|string|max:255'
             ]);
 
@@ -46,15 +52,25 @@ class AuthController extends Controller
                 ], 422);
             }
 
+            // Combinar nombres y apellidos para el campo name
+            $fullName = trim($request->nombres . ' ' . $request->apellidos);
+
             $user = User::create([
-                'name' => $request->name,
+                'name' => $fullName,
+                'nombre' => $request->nombres,
+                'apellido' => $request->apellidos,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'telefono' => $request->telefono,
+                'telefono' => $request->telefono, // Ya viene con código de país desde frontend
                 'tipo_documento' => $request->tipo_documento,
                 'numero_documento' => $request->numero_documento,
                 'fecha_nacimiento' => $request->fecha_nacimiento,
                 'genero' => $request->genero,
+                'direccion' => $request->direccion,
+                'ciudad' => $request->ciudad,
+                'departamento' => $request->departamento,
+                'codigo_postal' => $request->codigo_postal,
+                'pais' => $request->pais ?? 'PE',
                 'activo' => true,
                 'ultimo_acceso' => now()
             ]);
@@ -116,7 +132,7 @@ class AuthController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'email' => 'required|email',
+                'email' => 'required|string', // Cambiado para permitir email o teléfono
                 'password' => 'required|string',
                 'device_name' => 'sometimes|string|max:255'
             ]);
@@ -129,11 +145,23 @@ class AuthController extends Controller
                 ], 422);
             }
 
-            $user = User::where('email', $request->email)->first();
+            // Determinar si es email o teléfono
+            $loginField = $request->email;
+            $isEmail = filter_var($loginField, FILTER_VALIDATE_EMAIL);
+            
+            // Buscar usuario por email o teléfono
+            $user = null;
+            if ($isEmail) {
+                $user = User::where('email', $loginField)->first();
+            } else {
+                // Buscar por teléfono (puede estar en campo 'telefono')
+                $user = User::where('telefono', $loginField)->first();
+            }
 
             if (!$user || !Hash::check($request->password, $user->password)) {
                 Log::warning('Intento de login fallido', [
-                    'email' => $request->email,
+                    'login_field' => $loginField,
+                    'is_email' => $isEmail,
                     'ip' => $request->ip(),
                     'user_agent' => $request->userAgent()
                 ]);
