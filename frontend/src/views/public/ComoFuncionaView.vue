@@ -435,14 +435,12 @@ export default {
 .info-icon {
   font-size: 2.5rem;
   color: #60a5fa;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
 }
 
 .hero-title {
   font-size: clamp(2.5rem, 5vw, 4rem);
   font-weight: 700;
   margin: 0;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .hero-subtitle {

@@ -9,7 +9,7 @@
         <div class="hero-content">
           <div class="hero-icons">
             <i class="fas fa-crown crown-icon"></i>
-            <h1 class="hero-title">🏆 Ganadores</h1>
+            <h1 class="hero-title">Ganadores</h1>
             <i class="fas fa-crown crown-icon"></i>
           </div>
           <p class="hero-subtitle">
@@ -343,7 +343,7 @@ export default {
 
 .crown-icon {
   font-size: 2.5rem;
-  color: #fef3c7;
+  color: #fff460;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
 }
 
@@ -351,7 +351,6 @@ export default {
   font-size: clamp(2.5rem, 5vw, 4rem);
   font-weight: 700;
   margin: 0;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .hero-subtitle {

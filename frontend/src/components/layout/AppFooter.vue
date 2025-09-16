@@ -54,8 +54,7 @@
       </div>
 
       <div class="footer-bottom">
-        <p>&copy; {{ currentYear }} Danilore Rifas. Todos los derechos reservados.</p>
-        <p>Rifas realizadas con total transparencia</p>
+        <p>&copy; {{ currentYear }} Danilore Rifas. Todos los derechos reservados. Rifas realizadas con total transparencia</p>
       </div>
     </div>
   </footer>

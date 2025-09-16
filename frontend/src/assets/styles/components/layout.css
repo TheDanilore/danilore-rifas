@@ -164,13 +164,14 @@
 }
 
 .footer-bottom {
-  border-top: var(--border-width-1) solid var(--gray-700);
-  padding-top: var(--spacing-8);
-  display: flex;
-  justify-content: between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--spacing-4);
+    border-top: var(--border-width-1) solid var(--gray-700);
+    padding-top: var(--spacing-8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-4);
+    flex-direction: column;
 }
 
 .footer-copy {

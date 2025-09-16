@@ -203,22 +203,56 @@ export default {
   align-items: center;
   gap: 0.5rem;
   text-decoration: none;
+  transition: opacity 0.3s ease;
+}
+
+.logo:hover {
+  opacity: 0.8;
+}
+
+.logo-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .logo-icon {
-  background: linear-gradient(135deg, var(--primary-purple), var(--accent-purple));
+  background: linear-gradient(135deg, var(--primary-purple, #6366f1), var(--accent-purple, #8b5cf6));
   padding: 0.5rem;
-  border-radius: var(--border-radius);
-  color: var(--white);
+  border-radius: var(--border-radius, 8px);
+  color: var(--white, #ffffff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
 }
 
 .logo-text {
   font-size: 1.25rem;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--primary-purple), var(--accent-blue));
+  color: #6366f1; /* Fallback color */
+  background: linear-gradient(135deg, var(--primary-purple, #6366f1), var(--accent-blue, #3b82f6));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  margin: 0;
+  line-height: 1.2;
+}
+
+/* Fallback para navegadores que no soportan background-clip */
+@supports not (-webkit-background-clip: text) {
+  .logo-text {
+    color: #6366f1 !important;
+    background: none !important;
+  }
+}
+
+.logo-subtitle {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1;
+  font-weight: 500;
 }
 
 /* DESKTOP FIRST - SOLUCIÓN DEFINITIVA */

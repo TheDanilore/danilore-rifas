@@ -353,10 +353,11 @@
 
                                 <div class="warning-box">
                                     <i class="fas fa-clock"></i>
-                                    <strong>Plazo para reclamar:</strong> Los ganadores tienen 7 días para reclamar su premio. Pasado este plazo, el
-                                        premio se le entrega al segundo lugar. Si no se contacta con el segundo lugar,
-                                        el premio se entrega al tercer lugar. Si no se contacta con el tercer lugar, el
-                                        premio se declara desierto.
+                                    <strong>Plazo para reclamar:</strong> Los ganadores tienen 7 días para reclamar su
+                                    premio. Pasado este plazo, el
+                                    premio se le entrega al segundo lugar. Si no se contacta con el segundo lugar,
+                                    el premio se entrega al tercer lugar. Si no se contacta con el tercer lugar, el
+                                    premio se declara desierto.
                                 </div>
                             </div>
                         </article>
@@ -713,14 +714,12 @@ export default {
 .contract-icon {
     font-size: 2.5rem;
     color: #60a5fa;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .hero-title {
     font-size: clamp(2.5rem, 5vw, 4rem);
     font-weight: 700;
     margin: 0;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .hero-subtitle {
@@ -729,13 +728,14 @@ export default {
     opacity: 0.9;
 }
 
-.last-update {
+.last-update[data-v-57ade856] {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
     font-size: 0.875rem;
     opacity: 0.8;
+    color: var(--gray-800);
 }
 
 /* Navegación Rápida */
@@ -1214,12 +1214,14 @@ export default {
     font-size: 2.5rem;
     font-weight: 700;
     margin-bottom: 1rem;
+    color: var(--gray-200);
 }
 
 .contact-content p {
     font-size: 1.125rem;
     margin-bottom: 3rem;
     opacity: 0.9;
+    color: var(--gray-200);
 }
 
 .contact-methods {

@@ -3,7 +3,7 @@ import App from './App.vue'
 import router from './router'
 import { useAuthStore } from './store/auth'
 
-// Importar estilos globales en el orden correcto
+// Importar estilos globales en el orden correcto - MAIN FIRST
 import '@/assets/styles/main.css'
 import '@/assets/styles/components/layout.css'
 import '@/assets/styles/components/hero.css'

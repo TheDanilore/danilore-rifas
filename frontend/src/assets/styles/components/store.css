@@ -5,7 +5,142 @@
 /* Estilos específicos para la experiencia de tienda de usuarios finales */
 
 /* ==========================================================================
-   HERO SECTIONS MEJORADAS
+   HERO SECTIONS MEJORADAS (SIN PREFIJO PARA FALLBACK)
+   ========================================================================== */
+
+.hero-enhanced {
+  background: linear-gradient(135deg, 
+    rgba(91, 44, 135, 0.1) 0%, 
+    rgba(79, 70, 229, 0.1) 25%,
+    rgba(16, 185, 129, 0.1) 50%,
+    rgba(245, 158, 11, 0.1) 75%,
+    rgba(236, 72, 153, 0.1) 100%
+  );
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-enhanced::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f59e0b' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+  pointer-events: none;
+}
+
+.hero-content-enhanced {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: var(--spacing-20) 0;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--primary-color);
+  margin-bottom: var(--spacing-6);
+  box-shadow: var(--shadow-sm);
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.hero-title-enhanced {
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  margin-bottom: var(--spacing-6);
+  background: linear-gradient(135deg, 
+    var(--primary-purple) 0%, 
+    var(--primary-blue) 25%,
+    var(--primary-indigo) 50%,
+    var(--accent-yellow) 75%,
+    var(--primary-gold) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  position: relative;
+}
+
+.hero-subtitle-enhanced {
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  color: var(--gray-700);
+  margin-bottom: var(--spacing-8);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: var(--line-height-relaxed);
+}
+
+.hero-cta-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+  justify-content: center;
+  margin-bottom: var(--spacing-12);
+}
+
+.cta-primary {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: var(--white);
+  padding: var(--spacing-4) var(--spacing-8);
+  border-radius: var(--border-radius-xl);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-lg);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-lg);
+  border: none;
+  cursor: pointer;
+}
+
+.cta-primary:hover {
+  background: linear-gradient(135deg, var(--primary-dark), #059669);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-2xl);
+  text-decoration: none;
+}
+
+.cta-secondary {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  color: var(--gray-800);
+  padding: var(--spacing-4) var(--spacing-8);
+  border-radius: var(--border-radius-xl);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-lg);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  transition: all var(--transition-normal);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.cta-secondary:hover {
+  background: var(--white);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  text-decoration: none;
+}
+
+/* ==========================================================================
+   HERO SECTIONS MEJORADAS (CON PREFIJO PARA ESPECIFICIDAD)
    ========================================================================== */
 
 .app-public .hero-enhanced {
@@ -140,7 +275,267 @@
 }
 
 /* ==========================================================================
-   TARJETAS DE RIFA MEJORADAS
+   TARJETAS DE RIFA MEJORADAS (SIN PREFIJO PARA FALLBACK)
+   ========================================================================== */
+
+.rifas-grid-enhanced {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--spacing-6);
+  margin-top: var(--spacing-8);
+}
+
+.rifa-card-enhanced {
+  background: var(--white);
+  border-radius: var(--border-radius-2xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-normal);
+  position: relative;
+  cursor: pointer;
+}
+
+.rifa-card-enhanced:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-2xl);
+}
+
+.rifa-image-enhanced {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
+.rifa-image-enhanced img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-slow);
+}
+
+.rifa-card-enhanced:hover .rifa-image-enhanced img {
+  transform: scale(1.05);
+}
+
+.rifa-status-enhanced {
+  position: absolute;
+  top: var(--spacing-3);
+  right: var(--spacing-3);
+  background: var(--success-color);
+  color: var(--white);
+  padding: var(--spacing-1) var(--spacing-3);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  z-index: 2;
+}
+
+.rifa-price-badge {
+  position: absolute;
+  bottom: var(--spacing-3);
+  left: var(--spacing-3);
+  background: rgba(0, 0, 0, 0.8);
+  color: var(--white);
+  padding: var(--spacing-2) var(--spacing-3);
+  border-radius: var(--border-radius-lg);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-lg);
+  z-index: 2;
+}
+
+.rifa-content-enhanced {
+  padding: var(--spacing-6);
+  position: relative;
+  z-index: 2;
+}
+
+.rifa-title-enhanced {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--gray-900);
+  margin-bottom: var(--spacing-3);
+  line-height: var(--line-height-tight);
+}
+
+.rifa-btn-enhanced {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: var(--white);
+  border: none;
+  padding: var(--spacing-3) var(--spacing-6);
+  border-radius: var(--border-radius-lg);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+}
+
+.rifa-btn-enhanced:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--primary-dark), #059669);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* FILTROS SIN PREFIJO */
+.filters-enhanced {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  justify-content: center;
+  margin-bottom: var(--spacing-8);
+  padding: var(--spacing-6);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  border-radius: var(--border-radius-2xl);
+  box-shadow: var(--shadow-sm);
+}
+
+.filter-btn-enhanced {
+  background: var(--white);
+  border: 1px solid var(--gray-300);
+  color: var(--gray-700);
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--border-radius-lg);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.filter-btn-enhanced:hover {
+  background: var(--gray-50);
+  border-color: var(--gray-400);
+  transform: translateY(-1px);
+}
+
+.filter-btn-enhanced.active {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: var(--white);
+  box-shadow: var(--shadow-md);
+}
+
+/* ESTADOS SIN PREFIJO */
+.loading-state-enhanced,
+.error-state-enhanced,
+.empty-state-enhanced {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-16) var(--spacing-8);
+  text-align: center;
+  min-height: 400px;
+}
+
+.state-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--gray-900);
+  margin-bottom: var(--spacing-3);
+}
+
+.state-message {
+  font-size: var(--font-size-lg);
+  color: var(--gray-600);
+  max-width: 400px;
+  line-height: var(--line-height-relaxed);
+}
+
+/* PROGRESS BARS SIN PREFIJO */
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-2);
+}
+
+.progress-label-enhanced {
+  font-size: var(--font-size-sm);
+  color: var(--gray-600);
+  font-weight: var(--font-weight-medium);
+}
+
+.progress-value-enhanced {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--primary-color);
+}
+
+.progress-bar-enhanced {
+  height: 8px;
+  background: var(--gray-200);
+  border-radius: var(--border-radius-full);
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill-enhanced {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+  border-radius: var(--border-radius-full);
+  transition: width var(--transition-slow);
+  position: relative;
+}
+
+.progress-fill-enhanced::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.3) 50%, 
+    transparent 100%
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.rifa-meta-enhanced {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-4);
+  font-size: var(--font-size-sm);
+}
+
+.rifa-prizes {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  color: var(--accent-yellow);
+  font-weight: var(--font-weight-medium);
+}
+
+.rifa-date {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  color: var(--gray-500);
+}
+
+.rifa-action-enhanced {
+  text-align: center;
+}
+
+.rifa-progress-enhanced {
+  margin-bottom: var(--spacing-4);
+}
+
+/* ==========================================================================
+   TARJETAS DE RIFA MEJORADAS (CON PREFIJO PARA ESPECIFICIDAD)
    ========================================================================== */
 
 .app-public .rifas-grid-enhanced {
