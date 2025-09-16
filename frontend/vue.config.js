@@ -3,11 +3,11 @@ module.exports = defineConfig({
   transpileDependencies: true,
   lintOnSave: false, // Desactivar ESLint en desarrollo
   devServer: {
-    port: 8080,
-    host: 'localhost',
+    port: 80,
+    host: '0.0.0.0',
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://backend:8000',
         changeOrigin: true,
         secure: false,
         logLevel: 'debug'
