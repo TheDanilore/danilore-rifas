@@ -22,7 +22,10 @@ class UsersSeeder extends Seeder
             'password' => Hash::make('SuperAdmin123!'),
             'telefono' => '51999999999',
             'pais' => 'PE',
+            'activo' => true,
+            'verificado' => true,
             'email_verified_at' => now(),
+            'ultimo_acceso' => now(),
         ]);
         $superAdmin->assignRole('super_admin');
 
@@ -35,7 +38,10 @@ class UsersSeeder extends Seeder
             'password' => Hash::make('Admin123!'),
             'telefono' => '51988888888',
             'pais' => 'PE',
+            'activo' => true,
+            'verificado' => true,
             'email_verified_at' => now(),
+            'ultimo_acceso' => now(),
         ]);
         $admin->assignRole('admin');
 
@@ -48,7 +54,10 @@ class UsersSeeder extends Seeder
             'password' => Hash::make('Moderador123!'),
             'telefono' => '51977777777',
             'pais' => 'PE',
+            'activo' => true,
+            'verificado' => true,
             'email_verified_at' => now(),
+            'ultimo_acceso' => now(),
         ]);
         $moderador->assignRole('moderador');
 
@@ -61,7 +70,10 @@ class UsersSeeder extends Seeder
             'password' => Hash::make('Usuario123!'),
             'telefono' => '51966666666',
             'pais' => 'PE',
+            'activo' => true,
+            'verificado' => true,
             'email_verified_at' => now(),
+            'ultimo_acceso' => now(),
         ]);
         $usuario->assignRole('usuario');
 
@@ -88,7 +100,10 @@ class UsersSeeder extends Seeder
                 'password' => Hash::make('Usuario123!'),
                 'telefono' => $userData['telefono'],
                 'pais' => 'PE',
+                'activo' => true,
+                'verificado' => true,
                 'email_verified_at' => now(),
+                'ultimo_acceso' => now(),
             ]);
             $user->assignRole('usuario');
         }
