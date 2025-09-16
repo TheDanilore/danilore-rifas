@@ -54,6 +54,9 @@ class AuthController extends Controller
 
             // Combinar nombres y apellidos para el campo name
             $fullName = trim($request->nombres . ' ' . $request->apellidos);
+            
+            // Formatear teléfono con código de país
+            $telefonoCompleto = $this->formatearTelefonoConPais($request->telefono, $request->pais ?? 'PE');
 
             $user = User::create([
                 'name' => $fullName,
@@ -61,7 +64,7 @@ class AuthController extends Controller
                 'apellido' => $request->apellidos,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'telefono' => $request->telefono, // Ya viene con código de país desde frontend
+                'telefono' => $telefonoCompleto,
                 'tipo_documento' => $request->tipo_documento,
                 'numero_documento' => $request->numero_documento,
                 'fecha_nacimiento' => $request->fecha_nacimiento,
@@ -134,6 +137,7 @@ class AuthController extends Controller
             $validator = Validator::make($request->all(), [
                 'email' => 'required|string', // Cambiado para permitir email o teléfono
                 'password' => 'required|string',
+                'pais' => 'sometimes|string|max:3',
                 'device_name' => 'sometimes|string|max:255'
             ]);
 
@@ -154,8 +158,13 @@ class AuthController extends Controller
             if ($isEmail) {
                 $user = User::where('email', $loginField)->first();
             } else {
-                // Buscar por teléfono (puede estar en campo 'telefono')
-                $user = User::where('telefono', $loginField)->first();
+                // Formatear teléfono con código de país para búsqueda consistente
+                $telefonoFormateado = $this->formatearTelefonoConPais($loginField, $request->pais ?? 'PE');
+                
+                // Buscar por teléfono (tanto el formato original como el formateado)
+                $user = User::where('telefono', $loginField)
+                          ->orWhere('telefono', $telefonoFormateado)
+                          ->first();
             }
 
             if (!$user || !Hash::check($request->password, $user->password)) {
@@ -531,5 +540,39 @@ class AuthController extends Controller
                     'perfil.ver', 'perfil.editar'
                 ];
         }
+    }
+
+    /**
+     * Formatear teléfono con código de país
+     */
+    private function formatearTelefonoConPais(string $telefono, string $pais = 'PE'): string
+    {
+        // Códigos de país disponibles
+        $codigosPais = [
+            'PE' => '+51',
+            'CO' => '+57',
+            'AR' => '+54',
+            'CL' => '+56',
+            'BO' => '+591',
+            'EC' => '+593',
+            'UY' => '+598',
+            'PY' => '+595',
+            'VE' => '+58',
+            'US' => '+1',
+            'MX' => '+52',
+            'ES' => '+34'
+        ];
+
+        // Limpiar el número de caracteres no numéricos excepto '+'
+        $telefonoLimpio = preg_replace('/[^\d+]/', '', $telefono);
+        
+        // Si ya tiene código de país, devolverlo tal como está
+        if (str_starts_with($telefonoLimpio, '+')) {
+            return $telefonoLimpio;
+        }
+        
+        // Si no tiene código de país, agregarlo
+        $codigoPais = $codigosPais[$pais] ?? $codigosPais['PE'];
+        return $codigoPais . $telefonoLimpio;
     }
 }

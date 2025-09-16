@@ -70,7 +70,7 @@
                   <div class="country-selector">
                     <select v-model="form.pais" class="country-select">
                       <option v-for="country in countryList" :key="country.code" :value="country.code">
-                        {{ country.flag }} {{ country.code }}
+                        {{ country.flag }} {{ country.phoneCode }}
                       </option>
                     </select>
                   </div>
@@ -238,7 +238,7 @@
 import { ref, reactive, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
-import { getCountryList, formatPhoneWithCountry, isValidPhone } from '@/utils/phoneUtils'
+import { getCountryList, formatPhoneWithCountry, isValidPhone, COUNTRY_CODES } from '@/utils/phoneUtils'
 
 export default {
   name: 'Register',
@@ -396,7 +396,8 @@ export default {
         // Después del registro exitoso, hacer login automático
         await login({
           identifier: fullPhoneNumber.value, // Usar teléfono completo para login
-          password: userData.password
+          password: userData.password,
+          pais: form.pais
         })
 
         router.push('/')
@@ -442,6 +443,7 @@ export default {
       form,
       countryList,
       fullPhoneNumber,
+      COUNTRY_CODES,
       togglePassword,
       toggleConfirmPassword,
       handleRegister,
@@ -506,10 +508,11 @@ export default {
   -webkit-appearance: none;
   -moz-appearance: none;
   transition: background-color 0.2s ease;
+  border-radius: 12px 0 0 12px;
 }
 
 .country-select:hover {
-  background-color: rgba(243, 244, 246, 0.5);
+  background-color: rgba(24, 24, 24, 0.5);
 }
 
 .country-select:focus {

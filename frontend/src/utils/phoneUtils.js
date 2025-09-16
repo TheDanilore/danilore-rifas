@@ -15,7 +15,7 @@ export const COUNTRY_CODES = {
   'US': { code: '+1', name: 'Estados Unidos', flag: '🇺🇸' },
   'MX': { code: '+52', name: 'México', flag: '🇲🇽' },
   'ES': { code: '+34', name: 'España', flag: '🇪🇸' }
-}
+};
 
 /**
  * Formatear número telefónico con código de país
@@ -101,9 +101,11 @@ export function isValidPhone(phone, countryCode = 'PE') {
  * @returns {Array} - Lista de países con código, nombre y bandera
  */
 export function getCountryList() {
-  return Object.entries(COUNTRY_CODES).map(([code, data]) => ({
-    code,
-    ...data
+  return Object.entries(COUNTRY_CODES).map(([countryCode, data]) => ({
+    code: countryCode,          // Código del país (PE, CO, etc.) - para v-model
+    phoneCode: data.code,       // Código telefónico (+51, +57, etc.) - para mostrar
+    name: data.name,            // Nombre del país
+    flag: data.flag             // Bandera
   }))
 }
 

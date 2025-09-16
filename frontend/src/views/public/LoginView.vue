@@ -45,7 +45,7 @@
               <div class="country-selector">
                 <select v-model="form.pais" class="country-select">
                   <option v-for="country in countryList" :key="country.code" :value="country.code">
-                    {{ country.flag }} {{ country.code }}
+                    {{ country.flag }} {{ country.phoneCode }}
                   </option>
                 </select>
               </div>
@@ -119,7 +119,7 @@
 import { ref, reactive, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
-import { getCountryList, formatPhoneWithCountry } from '@/utils/phoneUtils'
+import { getCountryList, formatPhoneWithCountry, COUNTRY_CODES } from '@/utils/phoneUtils'
 
 export default {
   name: 'Login',
@@ -190,6 +190,7 @@ export default {
             return
           }
           loginData.identifier = fullPhoneNumber.value // Usar teléfono completo con código de país
+          loginData.pais = form.pais // Enviar país para búsqueda en backend
         }
 
         if (!form.password) {
@@ -237,6 +238,7 @@ export default {
       form,
       countryList,
       fullPhoneNumber,
+      COUNTRY_CODES,
       switchTab,
       togglePassword,
       handleLogin,

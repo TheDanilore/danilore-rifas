@@ -220,6 +220,38 @@
     font-weight: 400;
 }
 
+/* Estilos para inputs con contenido */
+.form-input:not(:placeholder-shown) {
+    background: #f9fafb !important;
+    border-color: #6b7280 !important;
+    color: #111827 !important;
+    font-weight: 600;
+}
+
+/* Estilos específicos para input type="date" con valor */
+.form-input[type="date"]:not([value=""]) {
+    background: #f9fafb !important;
+    border-color: #6b7280 !important;
+    color: #111827 !important;
+    font-weight: 600;
+}
+
+/* Estilos específicos para select con valor */
+select.form-input:not([value=""]) {
+    background: #f9fafb !important;
+    border-color: #6b7280 !important;
+    color: #111827 !important;
+    font-weight: 600;
+}
+
+/* Estilos específicos para input type="password" con valor */
+.form-input[type="password"]:not(:placeholder-shown) {
+    background: #f9fafb !important;
+    border-color: #6b7280 !important;
+    color: #111827 !important;
+    font-weight: 600;
+}
+
 /* Select styling para formularios de auth */
 select.form-input {
     color: #111827 !important;
