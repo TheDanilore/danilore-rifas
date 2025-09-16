@@ -19,25 +19,37 @@ class Nivel extends Model
         'titulo',
         'descripcion',
         'tickets_necesarios',
+        'tickets_acumulados',
         'valor_aproximado',
         'imagen',
         'media_gallery',
         'orden',
+        'estado',
         'desbloqueado',
-        'es_actual',
+        'es_nivel_final',
         'fecha_desbloqueo',
-        'especificaciones'
+        'fecha_completado',
+        'progreso_actual',
+        'porcentaje_progreso',
+        'especificaciones',
+        'contenido_adicional',
+        'mensaje_desbloqueo'
     ];
 
     protected $casts = [
         'tickets_necesarios' => 'integer',
+        'tickets_acumulados' => 'integer',
+        'progreso_actual' => 'integer',
         'valor_aproximado' => 'decimal:2',
         'orden' => 'integer',
+        'porcentaje_progreso' => 'decimal:2',
         'desbloqueado' => 'boolean',
-        'es_actual' => 'boolean',
+        'es_nivel_final' => 'boolean',
         'fecha_desbloqueo' => 'datetime',
+        'fecha_completado' => 'datetime',
         'especificaciones' => 'json',
-        'media_gallery' => 'json'
+        'media_gallery' => 'json',
+        'contenido_adicional' => 'json'
     ];
 
     // Relaciones
@@ -57,9 +69,19 @@ class Nivel extends Model
         return $query->where('desbloqueado', true);
     }
 
-    public function scopeActuales($query)
+    public function scopeActivos($query)
     {
-        return $query->where('es_actual', true);
+        return $query->where('estado', 'activo');
+    }
+
+    public function scopeCompletados($query)
+    {
+        return $query->where('estado', 'completado');
+    }
+
+    public function scopeNivelesFinales($query)
+    {
+        return $query->where('es_nivel_final', true);
     }
 
     public function scopeOrdenados($query)
@@ -68,20 +90,74 @@ class Nivel extends Model
     }
 
     // Métodos auxiliares
-    public function getProgresoActualAttribute()
+    public function actualizarProgreso($ticketsVendidos)
     {
-        $progreso = $this->progreso()->where('nivel_id', $this->id)->first();
-        return $progreso ? $progreso->tickets_actuales : 0;
+        $ticketsParaEsteNivel = max(0, $ticketsVendidos - $this->tickets_acumulados);
+        $progreso = min($ticketsParaEsteNivel, $this->tickets_necesarios);
+        $porcentaje = $this->tickets_necesarios > 0 ? ($progreso / $this->tickets_necesarios) * 100 : 0;
+
+        $this->update([
+            'progreso_actual' => $progreso,
+            'porcentaje_progreso' => round($porcentaje, 2)
+        ]);
+
+        // Verificar si el nivel está completado
+        if ($progreso >= $this->tickets_necesarios && $this->estado !== 'completado') {
+            $this->completar();
+        }
+
+        return $this;
     }
 
-    public function getPorcentajeAttribute()
+    public function completar()
     {
-        if ($this->tickets_necesarios == 0) return 0;
-        return round(($this->progreso_actual / $this->tickets_necesarios) * 100, 2);
+        $this->update([
+            'estado' => 'completado',
+            'fecha_completado' => now(),
+            'porcentaje_progreso' => 100
+        ]);
+
+        // Desbloquear siguiente nivel
+        $siguienteNivel = Nivel::where('premio_id', $this->premio_id)
+                              ->where('orden', $this->orden + 1)
+                              ->first();
+
+        if ($siguienteNivel) {
+            $siguienteNivel->update([
+                'desbloqueado' => true,
+                'estado' => 'activo',
+                'fecha_desbloqueo' => now()
+            ]);
+        } else {
+            // Es el último nivel, completar el premio
+            $this->premio->actualizarProgreso();
+        }
+
+        return $this;
     }
 
     public function getTicketsRestantesAttribute()
     {
         return max(0, $this->tickets_necesarios - $this->progreso_actual);
+    }
+
+    public function getEstaCompletadoAttribute()
+    {
+        return $this->estado === 'completado';
+    }
+
+    public function getPuedeDesbloquearseAttribute()
+    {
+        // El primer nivel se puede desbloquear cuando el premio se desbloquea
+        if ($this->orden === 1) {
+            return $this->premio->desbloqueado;
+        }
+
+        // Los demás niveles se desbloquean cuando el anterior está completado
+        $nivelAnterior = Nivel::where('premio_id', $this->premio_id)
+                             ->where('orden', $this->orden - 1)
+                             ->first();
+
+        return $nivelAnterior && $nivelAnterior->estado === 'completado';
     }
 }

@@ -25,14 +25,25 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Establecer directorio de trabajo
 WORKDIR /var/www
 
-# Copiar archivos del proyecto
+# Copiar archivos del proyecto (excluyendo los ignorados en .dockerignore)
 COPY . /var/www
+
+# Crear directorios necesarios
+RUN mkdir -p /var/www/storage/app/public \
+    && mkdir -p /var/www/storage/framework/cache \
+    && mkdir -p /var/www/storage/framework/sessions \
+    && mkdir -p /var/www/storage/framework/views \
+    && mkdir -p /var/www/storage/logs \
+    && mkdir -p /var/www/bootstrap/cache
 
 # Limpiar vendor y node_modules si existen
 RUN rm -rf /var/www/vendor /var/www/node_modules
 
 # Instalar dependencias de PHP
 RUN composer install --no-dev --optimize-autoloader
+
+# Crear enlace simbólico para storage
+RUN php artisan storage:link
 
 # Establecer permisos
 RUN chown -R www-data:www-data /var/www \

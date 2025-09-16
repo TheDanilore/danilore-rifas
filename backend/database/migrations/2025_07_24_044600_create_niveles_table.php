@@ -17,22 +17,32 @@ return new class extends Migration
             $table->string('codigo', 10); // n1, n2, n3, etc.
             $table->string('titulo');
             $table->text('descripcion');
-            $table->integer('tickets_necesarios'); // Tickets necesarios para desbloquear
+            $table->integer('tickets_necesarios'); // Tickets necesarios para desbloquear este nivel
+            $table->integer('tickets_acumulados'); // Tickets acumulados para llegar a este nivel
             $table->decimal('valor_aproximado', 12, 2)->nullable(); // Valor estimado del nivel
             $table->json('media_gallery')->nullable(); // Galería de imágenes del nivel
             $table->string('imagen')->nullable(); // Imagen principal del nivel
             $table->integer('orden'); // Orden dentro del premio (1, 2, 3...)
+            $table->enum('estado', ['bloqueado', 'activo', 'completado'])->default('bloqueado');
             $table->boolean('desbloqueado')->default(false);
-            $table->boolean('es_actual')->default(false); // Si es el nivel activo actualmente
+            $table->boolean('es_nivel_final')->default(false); // Si es el último nivel del premio
             $table->datetime('fecha_desbloqueo')->nullable();
-            $table->text('especificaciones')->nullable(); // JSON con especificaciones técnicas
+            $table->datetime('fecha_completado')->nullable();
+            $table->integer('progreso_actual')->default(0); // Tickets actuales hacia este nivel
+            $table->decimal('porcentaje_progreso', 5, 2)->default(0); // 0.00 - 100.00
+            $table->json('especificaciones')->nullable(); // Especificaciones técnicas del producto
+            $table->json('contenido_adicional')->nullable(); // Videos, fotos extras, etc.
+            $table->text('mensaje_desbloqueo')->nullable(); // Mensaje personalizado al desbloquearse
             $table->timestamps();
             
-            // Índices
+            // Índices optimizados
             $table->unique(['premio_id', 'codigo']); // Un código por premio
             $table->index(['premio_id', 'orden']);
-            $table->index(['desbloqueado', 'es_actual']);
+            $table->index(['estado', 'desbloqueado']);
+            $table->index(['premio_id', 'estado', 'orden']);
             $table->index('tickets_necesarios');
+            $table->index(['es_nivel_final', 'estado']);
+            $table->index(['desbloqueado', 'fecha_desbloqueo']);
             
             // Relaciones
             $table->foreign('premio_id')->references('id')->on('premios')->onDelete('cascade');

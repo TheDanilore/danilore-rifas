@@ -17,21 +17,34 @@ class Premio extends Model
         'codigo',
         'titulo',
         'descripcion',
+        'valor_estimado',
         'imagen_principal',
         'media_gallery',
         'orden',
+        'tickets_minimos_desbloqueo',
         'premio_requerido_id',
         'estado',
         'desbloqueado',
         'fecha_desbloqueo',
         'fecha_completado',
+        'total_niveles',
+        'niveles_completados',
+        'porcentaje_completado',
+        'es_premio_final',
+        'condiciones_especiales',
         'notas_admin'
     ];
 
     protected $casts = [
         'media_gallery' => 'json',
         'orden' => 'integer',
+        'tickets_minimos_desbloqueo' => 'integer',
+        'total_niveles' => 'integer',
+        'niveles_completados' => 'integer',
+        'porcentaje_completado' => 'decimal:2',
+        'valor_estimado' => 'decimal:2',
         'desbloqueado' => 'boolean',
+        'es_premio_final' => 'boolean',
         'fecha_desbloqueo' => 'datetime',
         'fecha_completado' => 'datetime'
     ];
@@ -73,6 +86,16 @@ class Premio extends Model
         return $query->where('desbloqueado', true);
     }
 
+    public function scopeCompletados($query)
+    {
+        return $query->where('estado', 'completado');
+    }
+
+    public function scopePremiosFinales($query)
+    {
+        return $query->where('es_premio_final', true);
+    }
+
     public function scopeOrdenados($query)
     {
         return $query->orderBy('orden');
@@ -81,22 +104,94 @@ class Premio extends Model
     // Métodos auxiliares
     public function getNivelActualAttribute()
     {
-        return $this->niveles()->where('es_actual', true)->first();
-    }
-
-    public function getPorcentajeCompletadoAttribute()
-    {
-        $progreso = $this->progreso;
-        return $progreso ? $progreso->porcentaje_completado : 0;
+        return $this->niveles()->where('estado', 'activo')->first() ??
+               $this->niveles()->where('desbloqueado', true)->orderBy('orden', 'desc')->first();
     }
 
     public function puedeDesbloquearse()
     {
+        // Verificar si se alcanzaron los tickets mínimos
+        if ($this->rifa->boletos_vendidos < $this->tickets_minimos_desbloqueo) {
+            return false;
+        }
+
+        // Verificar si existe un premio requerido y está completado
         if ($this->premio_requerido_id) {
             $premioRequerido = $this->premioRequerido;
             return $premioRequerido && $premioRequerido->estado === 'completado';
         }
+        
         return true;
+    }
+
+    public function desbloquear()
+    {
+        if (!$this->puedeDesbloquearse()) {
+            throw new \Exception('Este premio no puede ser desbloqueado aún');
+        }
+
+        $this->update([
+            'desbloqueado' => true,
+            'estado' => 'activo',
+            'fecha_desbloqueo' => now()
+        ]);
+
+        // Desbloquear el primer nivel
+        $primerNivel = $this->niveles()->orderBy('orden')->first();
+        if ($primerNivel) {
+            $primerNivel->update([
+                'desbloqueado' => true,
+                'estado' => 'activo',
+                'fecha_desbloqueo' => now()
+            ]);
+        }
+
+        return $this;
+    }
+
+    public function actualizarProgreso()
+    {
+        $totalNiveles = $this->niveles()->count();
+        $nivelesCompletados = $this->niveles()->where('estado', 'completado')->count();
+        
+        $porcentaje = $totalNiveles > 0 ? ($nivelesCompletados / $totalNiveles) * 100 : 0;
+
+        $this->update([
+            'total_niveles' => $totalNiveles,
+            'niveles_completados' => $nivelesCompletados,
+            'porcentaje_completado' => round($porcentaje, 2)
+        ]);
+
+        // Verificar si el premio está completado
+        if ($nivelesCompletados === $totalNiveles && $totalNiveles > 0) {
+            $this->completar();
+        }
+
+        return $this;
+    }
+
+    public function completar()
+    {
+        $this->update([
+            'estado' => 'completado',
+            'fecha_completado' => now()
+        ]);
+
+        // Desbloquear siguiente premio si existe
+        $siguientePremio = Premio::where('rifa_id', $this->rifa_id)
+                                 ->where('premio_requerido_id', $this->id)
+                                 ->first();
+
+        if ($siguientePremio && $siguientePremio->puedeDesbloquearse()) {
+            $siguientePremio->desbloquear();
+        }
+
+        return $this;
+    }
+
+    public function getValorTotalAttribute()
+    {
+        return $this->niveles()->sum('valor_aproximado') ?: $this->valor_estimado;
     }
 
     /**

@@ -12,37 +12,52 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Campos adicionales para el sistema de rifas
+            // Información personal y contacto
             $table->string('telefono', 15)->nullable()->after('email');
             $table->enum('tipo_documento', ['dni', 'ce', 'passport', 'ruc', 'otros'])->default('dni')->after('telefono');
             $table->string('numero_documento', 20)->nullable()->after('tipo_documento');
             $table->date('fecha_nacimiento')->nullable()->after('numero_documento');
-            $table->enum('genero', ['masculino', 'femenino', 'otro'])->nullable()->after('fecha_nacimiento');
-            $table->string('direccion')->nullable()->after('genero');
+            $table->enum('genero', ['masculino', 'femenino', 'otro', 'no_especificar'])->nullable()->after('fecha_nacimiento');
+            
+            // Dirección completa
+            $table->text('direccion')->nullable()->after('genero');
             $table->string('ciudad', 100)->nullable()->after('direccion');
             $table->string('departamento', 100)->nullable()->after('ciudad');
             $table->string('codigo_postal', 10)->nullable()->after('departamento');
+            $table->string('pais', 3)->default('PE')->after('codigo_postal'); // Código ISO del país
             
-            // Campos para el sistema
-            $table->enum('rol', ['admin', 'usuario'])->default('usuario')->after('codigo_postal');
+            // Sistema de usuarios y permisos
+            $table->enum('rol', ['super_admin', 'admin', 'moderador', 'usuario'])->default('usuario')->after('pais');
             $table->boolean('activo')->default(true)->after('rol');
-            $table->datetime('ultimo_acceso')->nullable()->after('activo');
+            $table->boolean('verificado')->default(false)->after('activo'); // Para verificación de cuenta
+            $table->datetime('ultimo_acceso')->nullable()->after('verificado');
             $table->string('avatar')->nullable()->after('ultimo_acceso');
+            $table->string('zona_horaria', 50)->default('America/Lima')->after('avatar');
             
             // Preferencias de notificaciones
-            $table->boolean('notif_email')->default(true)->after('avatar');
-            $table->boolean('notif_sms')->default(false)->after('notif_email');
-            $table->boolean('notif_whatsapp')->default(true)->after('notif_sms');
+            $table->json('preferencias_notificacion')->nullable()->after('zona_horaria'); // JSON más flexible
             
-            // Estadísticas del usuario
-            $table->integer('total_boletos_comprados')->default(0)->after('notif_whatsapp');
+            // Estadísticas del usuario (se actualizan automáticamente)
+            $table->integer('total_boletos_comprados')->default(0)->after('preferencias_notificacion');
             $table->decimal('total_gastado', 12, 2)->default(0)->after('total_boletos_comprados');
-            $table->integer('rifas_ganadas')->default(0)->after('total_gastado');
+            $table->integer('total_rifas_participadas')->default(0)->after('total_gastado');
+            $table->integer('rifas_ganadas')->default(0)->after('total_rifas_participadas');
+            $table->datetime('primera_compra')->nullable()->after('rifas_ganadas');
+            $table->datetime('ultima_compra')->nullable()->after('primera_compra');
             
-            // Índices
+            // Configuración de seguridad
+            $table->boolean('doble_autenticacion')->default(false)->after('ultima_compra');
+            $table->integer('intentos_login_fallidos')->default(0)->after('doble_autenticacion');
+            $table->datetime('bloqueado_hasta')->nullable()->after('intentos_login_fallidos');
+            
+            // Índices optimizados
             $table->index(['rol', 'activo']);
             $table->index(['tipo_documento', 'numero_documento']);
             $table->index('telefono');
+            $table->index(['activo', 'verificado']);
+            $table->index(['ciudad', 'departamento']);
+            $table->index('ultimo_acceso');
+            $table->index(['total_boletos_comprados', 'total_gastado']);
         });
     }
 
@@ -50,11 +65,12 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->dropColumn([
-                'telefono', 'tipo_documento', 'numero_documento', 'fecha_nacimiento', 'genero', 'direccion',
-                'ciudad', 'departamento', 'codigo_postal', 'rol', 'activo',
-                'ultimo_acceso', 'avatar', 'notif_email', 'notif_sms', 
-                'notif_whatsapp', 'total_boletos_comprados', 'total_gastado', 
-                'rifas_ganadas'
+                'telefono', 'tipo_documento', 'numero_documento', 'fecha_nacimiento', 
+                'genero', 'direccion', 'ciudad', 'departamento', 'codigo_postal', 'pais',
+                'rol', 'activo', 'verificado', 'ultimo_acceso', 'avatar', 'zona_horaria',
+                'preferencias_notificacion', 'total_boletos_comprados', 'total_gastado', 
+                'total_rifas_participadas', 'rifas_ganadas', 'primera_compra', 'ultima_compra',
+                'doble_autenticacion', 'intentos_login_fallidos', 'bloqueado_hasta'
             ]);
         });
     }

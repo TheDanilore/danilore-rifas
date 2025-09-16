@@ -32,11 +32,13 @@ services:
     volumes:
       - ./backend:/var/www
       - ./backend/storage/logs:/var/www/storage/logs
+      - ./backend/storage/app:/var/www/storage/app
     ports:
       - "8000:8000"
     environment:
       - APP_ENV=local
       - APP_DEBUG=true
+      - APP_KEY=base64:your-app-key-here
       - DB_CONNECTION=mysql
       - DB_HOST=mysql
       - DB_PORT=3306
@@ -48,7 +50,6 @@ services:
         condition: service_healthy
     networks:
       - danilore_network
-    command: php artisan serve --host=0.0.0.0 --port=8000
 
   # Frontend Vue.js
   frontend:
@@ -67,7 +68,6 @@ services:
       - VITE_API_URL=http://localhost:8000/api
     networks:
       - danilore_network
-    command: npm run serve -- --host 0.0.0.0 --port 3000
 
 volumes:
   mysql_data:
