@@ -5,7 +5,7 @@
         <div class="footer-main">
           <div class="footer-logo">
 
-            <img src="@/assets/logo-sin-fondo.png" alt="Logo" height="100px">
+            <img src="@/assets/images/logo-sin-fondo.png" alt="Logo" height="100px">
           </div>
           <p class="footer-description">
             La plataforma de rifas más confiable del Perú. Participa desde S/2 y gana premios increíbles con total

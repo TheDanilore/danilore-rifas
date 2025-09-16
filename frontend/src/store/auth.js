@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue'
-import { authService } from '@/services/authService.js'
+import { authService } from '@/services/auth/authService.js'
 
 // Estado global de autenticación (usando el patrón singleton)
 const isLoggedIn = ref(false)

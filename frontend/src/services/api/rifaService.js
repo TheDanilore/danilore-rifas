@@ -1,5 +1,5 @@
 import apiClient from './api.js'
-import { backendConfig } from '../config/backend.js'
+import { backendConfig } from '@/config/backend.js'
 
 // Interfaz para el servicio de rifas (Interface Segregation Principle)
 export class RifaService {

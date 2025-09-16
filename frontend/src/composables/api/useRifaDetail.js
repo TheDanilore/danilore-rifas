@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { rifaService } from '@/services/rifaService'
+import { rifaService } from '@/services/api/rifaService'
 import { useAuthStore } from '@/store/auth'
 
 export function useRifaDetail() {

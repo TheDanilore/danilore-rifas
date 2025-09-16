@@ -713,10 +713,10 @@
 
 <script>
 import { ref, computed, onMounted, reactive } from 'vue'
-import AdminHeader from '@/components/admin/AdminHeader.vue'
-import AdminFooter from '@/components/admin/AdminFooter.vue'
-import ImageSelector from '@/components/common/ImageSelector.vue'
-import { adminRifaService } from '@/services/adminRifaService'
+import AdminHeader from '@/components/admin/layout/AdminHeader.vue'
+import AdminFooter from '@/components/admin/layout/AdminFooter.vue'
+import ImageSelector from '@/components/ui/ImageSelector.vue'
+import { adminRifaService } from '@/services/api/adminRifaService'
 import { showNotification } from '@/utils/helpers'
 
 export default {

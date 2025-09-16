@@ -3,7 +3,7 @@
     <div class="container">
       <div class="header-content">
         <router-link to="/" class="logo">
-          <img src="@/assets/logo-sin-fondo.png" alt="Logo" height="75px">
+          <img src="@/assets/images/logo-sin-fondo.png" alt="Logo" height="75px">
         </router-link>
 
         <nav class="nav-desktop">

@@ -573,8 +573,8 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue'
-import AdminHeader from '@/components/admin/AdminHeader.vue'
-import AdminFooter from '@/components/admin/AdminFooter.vue'
+import AdminHeader from '@/components/admin/layout/AdminHeader.vue'
+import AdminFooter from '@/components/admin/layout/AdminFooter.vue'
 
 export default {
   name: 'AdminUsuarios',

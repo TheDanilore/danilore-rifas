@@ -1,5 +1,5 @@
 import { ref, computed, onMounted } from 'vue'
-import { rifaService } from '@/services/rifaService'
+import { rifaService } from '@/services/api/rifaService'
 
 export function useRifasWithFilters() {
   const rifas = ref([])

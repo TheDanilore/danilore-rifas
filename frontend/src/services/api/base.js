@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { backendConfig } from '../config/backend.js'
+import { backendConfig } from '@/config/backend.js'
 
 // Crear instancia de axios
 const apiClient = axios.create({

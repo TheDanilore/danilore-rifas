@@ -396,9 +396,9 @@
 <script>
 import { useRouter } from 'vue-router'
 import { ref } from 'vue'
-import AppHeader from '@/components/AppHeader.vue'
-import AppFooter from '@/components/AppFooter.vue'
-import { useRifasWithFilters } from '@/composables/useRifasWithFilters'
+import AppHeader from '@/components/layout/AppHeader.vue'
+import AppFooter from '@/components/layout/AppFooter.vue'
+import { useRifasWithFilters } from '@/composables/api/useRifasWithFilters'
 import { useAuthStore } from '@/store/auth'
 
 export default {

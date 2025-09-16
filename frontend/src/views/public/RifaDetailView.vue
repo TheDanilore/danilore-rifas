@@ -471,7 +471,7 @@
                                                 <span>Escanea para pagar</span>
                                             </div>
                                             <div class="qr-image-wrapper">
-                                                <img src="@/assets/yape-qr.png" alt="Código QR Yape/Plin"
+                                                <img src="@/assets/images/yape-qr.png" alt="Código QR Yape/Plin"
                                                     class="qr-image">
                                             </div>
                                             <div class="qr-footer">
@@ -566,10 +566,10 @@
 <script>
 import { onMounted, computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import AppHeader from '@/components/AppHeader.vue'
-import AppFooter from '@/components/AppFooter.vue'
-import MediaGallery from '@/components/MediaGallery.vue'
-import { useRifaDetail } from '@/composables/useRifaDetail'
+import AppHeader from '@/components/layout/AppHeader.vue'
+import AppFooter from '@/components/layout/AppFooter.vue'
+import MediaGallery from '@/components/ui/MediaGallery.vue'
+import { useRifaDetail } from '@/composables/api/useRifaDetail'
 import { useAuthStore } from '@/store/auth'
 import { formatDate, getEstadoTexto, getButtonText, copyToClipboard, showNotification } from '@/utils/helpers'
 
