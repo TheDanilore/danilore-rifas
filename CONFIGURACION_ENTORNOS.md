@@ -142,13 +142,13 @@ frontend:
 
 ## 🛡️ Checklist para Producción
 
-- [ ] Cambiar `APP_ENV=production` en `backend/.env`
-- [ ] Cambiar `APP_DEBUG=false` en `backend/.env`
-- [ ] Actualizar `APP_URL` con tu dominio real
-- [ ] Configurar `DB_PASSWORD` seguro
-- [ ] Configurar correo SMTP real (cambiar `MAIL_MAILER=smtp`)
-- [ ] Verificar CORS en Laravel para tu dominio frontend
-- [ ] Configurar HTTPS con proxy reverso (Nginx/Apache)
+- Cambiar `APP_ENV=production` en `backend/.env`
+- Cambiar `APP_DEBUG=false` en `backend/.env`
+- Actualizar `APP_URL` con tu dominio real
+- Configurar `DB_PASSWORD` seguro
+- Configurar correo SMTP real (cambiar `MAIL_MAILER=smtp`)
+- Verificar CORS en Laravel para tu dominio frontend
+- Configurar HTTPS con proxy reverso (Nginx/Apache)
 
 ## ⚠️ Notas Importantes
 
