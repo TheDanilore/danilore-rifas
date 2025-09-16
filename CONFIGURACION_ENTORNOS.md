@@ -6,7 +6,7 @@
 - **Frontend**: `frontend/vue.config.js` usa `http://backend:8000` (nombre del servicio Docker)
 - **Docker**: `docker-compose.yml` toma valores dinámicamente de `backend/.env`
 
-## � Diferencia entre URLs
+## � Diferencia entre las URLs
 
 ### URLs dentro de Docker (contenedor a contenedor)
 
