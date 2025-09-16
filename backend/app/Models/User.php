@@ -8,11 +8,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasFactory, Notifiable, HasApiTokens, HasRoles;
+    
 
     /**
      * The attributes that are mass assignable.
@@ -23,6 +25,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        // Información personal básica
+        'nombre',
+        'apellido',
         // Información personal y contacto
         'telefono',
         'tipo_documento',
@@ -35,8 +40,7 @@ class User extends Authenticatable
         'departamento',
         'codigo_postal',
         'pais',
-        // Sistema de usuarios y permisos
-        'rol',
+        // Sistema de usuarios y permisos (roles gestionados por Spatie Permission)
         'activo',
         'verificado',
         'ultimo_acceso',
@@ -145,22 +149,22 @@ class User extends Authenticatable
         return $this->hasMany(Cupon::class, 'creado_por');
     }
 
-    public function pagosVerificados()
+    public function pagosVerificados(): HasMany
     {
         return $this->hasMany(Pago::class, 'verificado_por');
     }
 
-    public function rifasCreadas()
+    public function rifasCreadas(): HasMany
     {
         return $this->hasMany(Rifa::class, 'creado_por');
     }
 
-    public function boletosTransferidos()
+    public function boletosTransferidos(): HasMany
     {
         return $this->hasMany(Boleto::class, 'transferido_a');
     }
 
-    public function boletosQueTransfirio()
+    public function boletosQueTransfirio(): HasMany
     {
         return $this->hasMany(Boleto::class, 'transferido_por');
     }
@@ -178,12 +182,16 @@ class User extends Authenticatable
 
     public function scopeAdmins($query)
     {
-        return $query->whereIn('rol', ['admin', 'super_admin', 'moderador']);
+        return $query->whereHas('roles', function($q) {
+            $q->whereIn('name', ['admin', 'super_admin', 'moderador']);
+        });
     }
 
     public function scopeUsuarios($query)
     {
-        return $query->where('rol', 'usuario');
+        return $query->whereHas('roles', function($q) {
+            $q->where('name', 'usuario');
+        });
     }
 
     public function scopeBloqueados($query)
@@ -247,12 +255,47 @@ class User extends Authenticatable
 
     public function esAdmin()
     {
-        return in_array($this->rol, ['admin', 'super_admin', 'moderador']);
+        return $this->hasAnyRole(['admin', 'super_admin', 'moderador']);
     }
 
     public function esSuperAdmin()
     {
-        return $this->rol === 'super_admin';
+        return $this->hasRole('super_admin');
+    }
+
+    public function esModeradorOSuperior()
+    {
+        return $this->hasAnyRole(['super_admin', 'admin', 'moderador']);
+    }
+
+    public function puedeAccederAdmin()
+    {
+        return $this->hasAnyRole(['super_admin', 'admin']);
+    }
+
+    public function tienePermisosPara($permiso)
+    {
+        return $this->can($permiso);
+    }
+
+    // Método para asignar rol por defecto a usuarios nuevos
+    public function asignarRolPorDefecto()
+    {
+        if (!$this->roles()->exists()) {
+            $this->assignRole('usuario');
+        }
+    }
+
+    // Método para obtener el rol principal del usuario
+    public function getRolPrincipalAttribute()
+    {
+        $roles = $this->getRoleNames();
+        
+        if ($roles->contains('super_admin')) return 'super_admin';
+        if ($roles->contains('admin')) return 'admin';
+        if ($roles->contains('moderador')) return 'moderador';
+        
+        return 'usuario';
     }
 
     public function getPreferenciasNotificacion()

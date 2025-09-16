@@ -20,19 +20,23 @@ class ProgresoSeeder extends Seeder
 
             foreach ($niveles as $nivel) {
                 // Crear registro de progreso inicial para cada nivel
-                DB::table('progreso_premios')->insert([
-                    'rifa_id' => $premio->rifa_id,
-                    'premio_id' => $premio->id,
-                    'nivel_id' => $nivel->id,
-                    'tickets_actuales' => 0,
-                    'tickets_objetivo' => $nivel->tickets_necesarios,
-                    'porcentaje_completado' => 0.00,
-                    'objetivo_alcanzado' => false,
-                    'fecha_alcanzado' => null,
-                    'ultimo_ticket' => null,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
+                DB::table('progreso_premios')->updateOrInsert(
+                    [
+                        'rifa_id' => $premio->rifa_id,
+                        'premio_id' => $premio->id,
+                        'nivel_id' => $nivel->id
+                    ],
+                    [
+                        'tickets_actuales' => 0,
+                        'tickets_objetivo' => $nivel->tickets_necesarios,
+                        'porcentaje_completado' => 0.00,
+                        'objetivo_alcanzado' => false,
+                        'fecha_alcanzado' => null,
+                        'ultimo_ticket' => null,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]
+                );
             }
 
             // ❌ ELIMINADO - No crear registro general del premio

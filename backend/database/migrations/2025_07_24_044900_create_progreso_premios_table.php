@@ -38,8 +38,8 @@ return new class extends Migration
             $table->index(['porcentaje_completado', 'objetivo_alcanzado']);
             $table->index('ultimo_ticket');
             $table->index(['rifa_id', 'tickets_actuales']);
-            $table->index(['fecha_estimada_completacion', 'objetivo_alcanzado']);
-            $table->index(['velocidad_venta', 'objetivo_alcanzado']);
+            $table->index(['fecha_estimada_completacion', 'objetivo_alcanzado'], 'pp_fecha_estimada_objetivo_idx');
+            $table->index(['velocidad_venta', 'objetivo_alcanzado'], 'pp_velocidad_objetivo_idx');
             
             // Relaciones con cascada
             $table->foreign('rifa_id')->references('id')->on('rifas')->onDelete('cascade');

@@ -37,64 +37,76 @@ class NivelesSeeder extends Seeder
 
                 // Nivel 1: Básico
                 $nivel1Desbloqueado = $premioCompletado || $premioActivo;
-                DB::table('niveles')->insert([
-                    'premio_id' => $premio->id,
-                    'codigo' => 'n1',
-                    'titulo' => 'Nivel Básico',
-                    'descripcion' => 'Acceso básico al premio con especificaciones estándar.',
-                    'tickets_necesarios' => $ticketsNivel1,
-                    'valor_aproximado' => $this->getValorNivel($premio->codigo, 1),
-                    'imagen' => "/images/niveles/{$premio->codigo}-n1.webp",
-                    'media_gallery' => json_encode($this->getMediaGallery($premio->codigo, 1)),
-                    'orden' => 1,
-                    'desbloqueado' => $nivel1Desbloqueado,
+                DB::table('niveles')->updateOrInsert(
+                    [
+                        'premio_id' => $premio->id,
+                        'codigo' => 'n1'
+                    ],
+                    [
+                        'titulo' => 'Nivel Básico',
+                        'descripcion' => 'Acceso básico al premio con especificaciones estándar.',
+                        'tickets_necesarios' => $ticketsNivel1,
+                        'valor_aproximado' => $this->getValorNivel($premio->codigo, 1),
+                        'imagen' => "/images/niveles/{$premio->codigo}-n1.webp",
+                        'media_gallery' => json_encode($this->getMediaGallery($premio->codigo, 1)),
+                        'orden' => 1,
+                        'desbloqueado' => $nivel1Desbloqueado,
                     'es_actual' => $premioActivo && !$premioCompletado,
                     'fecha_desbloqueo' => $nivel1Desbloqueado ? now()->subDays(10) : null,
                     'especificaciones' => json_encode($this->getEspecificaciones($premio->codigo, 1)),
                     'created_at' => now(),
                     'updated_at' => now(),
-                ]);
+                ]
+                );
 
                 // Nivel 2: Premium
                 $nivel2Desbloqueado = $premioCompletado;
-                DB::table('niveles')->insert([
-                    'premio_id' => $premio->id,
-                    'codigo' => 'n2',
-                    'titulo' => 'Nivel Premium',
-                    'descripcion' => 'Versión mejorada con características adicionales y mayor valor.',
-                    'tickets_necesarios' => $ticketsNivel2,
-                    'valor_aproximado' => $this->getValorNivel($premio->codigo, 2),
-                    'imagen' => "/images/niveles/{$premio->codigo}-n2.jpg",
-                    'media_gallery' => json_encode($this->getMediaGallery($premio->codigo, 2)),
-                    'orden' => 2,
-                    'desbloqueado' => $nivel2Desbloqueado,
+                DB::table('niveles')->updateOrInsert(
+                    [
+                        'premio_id' => $premio->id,
+                        'codigo' => 'n2'
+                    ],
+                    [
+                        'titulo' => 'Nivel Premium',
+                        'descripcion' => 'Versión mejorada con características adicionales y mayor valor.',
+                        'tickets_necesarios' => $ticketsNivel2,
+                        'valor_aproximado' => $this->getValorNivel($premio->codigo, 2),
+                        'imagen' => "/images/niveles/{$premio->codigo}-n2.jpg",
+                        'media_gallery' => json_encode($this->getMediaGallery($premio->codigo, 2)),
+                        'orden' => 2,
+                        'desbloqueado' => $nivel2Desbloqueado,
                     'es_actual' => false,
                     'fecha_desbloqueo' => $nivel2Desbloqueado ? now()->subDays(5) : null,
                     'especificaciones' => json_encode($this->getEspecificaciones($premio->codigo, 2)),
                     'created_at' => now(),
                     'updated_at' => now(),
-                ]);
+                ]
+                );
 
                 // Nivel 3: Elite (solo para premios finales - orden 3)
                 if ($premio->orden == 3) {
                     $ticketsNivel3 = $ticketsAcumulados + 300; // +300 tickets para nivel 3
-                    DB::table('niveles')->insert([
-                        'premio_id' => $premio->id,
-                        'codigo' => 'n3',
-                        'titulo' => 'Nivel Elite',
-                        'descripcion' => 'La versión más exclusiva con todos los accesorios y características premium.',
-                        'tickets_necesarios' => $ticketsNivel3,
-                        'valor_aproximado' => $this->getValorNivel($premio->codigo, 3),
-                        'imagen' => "/images/niveles/{$premio->codigo}-n3.jpg",
-                        'media_gallery' => json_encode($this->getMediaGallery($premio->codigo, 3)),
-                        'orden' => 3,
-                        'desbloqueado' => false,
+                    DB::table('niveles')->updateOrInsert(
+                        [
+                            'premio_id' => $premio->id,
+                            'codigo' => 'n3'
+                        ],
+                        [
+                            'titulo' => 'Nivel Elite',
+                            'descripcion' => 'La versión más exclusiva con todos los accesorios y características premium.',
+                            'tickets_necesarios' => $ticketsNivel3,
+                            'valor_aproximado' => $this->getValorNivel($premio->codigo, 3),
+                            'imagen' => "/images/niveles/{$premio->codigo}-n3.jpg",
+                            'media_gallery' => json_encode($this->getMediaGallery($premio->codigo, 3)),
+                            'orden' => 3,
+                            'desbloqueado' => false,
                         'es_actual' => false,
                         'fecha_desbloqueo' => null,
                         'especificaciones' => json_encode($this->getEspecificaciones($premio->codigo, 3)),
                         'created_at' => now(),
                         'updated_at' => now(),
-                    ]);
+                    ]
+                    );
                     // Actualizar acumulado después del nivel 3
                     $ticketsAcumulados += 300;
                 } else {

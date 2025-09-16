@@ -13,114 +13,173 @@ class RifasSeeder extends Seeder
      */
     public function run(): void
     {
+        // Obtener categorías para asignar a las rifas
+        $categoriaApple = DB::table('categorias')->where('slug', 'apple')->first();
+        $categoriaTecnologia = DB::table('categorias')->where('slug', 'tecnologia')->first();
+        $categoriaAutomoviles = DB::table('categorias')->where('slug', 'automoviles')->first();
+
         // Rifa progresiva: iPhone 15 Pro Max (ACTIVA con 500 tickets vendidos)
-        $rifaIphone = DB::table('rifas')->insertGetId([
-            'titulo' => 'iPhone 15 Pro Max 1TB',
-            'descripcion' => 'Gana el nuevo iPhone 15 Pro Max con 1TB de almacenamiento. Sistema de premios progresivos donde cada nivel se desbloquea con la participación de la comunidad.',
-            'precio_boleto' => 10.00,
-            'boletos_minimos' => 700,
-            'boletos_maximos' => 2000,
-            'boletos_vendidos' => 500, // ✅ Actualizado - Ya hay participación
-            'imagen_principal' => '/images/premios/iphone-15-pro-max-rifa.jpg',
-            'imagenes_adicionales' => json_encode([
-                '/images/premios/iphone-15-pro-max-1.jpg',
-                '/images/premios/iphone-15-pro-max-2.jpg'
-            ]),
-            'media_gallery' => json_encode([
-                '/images/premios/iphone-15-pro-max-1.jpg',
-                '/images/premios/iphone-15-pro-max-2.jpg',
-                '/images/premios/iphone-15-pro-max-3.jpg'
-            ]),
-            'fecha_inicio' => Carbon::now()->format('Y-m-d'),
-            'fecha_fin' => Carbon::now()->addDays(30)->format('Y-m-d'),
-            'fecha_sorteo' => Carbon::now()->addDays(32)->format('Y-m-d H:i:s'),
-            'estado' => 'activa',
-            'tipo' => 'actual',
-            'categoria_id' => null,
-            'codigo_unico' => 'IPHONE15PM001',
-            'es_destacada' => true,
-            'max_boletos_por_persona' => 50,
-            'terminos_condiciones' => 'Sorteo válido solo en territorio nacional. Mayor de edad. Un solo premio por persona.',
-            'orden' => 1,
-            'rifa_requerida_id' => null,
-            'notas_admin' => 'Rifa progresiva con múltiples premios',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        DB::table('rifas')->updateOrInsert(
+            ['codigo_unico' => 'IPHONE15PM001'],
+            [
+                'titulo' => 'iPhone 15 Pro Max 1TB',
+                'descripcion' => 'Gana el nuevo iPhone 15 Pro Max con 1TB de almacenamiento. Sistema de premios progresivos donde cada nivel se desbloquea con la participación de la comunidad.',
+                'precio_boleto' => 10.00,
+                'boletos_minimos' => 700,
+                'boletos_maximos' => 2000,
+                'boletos_vendidos' => 500, // ✅ Actualizado - Ya hay participación
+                'imagen_principal' => '/images/premios/iphone-15-pro-max-rifa.jpg',
+                'media_gallery' => json_encode([
+                    '/images/rifas/iphone-15-pro-max-1.jpg',
+                    '/images/rifas/iphone-15-pro-max-2.jpg',
+                    '/images/rifas/iphone-15-pro-max-3.jpg',
+                    '/images/rifas/iphone-15-pro-max-4.jpg'
+                ]),
+                'categoria_id' => $categoriaApple->id,
+                'modalidad' => 'progresiva',
+                'estado' => 'activa',
+                'tipo_sorteo' => 'aleatorio_simple',
+                'metodo_pago_preferido' => 'yape',
+                'es_destacada' => true,
+                'es_premium' => true,
+                'es_patrocinada' => false,
+                'auto_sorteo_al_completar' => true,
+                'sistema_progresivo_activo' => true,
+                'visible_publico' => true,
+                'destacar_en_inicio' => true,
+                'enviar_notificaciones' => true,
+                'fecha_inicio' => now()->subDays(10),
+                'fecha_fin' => now()->addDays(30),
+                'fecha_limite_pago' => now()->addDays(32),
+                'fecha_sorteo' => now()->addDays(35),
+                'rifa_requerida_id' => null, // Es independiente
+                'permite_transferencia_boletos' => true,
+                'permite_seleccion_numeros' => false,
+                'min_participantes' => 50,
+                'comision_plataforma' => 5.0,
+                'total_participantes_unicos' => 45, // Simulando participantes actuales
+                'vistas' => 1250,
+                'vistas_unicas' => 890,
+                'configuracion_avanzada' => json_encode([
+                    'mostrar_progreso' => true,
+                    'permitir_comentarios' => true,
+                    'notificar_nuevos_niveles' => true
+                ]),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
 
         // Rifa futura: MacBook Pro (BLOQUEADA - se activa después del iPhone)
-        $rifaMacbook = DB::table('rifas')->insertGetId([
-            'titulo' => 'MacBook Pro M3 16" 1TB',
-            'descripcion' => 'La nueva MacBook Pro con chip M3, perfecta para profesionales y creadores de contenido. Sistema de premios progresivos con múltiples niveles de participación.',
-            'precio_boleto' => 15.00,
-            'boletos_minimos' => 800,
-            'boletos_maximos' => 1600,
-            'boletos_vendidos' => 0, // ✅ Correcto - Rifa futura sin participación
-            'imagen_principal' => '/images/premios/macbook-pro-m3-rifa.jpg',
-            'imagenes_adicionales' => json_encode([
-                '/images/premios/macbook-pro-m3-1.jpg',
-                '/images/premios/macbook-pro-m3-2.jpg'
-            ]),
-            'media_gallery' => json_encode([
-                '/images/premios/macbook-pro-m3-1.jpg',
-                '/images/premios/macbook-pro-m3-2.jpg',
-                '/images/premios/macbook-pro-m3-3.jpg'
-            ]),
-            'fecha_inicio' => Carbon::now()->addDays(35)->format('Y-m-d'),
-            'fecha_fin' => Carbon::now()->addDays(65)->format('Y-m-d'),
-            'fecha_sorteo' => Carbon::now()->addDays(67)->format('Y-m-d H:i:s'),
-            'estado' => 'activa',
-            'tipo' => 'futura',
-            'categoria_id' => null,
-            'codigo_unico' => 'MACBOOKM3001',
-            'es_destacada' => true,
-            'max_boletos_por_persona' => 40,
-            'terminos_condiciones' => 'Sorteo válido solo en territorio nacional. Mayor de edad. Un solo premio por persona.',
-            'orden' => 2,
-            'rifa_requerida_id' => $rifaIphone,
-            'notas_admin' => 'Rifa progresiva que se activa después del iPhone',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        DB::table('rifas')->updateOrInsert(
+            ['codigo_unico' => 'MACBOOKM3001'],
+            [
+                'titulo' => 'MacBook Pro M3 16" 1TB',
+                'descripcion' => 'La nueva MacBook Pro con chip M3, 16 pulgadas de pantalla Liquid Retina XDR y 1TB de almacenamiento SSD. Sistema progresivo de premios.',
+                'precio_boleto' => 15.00,
+                'boletos_minimos' => 1000,
+                'boletos_maximos' => 3000,
+                'boletos_vendidos' => 0,
+                'imagen_principal' => '/images/premios/macbook-pro-m3-rifa.jpg',
+                'media_gallery' => json_encode([
+                    '/images/rifas/macbook-pro-m3-1.jpg',
+                    '/images/rifas/macbook-pro-m3-2.jpg',
+                    '/images/rifas/macbook-pro-m3-3.jpg'
+                ]),
+                'categoria_id' => $categoriaApple->id,
+                'modalidad' => 'progresiva',
+                'estado' => 'futura', // ✅ Se activa cuando se complete el iPhone
+                'tipo_sorteo' => 'aleatorio_simple',
+                'metodo_pago_preferido' => 'yape',
+                'es_destacada' => true,
+                'es_premium' => true,
+                'es_patrocinada' => true,
+                'auto_sorteo_al_completar' => true,
+                'sistema_progresivo_activo' => true,
+                'visible_publico' => true,
+                'destacar_en_inicio' => false,
+                'enviar_notificaciones' => true,
+                'fecha_inicio' => now()->addDays(40),
+                'fecha_fin' => now()->addDays(90),
+                'fecha_limite_pago' => now()->addDays(92),
+                'fecha_sorteo' => now()->addDays(95),
+                'rifa_requerida_id' => null, // Se configurará dinámicamente
+                'permite_transferencia_boletos' => true,
+                'permite_seleccion_numeros' => false,
+                'min_participantes' => 80,
+                'comision_plataforma' => 7.0,
+                'total_participantes_unicos' => 0, // Aún no iniciada
+                'vistas' => 320,
+                'vistas_unicas' => 250,
+                'configuracion_avanzada' => json_encode([
+                    'mostrar_progreso' => true,
+                    'permitir_comentarios' => true,
+                    'notificar_nuevos_niveles' => true
+                ]),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
 
         // Rifa simple: Tesla Model 3 (INDEPENDIENTE)
-        DB::table('rifas')->insert([
-            'titulo' => 'Tesla Model 3 Standard Range',
-            'descripcion' => 'Vehículo eléctrico Tesla Model 3 con todas las características de lujo y tecnología avanzada.',
-            'precio_boleto' => 50.00,
-            'boletos_minimos' => 1000,
-            'boletos_maximos' => 2500,
-            'boletos_vendidos' => 0, // ✅ Correcto - Sin participación aún
-            'imagen_principal' => '/images/premios/tesla-model-3-rifa.jpg',
-            'imagenes_adicionales' => json_encode([
-                '/images/premios/tesla-model-3-1.jpg',
-                '/images/premios/tesla-model-3-2.jpg'
-            ]),
-            'media_gallery' => json_encode([
-                '/images/premios/tesla-model-3-1.jpg',
-                '/images/premios/tesla-model-3-2.jpg',
-                '/images/premios/tesla-model-3-3.jpg'
-            ]),
-            'fecha_inicio' => Carbon::now()->format('Y-m-d'),
-            'fecha_fin' => Carbon::now()->addDays(45)->format('Y-m-d'),
-            'fecha_sorteo' => Carbon::now()->addDays(47)->format('Y-m-d H:i:s'),
-            'estado' => 'activa',
-            'tipo' => 'actual',
-            'categoria_id' => null,
-            'codigo_unico' => 'TESLA3001',
-            'es_destacada' => false,
-            'max_boletos_por_persona' => 20,
-            'terminos_condiciones' => 'Sorteo válido solo en territorio nacional. Mayor de edad. Licencia de conducir vigente.',
-            'orden' => 3,
-            'rifa_requerida_id' => null,
-            'notas_admin' => 'Rifa simple con un solo premio',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        DB::table('rifas')->updateOrInsert(
+            ['codigo_unico' => 'TESLA2025001'],
+            [
+                'titulo' => 'Tesla Model 3 2025',
+                'descripcion' => 'Tesla Model 3 último modelo con autopilot avanzado y 500km de autonomía. Rifa simple con sorteo directo.',
+                'precio_boleto' => 50.00,
+                'boletos_minimos' => 2000,
+                'boletos_maximos' => 5000,
+                'boletos_vendidos' => 150,
+                'imagen_principal' => '/images/premios/tesla-model-3-2025.jpg',
+                'media_gallery' => json_encode([
+                    '/images/rifas/tesla-model-3-1.jpg',
+                    '/images/rifas/tesla-model-3-2.jpg',
+                    '/images/rifas/tesla-model-3-3.jpg',
+                    '/images/rifas/tesla-model-3-4.jpg'
+                ]),
+                'categoria_id' => $categoriaAutomoviles->id,
+                'modalidad' => 'tradicional',
+                'estado' => 'activa',
+                'tipo_sorteo' => 'loteria_nacional',
+                'metodo_pago_preferido' => 'transferencia',
+                'es_destacada' => true,
+                'es_premium' => true,
+                'es_patrocinada' => false,
+                'auto_sorteo_al_completar' => false,
+                'sistema_progresivo_activo' => false,
+                'visible_publico' => true,
+                'destacar_en_inicio' => true,
+                'enviar_notificaciones' => true,
+                'fecha_inicio' => now()->subDays(5),
+                'fecha_fin' => now()->addDays(60),
+                'fecha_limite_pago' => now()->addDays(62),
+                'fecha_sorteo' => now()->addDays(65),
+                'rifa_requerida_id' => null,
+                'permite_transferencia_boletos' => false,
+                'permite_seleccion_numeros' => true,
+                'min_participantes' => 100,
+                'comision_plataforma' => 10.0,
+                'total_participantes_unicos' => 23, // Participantes actuales
+                'vistas' => 450,
+                'vistas_unicas' => 380,
+                'configuracion_avanzada' => json_encode([
+                    'mostrar_progreso' => false,
+                    'permitir_comentarios' => true,
+                    'verificacion_identidad' => true
+                ]),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
+
+        // Obtener los IDs para mostrar en el mensaje
+        $rifaIphone = DB::table('rifas')->where('codigo_unico', 'IPHONE15PM001')->first();
+        $rifaMacbook = DB::table('rifas')->where('codigo_unico', 'MACBOOKM3001')->first();
 
         echo "✅ Rifas seeders ejecutados correctamente\n";
-        echo "   - Rifa iPhone 15 Pro Max (ID: {$rifaIphone}) - Progresiva/Actual\n";
-        echo "   - Rifa MacBook Pro M3 (ID: {$rifaMacbook}) - Progresiva/Futura\n";
+        echo "   - Rifa iPhone 15 Pro Max (ID: {$rifaIphone->id}) - Progresiva/Actual\n";
+        echo "   - Rifa MacBook Pro M3 (ID: {$rifaMacbook->id}) - Progresiva/Futura\n";
         echo "   - Rifa Tesla Model 3 - Simple/Actual\n";
     }
 }
