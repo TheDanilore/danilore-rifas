@@ -7,15 +7,42 @@ use App\Models\Premio;
 use App\Models\Rifa;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Validator;
 
 class PremioController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        try {
+            $query = Premio::with(['rifa']);
+
+            // Filtrar por rifa si se especifica
+            if ($request->has('rifa_id')) {
+                $query->where('rifa_id', $request->rifa_id);
+            }
+
+            // Ordenamiento
+            $sortBy = $request->get('sort_by', 'posicion');
+            $sortOrder = $request->get('sort_order', 'asc');
+            $query->orderBy($sortBy, $sortOrder);
+
+            $premios = $query->paginate($request->get('per_page', 15));
+
+            return response()->json([
+                'success' => true,
+                'data' => $premios,
+                'message' => 'Premios obtenidos exitosamente'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener premios: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -23,7 +50,51 @@ class PremioController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            $validator = Validator::make($request->all(), [
+                'rifa_id' => 'required|exists:rifas,id',
+                'codigo_premio' => 'required|string|unique:premios,codigo_premio',
+                'nombre' => 'required|string|max:255',
+                'descripcion' => 'nullable|string',
+                'valor_estimado' => 'required|numeric|min:0',
+                'imagen_principal' => 'nullable|string',
+                'imagenes_galeria' => 'nullable|array',
+                'es_principal' => 'sometimes|boolean',
+                'posicion' => 'sometimes|integer|min:1'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Datos inválidos',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $premio = Premio::create([
+                'rifa_id' => $request->rifa_id,
+                'codigo_premio' => $request->codigo_premio,
+                'nombre' => $request->nombre,
+                'descripcion' => $request->descripcion,
+                'valor_estimado' => $request->valor_estimado,
+                'imagen_principal' => $request->imagen_principal,
+                'imagenes_galeria' => $request->imagenes_galeria ? json_encode($request->imagenes_galeria) : null,
+                'es_principal' => $request->es_principal ?? false,
+                'posicion' => $request->posicion ?? 1
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => $premio,
+                'message' => 'Premio creado exitosamente'
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al crear premio: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -193,7 +264,58 @@ class PremioController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        try {
+            $premio = Premio::find($id);
+
+            if (!$premio) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Premio no encontrado'
+                ], 404);
+            }
+
+            $validator = Validator::make($request->all(), [
+                'codigo_premio' => 'sometimes|required|string|unique:premios,codigo_premio,' . $id,
+                'nombre' => 'sometimes|required|string|max:255',
+                'descripcion' => 'nullable|string',
+                'valor_estimado' => 'sometimes|required|numeric|min:0',
+                'imagen_principal' => 'nullable|string',
+                'imagenes_galeria' => 'nullable|array',
+                'es_principal' => 'sometimes|boolean',
+                'posicion' => 'sometimes|integer|min:1'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Datos inválidos',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $updateData = $request->only([
+                'codigo_premio', 'nombre', 'descripcion', 'valor_estimado',
+                'imagen_principal', 'es_principal', 'posicion'
+            ]);
+
+            if ($request->has('imagenes_galeria')) {
+                $updateData['imagenes_galeria'] = json_encode($request->imagenes_galeria);
+            }
+
+            $premio->update($updateData);
+
+            return response()->json([
+                'success' => true,
+                'data' => $premio->fresh(),
+                'message' => 'Premio actualizado exitosamente'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar premio: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -201,7 +323,37 @@ class PremioController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            $premio = Premio::find($id);
+
+            if (!$premio) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Premio no encontrado'
+                ], 404);
+            }
+
+            // Verificar si hay sorteos o ganadores asociados
+            if ($premio->sorteos()->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se puede eliminar el premio porque tiene sorteos asociados'
+                ], 422);
+            }
+
+            $premio->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Premio eliminado exitosamente'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al eliminar premio: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

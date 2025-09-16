@@ -32,6 +32,7 @@ Route::prefix('rifas')->group(function () {
 
 // Categorías públicas
 Route::get('/categorias', [CategoriaController::class, 'index']);
+Route::get('/categorias/{id}', [CategoriaController::class, 'show']);
 
 // Premios públicos
 Route::get('/premios/{rifaCodigoUnico}/{codigoPremio}', [PremioController::class, 'show']);

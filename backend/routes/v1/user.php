@@ -8,6 +8,7 @@ use App\Http\Controllers\BoletoController;
 use App\Http\Controllers\PagoController;
 use App\Http\Controllers\CuponController;
 use App\Http\Controllers\SorteoController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -21,6 +22,16 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware(['auth:sanctum', 'role:usuario,moderador,admin,super_admin'])->prefix('user')->group(function () {
+    
+    // Perfil de usuario
+    Route::prefix('perfil')->group(function () {
+        Route::get('/', [UserController::class, 'profile'])
+            ->middleware('abilities:perfil.ver');
+        Route::put('/actualizar', [UserController::class, 'updateProfile'])
+            ->middleware('abilities:perfil.editar');
+        Route::get('/actividad', [UserController::class, 'activity'])
+            ->middleware('abilities:perfil.ver');
+    });
     
     // Ventas de usuario autenticado
     Route::prefix('ventas')->group(function () {

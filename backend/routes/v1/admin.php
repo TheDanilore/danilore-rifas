@@ -16,6 +16,10 @@ use App\Http\Controllers\NivelController;
 use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\PremioController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\VentaController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -39,35 +43,89 @@ Route::middleware(['auth:sanctum', 'role:admin,super_admin,moderador'])->prefix(
     // Gestión de rifas
     Route::prefix('rifas')->group(function () {
         Route::get('/', [RifaController::class, 'adminIndex'])
-            ->middleware('abilities:rifas.ver.admin');
+            ->middleware('abilities:rifas.ver');
+        Route::get('/{id}', [RifaController::class, 'show'])
+            ->middleware('abilities:rifas.ver');
         Route::post('/', [RifaController::class, 'store'])
             ->middleware('abilities:rifas.crear');
         Route::put('/{id}', [RifaController::class, 'update'])
             ->middleware('abilities:rifas.editar');
         Route::delete('/{id}', [RifaController::class, 'destroy'])
             ->middleware('abilities:rifas.eliminar');
-        Route::get('/estadisticas', [AdminController::class, 'getRifasStats'])
-            ->middleware('abilities:estadisticas.ver');
         Route::patch('/{id}/estado', [RifaController::class, 'changeEstado'])
-            ->middleware('abilities:rifas.cambiar.estado');
-        Route::get('/exportar', [AdminController::class, 'exportRifas'])
-            ->middleware('abilities:rifas.exportar');
+            ->middleware('abilities:rifas.editar');
+        Route::get('/estadisticas/general', [RifaController::class, 'estadisticas'])
+            ->middleware('abilities:estadisticas.ver');
+        Route::post('/exportar', [RifaController::class, 'exportar'])
+            ->middleware('abilities:rifas.ver');
     });
     
-    // Gestión de usuarios (solo admin y super_admin)
+    // Gestión de usuarios (completa con nuevo UserController)
     Route::middleware('role:admin,super_admin')->prefix('usuarios')->group(function () {
-        Route::get('/', [AdminController::class, 'getUsuarios'])
+        Route::get('/', [UserController::class, 'index'])
             ->middleware('abilities:usuarios.ver');
-        Route::post('/', [AdminController::class, 'createUsuario'])
+        Route::get('/{id}', [UserController::class, 'show'])
+            ->middleware('abilities:usuarios.ver');
+        Route::post('/', [UserController::class, 'store'])
             ->middleware('abilities:usuarios.crear');
-        Route::put('/{id}', [AdminController::class, 'updateUsuario'])
+        Route::put('/{id}', [UserController::class, 'update'])
             ->middleware('abilities:usuarios.editar');
-        Route::delete('/{id}', [AdminController::class, 'deleteUsuario'])
+        Route::delete('/{id}', [UserController::class, 'destroy'])
             ->middleware('abilities:usuarios.eliminar');
+        Route::patch('/{id}/toggle-status', [UserController::class, 'toggleStatus'])
+            ->middleware('abilities:usuarios.editar');
+        Route::get('/estadisticas/general', [UserController::class, 'estadisticas'])
+            ->middleware('abilities:estadisticas.ver');
+    });
+
+    // Gestión de roles (solo super_admin)
+    Route::middleware('role:super_admin')->prefix('roles')->group(function () {
+        Route::get('/', [RoleController::class, 'index'])
+            ->middleware('abilities:roles.gestionar');
+        Route::get('/{id}', [RoleController::class, 'show'])
+            ->middleware('abilities:roles.gestionar');
+        Route::post('/', [RoleController::class, 'store'])
+            ->middleware('abilities:roles.gestionar');
+        Route::put('/{id}', [RoleController::class, 'update'])
+            ->middleware('abilities:roles.gestionar');
+        Route::delete('/{id}', [RoleController::class, 'destroy'])
+            ->middleware('abilities:roles.gestionar');
+        Route::post('/{id}/assign-permissions', [RoleController::class, 'assignPermissions'])
+            ->middleware('abilities:roles.gestionar');
+        Route::delete('/{id}/revoke-permissions', [RoleController::class, 'revokePermissions'])
+            ->middleware('abilities:roles.gestionar');
+        Route::get('/{id}/users', [RoleController::class, 'users'])
+            ->middleware('abilities:roles.gestionar');
+        Route::get('/estadisticas/general', [RoleController::class, 'estadisticas'])
+            ->middleware('abilities:roles.gestionar');
+    });
+
+    // Gestión de permisos (solo super_admin)
+    Route::middleware('role:super_admin')->prefix('permisos')->group(function () {
+        Route::get('/', [PermissionController::class, 'index'])
+            ->middleware('abilities:permisos.gestionar');
+        Route::get('/{id}', [PermissionController::class, 'show'])
+            ->middleware('abilities:permisos.gestionar');
+        Route::post('/', [PermissionController::class, 'store'])
+            ->middleware('abilities:permisos.gestionar');
+        Route::put('/{id}', [PermissionController::class, 'update'])
+            ->middleware('abilities:permisos.gestionar');
+        Route::delete('/{id}', [PermissionController::class, 'destroy'])
+            ->middleware('abilities:permisos.gestionar');
+        Route::get('/{id}/roles', [PermissionController::class, 'roles'])
+            ->middleware('abilities:permisos.gestionar');
+        Route::get('/categoria/todos', [PermissionController::class, 'porCategoria'])
+            ->middleware('abilities:permisos.gestionar');
+        Route::post('/sincronizar', [PermissionController::class, 'sincronizar'])
+            ->middleware('abilities:permisos.gestionar');
+        Route::get('/estadisticas/general', [PermissionController::class, 'estadisticas'])
+            ->middleware('abilities:permisos.gestionar');
     });
     
     // Gestión de categorías
     Route::prefix('categorias')->group(function () {
+        Route::get('/', [CategoriaController::class, 'index'])
+            ->middleware('abilities:categorias.ver');
         Route::post('/', [CategoriaController::class, 'store'])
             ->middleware('abilities:categorias.crear');
         Route::put('/{id}', [CategoriaController::class, 'update'])
@@ -78,6 +136,8 @@ Route::middleware(['auth:sanctum', 'role:admin,super_admin,moderador'])->prefix(
 
     // Gestión de premios
     Route::prefix('premios')->group(function () {
+        Route::get('/', [PremioController::class, 'index'])
+            ->middleware('abilities:premios.ver');
         Route::post('/', [PremioController::class, 'store'])
             ->middleware('abilities:premios.crear');
         Route::put('/{id}', [PremioController::class, 'update'])
@@ -102,8 +162,14 @@ Route::middleware(['auth:sanctum', 'role:admin,super_admin,moderador'])->prefix(
     
     // Reportes y ventas
     Route::prefix('ventas')->group(function () {
-        Route::get('/', [AdminController::class, 'getVentas'])
+        Route::get('/', [VentaController::class, 'index'])
             ->middleware('abilities:ventas.ver.admin');
+        Route::put('/{id}', [VentaController::class, 'update'])
+            ->middleware('abilities:ventas.gestionar');
+        Route::delete('/{id}', [VentaController::class, 'destroy'])
+            ->middleware('abilities:ventas.eliminar');
+        Route::get('/estadisticas', [VentaController::class, 'estadisticas'])
+            ->middleware('abilities:estadisticas.ver');
         Route::get('/reportes', [AdminController::class, 'getReportes'])
             ->middleware('abilities:ventas.reportes');
     });
@@ -111,39 +177,37 @@ Route::middleware(['auth:sanctum', 'role:admin,super_admin,moderador'])->prefix(
     // Configuraciones (solo admin y super_admin)
     Route::middleware('role:admin,super_admin')->prefix('configuraciones')->group(function () {
         Route::get('/admin', [ConfiguracionController::class, 'admin'])
-            ->middleware('abilities:estadisticas.ver');
-        Route::post('/', [ConfiguracionController::class, 'store'])
-            ->middleware('abilities:rifas.crear'); // Reutilizamos permisos existentes
-        Route::put('/{id}', [ConfiguracionController::class, 'update'])
-            ->middleware('abilities:rifas.editar');
+            ->middleware('abilities:configuracion.editar');
+        Route::put('/{clave}', [ConfiguracionController::class, 'update'])
+            ->middleware('abilities:configuracion.editar');
         Route::patch('/update-batch', [ConfiguracionController::class, 'updateBatch'])
-            ->middleware('abilities:rifas.editar');
-        Route::patch('/{id}/restore', [ConfiguracionController::class, 'restore'])
-            ->middleware('abilities:rifas.editar');
+            ->middleware('abilities:configuracion.editar');
+        Route::patch('/{clave}/restore', [ConfiguracionController::class, 'restore'])
+            ->middleware('abilities:configuracion.editar');
         Route::get('/export', [ConfiguracionController::class, 'export'])
-            ->middleware('abilities:rifas.exportar');
+            ->middleware('abilities:configuracion.editar');
         Route::post('/import', [ConfiguracionController::class, 'import'])
-            ->middleware('abilities:rifas.crear');
+            ->middleware('abilities:configuracion.editar');
     });
 
     // Cupones
     Route::prefix('cupones')->group(function () {
         Route::get('/admin', [CuponController::class, 'admin'])
-            ->middleware('abilities:ventas.ver.admin');
+            ->middleware('abilities:cupones.ver');
         Route::get('/{id}/admin', [CuponController::class, 'show'])
-            ->middleware('abilities:ventas.ver.admin');
+            ->middleware('abilities:cupones.ver');
         Route::post('/', [CuponController::class, 'store'])
-            ->middleware('abilities:rifas.crear');
+            ->middleware('abilities:cupones.crear');
         Route::put('/{id}', [CuponController::class, 'update'])
-            ->middleware('abilities:rifas.editar');
+            ->middleware('abilities:cupones.editar');
         Route::delete('/{id}', [CuponController::class, 'destroy'])
-            ->middleware('abilities:rifas.eliminar');
+            ->middleware('abilities:cupones.eliminar');
         Route::patch('/{id}/desactivar', [CuponController::class, 'desactivar'])
-            ->middleware('abilities:rifas.editar');
+            ->middleware('abilities:cupones.editar');
         Route::get('/estadisticas', [CuponController::class, 'estadisticas'])
             ->middleware('abilities:estadisticas.ver');
         Route::get('/generar-codigo', [CuponController::class, 'generarCodigo'])
-            ->middleware('abilities:rifas.crear');
+            ->middleware('abilities:cupones.crear');
     });
 
     // Favoritos
@@ -159,13 +223,13 @@ Route::middleware(['auth:sanctum', 'role:admin,super_admin,moderador'])->prefix(
     // Comentarios
     Route::prefix('comentarios')->group(function () {
         Route::get('/admin', [ComentarioController::class, 'admin'])
-            ->middleware('abilities:ventas.ver.admin');
+            ->middleware('abilities:comentarios.ver');
         Route::patch('/{id}/aprobar', [ComentarioController::class, 'aprobar'])
-            ->middleware('abilities:rifas.editar');
+            ->middleware('abilities:comentarios.moderar');
         Route::patch('/{id}/rechazar', [ComentarioController::class, 'rechazar'])
-            ->middleware('abilities:rifas.editar');
+            ->middleware('abilities:comentarios.moderar');
         Route::delete('/{id}/admin', [ComentarioController::class, 'eliminarAdmin'])
-            ->middleware('abilities:rifas.eliminar');
+            ->middleware('abilities:comentarios.eliminar');
         Route::get('/estadisticas', [ComentarioController::class, 'estadisticas'])
             ->middleware('abilities:estadisticas.ver');
     });
@@ -173,9 +237,9 @@ Route::middleware(['auth:sanctum', 'role:admin,super_admin,moderador'])->prefix(
     // Notificaciones
     Route::prefix('notificaciones')->group(function () {
         Route::get('/admin', [NotificacionController::class, 'admin'])
-            ->middleware('abilities:ventas.ver.admin');
+            ->middleware('abilities:notificaciones.ver');
         Route::post('/enviar-masiva', [NotificacionController::class, 'enviarMasiva'])
-            ->middleware('abilities:rifas.crear'); // Para enviar notificaciones masivas
+            ->middleware('abilities:notificaciones.enviar.masiva');
         Route::get('/estadisticas-admin', [NotificacionController::class, 'estadisticasAdmin'])
             ->middleware('abilities:estadisticas.ver');
     });
@@ -183,15 +247,15 @@ Route::middleware(['auth:sanctum', 'role:admin,super_admin,moderador'])->prefix(
     // Sorteos
     Route::prefix('sorteos')->group(function () {
         Route::get('/admin', [SorteoController::class, 'admin'])
-            ->middleware('abilities:ventas.ver.admin');
+            ->middleware('abilities:sorteos.ver');
         Route::post('/rifa/{rifaId}/ejecutar', [SorteoController::class, 'ejecutar'])
-            ->middleware('abilities:rifas.editar');
+            ->middleware('abilities:sorteos.ejecutar');
         Route::post('/rifa/{rifaId}/programar', [SorteoController::class, 'programar'])
-            ->middleware('abilities:rifas.editar');
+            ->middleware('abilities:sorteos.programar');
         Route::patch('/{id}/cancelar', [SorteoController::class, 'cancelar'])
-            ->middleware('abilities:rifas.editar');
+            ->middleware('abilities:sorteos.ejecutar');
         Route::patch('/{id}/reejecutar', [SorteoController::class, 'reejecutar'])
-            ->middleware('abilities:rifas.editar');
+            ->middleware('abilities:sorteos.ejecutar');
         Route::get('/estadisticas', [SorteoController::class, 'estadisticas'])
             ->middleware('abilities:estadisticas.ver');
     });
@@ -199,9 +263,9 @@ Route::middleware(['auth:sanctum', 'role:admin,super_admin,moderador'])->prefix(
     // Boletos
     Route::prefix('boletos')->group(function () {
         Route::get('/admin', [BoletoController::class, 'admin'])
-            ->middleware('abilities:ventas.ver.admin');
+            ->middleware('abilities:boletos.ver');
         Route::post('/{id}/forzar-transferencia', [BoletoController::class, 'forzarTransferencia'])
-            ->middleware('abilities:ventas.gestionar');
+            ->middleware('abilities:boletos.gestionar');
         Route::get('/estadisticas', [BoletoController::class, 'estadisticas'])
             ->middleware('abilities:estadisticas.ver');
     });
@@ -209,11 +273,11 @@ Route::middleware(['auth:sanctum', 'role:admin,super_admin,moderador'])->prefix(
     // Pagos
     Route::prefix('pagos')->group(function () {
         Route::get('/admin', [PagoController::class, 'admin'])
-            ->middleware('abilities:ventas.ver.admin');
+            ->middleware('abilities:pagos.ver');
         Route::patch('/{id}/aprobar', [PagoController::class, 'aprobar'])
-            ->middleware('abilities:ventas.gestionar');
+            ->middleware('abilities:pagos.aprobar');
         Route::patch('/{id}/rechazar', [PagoController::class, 'rechazar'])
-            ->middleware('abilities:ventas.gestionar');
+            ->middleware('abilities:pagos.rechazar');
         Route::get('/estadisticas', [PagoController::class, 'estadisticas'])
             ->middleware('abilities:estadisticas.ver');
     });

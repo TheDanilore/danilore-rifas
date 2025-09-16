@@ -254,4 +254,239 @@ class VentaController extends Controller
             'data' => $ventas
         ]);
     }
+
+    // ===============================
+    // MÉTODOS ADMINISTRATIVOS
+    // ===============================
+
+    /**
+     * Obtener todas las ventas (administrador)
+     */
+    public function index(Request $request): JsonResponse
+    {
+        try {
+            $query = Venta::with(['user', 'rifa', 'boletos', 'pagos'])
+                         ->orderBy('created_at', 'desc');
+
+            // Filtros
+            if ($request->has('estado')) {
+                $query->where('estado', $request->estado);
+            }
+
+            if ($request->has('metodo_pago')) {
+                $query->where('metodo_pago', $request->metodo_pago);
+            }
+
+            if ($request->has('rifa_id')) {
+                $query->where('rifa_id', $request->rifa_id);
+            }
+
+            if ($request->has('fecha_inicio') && $request->has('fecha_fin')) {
+                $query->whereBetween('created_at', [$request->fecha_inicio, $request->fecha_fin]);
+            }
+
+            $ventas = $query->paginate($request->get('per_page', 15));
+
+            return response()->json([
+                'success' => true,
+                'data' => $ventas,
+                'message' => 'Ventas obtenidas exitosamente'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener ventas: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Actualizar estado de una venta (administrador)
+     */
+    public function update(Request $request, $id): JsonResponse
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'estado' => 'sometimes|required|in:pendiente,pagada,cancelada,expirada',
+                'observaciones_admin' => 'nullable|string|max:500'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Datos inválidos',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $venta = Venta::with(['boletos', 'rifa'])->find($id);
+
+            if (!$venta) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Venta no encontrada'
+                ], 404);
+            }
+
+            DB::beginTransaction();
+
+            $estadoAnterior = $venta->estado;
+
+            // Actualizar venta
+            $venta->update([
+                'estado' => $request->estado ?? $venta->estado,
+                'observaciones_admin' => $request->observaciones_admin,
+                'fecha_actualizacion_admin' => now()
+            ]);
+
+            // Si se confirma la venta, actualizar boletos
+            if ($request->estado === 'pagada' && $estadoAnterior !== 'pagada') {
+                $venta->boletos()->update([
+                    'estado' => 'pagado',
+                    'fecha_pago' => now()
+                ]);
+            }
+
+            // Si se cancela la venta, liberar boletos
+            if ($request->estado === 'cancelada' && in_array($estadoAnterior, ['pendiente', 'reservado'])) {
+                $venta->boletos()->update([
+                    'estado' => 'disponible',
+                    'user_id' => null,
+                    'venta_id' => null,
+                    'fecha_liberacion' => now()
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'data' => $venta->fresh(['boletos', 'rifa', 'user']),
+                'message' => 'Venta actualizada exitosamente'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar venta: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Eliminar una venta (administrador)
+     */
+    public function destroy($id): JsonResponse
+    {
+        try {
+            $venta = Venta::with(['boletos', 'pagos'])->find($id);
+
+            if (!$venta) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Venta no encontrada'
+                ], 404);
+            }
+
+            // Solo se pueden eliminar ventas canceladas o expiradas
+            if (!in_array($venta->estado, ['cancelada', 'expirada'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Solo se pueden eliminar ventas canceladas o expiradas'
+                ], 422);
+            }
+
+            DB::beginTransaction();
+
+            // Liberar boletos
+            $venta->boletos()->update([
+                'estado' => 'disponible',
+                'user_id' => null,
+                'venta_id' => null,
+                'fecha_liberacion' => now()
+            ]);
+
+            // Eliminar pagos asociados
+            $venta->pagos()->delete();
+
+            // Eliminar venta
+            $venta->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Venta eliminada exitosamente'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al eliminar venta: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Estadísticas de ventas
+     */
+    public function estadisticas(): JsonResponse
+    {
+        try {
+            $estadisticas = [
+                'total_ventas' => Venta::count(),
+                'ventas_pagadas' => Venta::where('estado', 'pagada')->count(),
+                'ventas_pendientes' => Venta::where('estado', 'pendiente')->count(),
+                'ventas_canceladas' => Venta::where('estado', 'cancelada')->count(),
+                'ventas_expiradas' => Venta::where('estado', 'expirada')->count(),
+                'ingresos_totales' => Venta::where('estado', 'pagada')->sum('total'),
+                'ingresos_mes_actual' => Venta::where('estado', 'pagada')
+                    ->whereMonth('created_at', now()->month)
+                    ->whereYear('created_at', now()->year)
+                    ->sum('total'),
+                'ventas_por_metodo_pago' => Venta::select('metodo_pago')
+                    ->selectRaw('COUNT(*) as cantidad')
+                    ->selectRaw('SUM(total) as monto_total')
+                    ->where('estado', 'pagada')
+                    ->groupBy('metodo_pago')
+                    ->get(),
+                'ventas_por_mes' => Venta::select(
+                        DB::raw('YEAR(created_at) as año'),
+                        DB::raw('MONTH(created_at) as mes'),
+                        DB::raw('COUNT(*) as cantidad'),
+                        DB::raw('SUM(total) as monto')
+                    )
+                    ->where('estado', 'pagada')
+                    ->where('created_at', '>=', now()->subMonths(12))
+                    ->groupBy('año', 'mes')
+                    ->orderBy('año', 'desc')
+                    ->orderBy('mes', 'desc')
+                    ->get(),
+                'top_rifas_ventas' => Venta::with('rifa')
+                    ->select('rifa_id')
+                    ->selectRaw('COUNT(*) as total_ventas')
+                    ->selectRaw('SUM(total) as ingresos')
+                    ->where('estado', 'pagada')
+                    ->groupBy('rifa_id')
+                    ->orderBy('total_ventas', 'desc')
+                    ->take(10)
+                    ->get()
+            ];
+
+            return response()->json([
+                'success' => true,
+                'data' => $estadisticas,
+                'message' => 'Estadísticas obtenidas exitosamente'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener estadísticas: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
