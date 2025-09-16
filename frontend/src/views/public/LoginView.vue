@@ -45,7 +45,7 @@
               <div class="country-selector">
                 <select v-model="form.pais" class="country-select">
                   <option v-for="country in countryList" :key="country.code" :value="country.code">
-                    {{ country.flag }} {{ country.phoneCode }}
+                    {{ country.name }} {{ country.phoneCode }}
                   </option>
                 </select>
               </div>

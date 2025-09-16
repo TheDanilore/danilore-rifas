@@ -39,8 +39,8 @@
               <div class="input-group">
                 <div class="input-group">
                   <i class="fas fa-calendar input-icon"></i>
-                  <input type="date" class="form-input" v-model="form.fechaNacimiento" required>
-
+                  <input type="date" class="form-input" v-model="form.fechaNacimiento" 
+                    :class="{ 'has-value': form.fechaNacimiento }" required>
                 </div>
                 <p class="form-help">Fecha de nacimiento</p>
               </div>
@@ -48,7 +48,8 @@
               <div class="input-group">
                 <div class="input-group">
                   <i class="fas fa-venus-mars input-icon"></i>
-                  <select class="form-input" v-model="form.genero" required>
+                  <select class="form-input" v-model="form.genero" 
+                    :class="{ 'has-value': form.genero }" required>
                     <option value="">Seleccionar género</option>
                     <option value="masculino">Masculino</option>
                     <option value="femenino">Femenino</option>
@@ -70,7 +71,7 @@
                   <div class="country-selector">
                     <select v-model="form.pais" class="country-select">
                       <option v-for="country in countryList" :key="country.code" :value="country.code">
-                        {{ country.flag }} {{ country.phoneCode }}
+                        {{ country.name }} {{ country.phoneCode }}
                       </option>
                     </select>
                   </div>
@@ -583,5 +584,34 @@ export default {
     font-size: 1rem;
     margin-bottom: 1rem;
   }
+}
+
+/* Corrección específica para campos de fecha y género */
+.form-input[type="date"] {
+  color: #9ca3af !important;
+  font-weight: 400 !important;
+  background: transparent !important;
+  border-color: #e5e7eb !important;
+}
+
+.form-input[type="date"].has-value {
+  color: #111827 !important;
+  font-weight: 600 !important;
+  background: #f9fafb !important;
+  border-color: #6b7280 !important;
+}
+
+select.form-input {
+  color: #9ca3af !important;
+  font-weight: 400 !important;
+  background: transparent !important;
+  border-color: #e5e7eb !important;
+}
+
+select.form-input.has-value {
+  color: #111827 !important;
+  font-weight: 600 !important;
+  background: #f9fafb !important;
+  border-color: #6b7280 !important;
 }
 </style>

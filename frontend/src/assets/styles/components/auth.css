@@ -229,19 +229,37 @@
 }
 
 /* Estilos específicos para input type="date" con valor */
-.form-input[type="date"]:not([value=""]) {
+.form-input[type="date"]:not([value=""]):not(:invalid) {
     background: #f9fafb !important;
     border-color: #6b7280 !important;
     color: #111827 !important;
     font-weight: 600;
 }
 
+/* Estilos específicos para input type="date" SIN valor */
+.form-input[type="date"]:invalid,
+.form-input[type="date"][value=""] {
+    background: transparent !important;
+    border-color: #e5e7eb !important;
+    color: #9ca3af !important;
+    font-weight: 400;
+}
+
 /* Estilos específicos para select con valor */
-select.form-input:not([value=""]) {
+select.form-input:not([value=""]):not(:invalid) {
     background: #f9fafb !important;
     border-color: #6b7280 !important;
     color: #111827 !important;
     font-weight: 600;
+}
+
+/* Estilos específicos para select SIN valor */
+select.form-input[value=""],
+select.form-input:invalid {
+    background: transparent !important;
+    border-color: #e5e7eb !important;
+    color: #9ca3af !important;
+    font-weight: 400;
 }
 
 /* Estilos específicos para input type="password" con valor */
