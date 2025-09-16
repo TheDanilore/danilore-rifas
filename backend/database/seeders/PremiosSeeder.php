@@ -23,6 +23,7 @@ class PremiosSeeder extends Seeder
                 [
                     'titulo' => 'AirPods Pro 2da Gen',
                     'descripcion' => 'Los nuevos AirPods Pro con cancelación activa de ruido y audio espacial personalizado.',
+                    'valor_estimado' => 699.00,
                     'imagen_principal' => '/images/premios/airpods-pro-gen2.jpg',
                     'media_gallery' => json_encode([
                         '/images/premios/airpods-pro-gen2-1.jpg',
@@ -30,6 +31,7 @@ class PremiosSeeder extends Seeder
                         '/images/premios/airpods-pro-gen2-3.jpg'
                     ]),
                     'orden' => 1,
+                    'tickets_minimos_desbloqueo' => 200,
                     'premio_requerido_id' => null,
                     'estado' => 'completado', // ✅ COMPLETADO
                     'desbloqueado' => true,
@@ -45,6 +47,7 @@ class PremiosSeeder extends Seeder
                 [
                     'titulo' => 'iPad Air M2 256GB',
                     'descripcion' => 'iPad Air con chip M2, pantalla Liquid Retina de 10.9 pulgadas y compatibilidad con Apple Pencil.',
+                    'valor_estimado' => 1899.00,
                     'imagen_principal' => '/images/premios/ipad-air-m2.jpg',
                     'media_gallery' => json_encode([
                         '/images/premios/ipad-air-m2-1.jpg',
@@ -53,6 +56,7 @@ class PremiosSeeder extends Seeder
                         '/images/premios/ipad-air-m2-3.jpg'
                     ]),
                     'orden' => 2,
+                    'tickets_minimos_desbloqueo' => 400,
                     'premio_requerido_id' => null, // Se obtendrá el ID dinámicamente si es necesario
                     'estado' => 'completado', // ✅ COMPLETADO
                     'desbloqueado' => true,
@@ -68,6 +72,7 @@ class PremiosSeeder extends Seeder
                 [
                     'titulo' => 'iPhone 15 Pro Max 1TB',
                     'descripcion' => 'El iPhone más avanzado con chip A17 Pro, sistema de cámaras Pro de 48MP y pantalla Super Retina XDR de 6.7 pulgadas.',
+                    'valor_estimado' => 6499.00,
                     'imagen_principal' => '/images/premios/iphone-15-pro-max-final.jpg',
                     'media_gallery' => json_encode([
                         '/images/premios/iphone-15-pro-max-final-1.jpg',
@@ -76,6 +81,7 @@ class PremiosSeeder extends Seeder
                         '/images/premios/iphone-15-pro-max-final-4.jpg'
                     ]),
                     'orden' => 3,
+                    'tickets_minimos_desbloqueo' => 700,
                     'premio_requerido_id' => null, // Se obtendrá dinámicamente si es necesario
                     'estado' => 'activo', // ✅ ACTIVO (en progreso)
                     'desbloqueado' => true,
@@ -93,6 +99,7 @@ class PremiosSeeder extends Seeder
                 [
                     'titulo' => 'Magic Keyboard con Touch ID',
                     'descripcion' => 'Magic Keyboard inalámbrico con Touch ID y teclado numérico para un flujo de trabajo eficiente.',
+                    'valor_estimado' => 549.00,
                     'imagen_principal' => '/images/premios/magic-keyboard-touchid.jpg',
                     'media_gallery' => json_encode([
                         '/images/premios/magic-keyboard-touchid-1.jpg',
@@ -100,6 +107,7 @@ class PremiosSeeder extends Seeder
                         '/images/premios/magic-keyboard-touchid-3.jpg'
                     ]),
                     'orden' => 1,
+                    'tickets_minimos_desbloqueo' => 200,
                     'premio_requerido_id' => null,
                     'estado' => 'activo',
                     'desbloqueado' => true,
@@ -117,6 +125,7 @@ class PremiosSeeder extends Seeder
                 [
                     'titulo' => 'Studio Display 27"',
                     'descripcion' => 'Monitor Studio Display de 27 pulgadas con pantalla Retina 5K, cámara Ultra Wide y audio espacial.',
+                    'valor_estimado' => 6299.00,
                     'imagen_principal' => '/images/premios/studio-display-27.jpg',
                     'media_gallery' => json_encode([
                         '/images/premios/studio-display-27-1.jpg',
@@ -124,6 +133,7 @@ class PremiosSeeder extends Seeder
                         '/images/premios/studio-display-27-3.jpg'
                     ]),
                     'orden' => 2,
+                    'tickets_minimos_desbloqueo' => 500,
                     'premio_requerido_id' => $premioMac1 ? $premioMac1->id : null,
                     'estado' => 'bloqueado',
                     'desbloqueado' => false,
@@ -144,6 +154,7 @@ class PremiosSeeder extends Seeder
                 [
                     'titulo' => 'MacBook Pro M3 16" 1TB',
                     'descripcion' => 'MacBook Pro de 16 pulgadas con chip M3, 1TB SSD y 18GB de memoria unificada. Perfecta para profesionales creativos.',
+                    'valor_estimado' => 11999.00,
                     'imagen_principal' => '/images/premios/macbook-pro-m3-final.jpg',
                     'media_gallery' => json_encode([
                         '/images/premios/macbook-pro-m3-final-1.jpg',
@@ -152,6 +163,7 @@ class PremiosSeeder extends Seeder
                         '/images/premios/macbook-pro-m3-final-4.jpg'
                     ]),
                     'orden' => 3,
+                    'tickets_minimos_desbloqueo' => 1000,
                     'premio_requerido_id' => $premioMac2 ? $premioMac2->id : null,
                     'estado' => 'bloqueado',
                     'desbloqueado' => false,

@@ -23,6 +23,7 @@ class RifasSeeder extends Seeder
             ['codigo_unico' => 'IPHONE15PM001'],
             [
                 'titulo' => 'iPhone 15 Pro Max 1TB',
+                'slug' => 'iphone-15-pro-max-1tb',
                 'descripcion' => 'Gana el nuevo iPhone 15 Pro Max con 1TB de almacenamiento. Sistema de premios progresivos donde cada nivel se desbloquea con la participación de la comunidad.',
                 'precio_boleto' => 10.00,
                 'boletos_minimos' => 700,
@@ -75,6 +76,7 @@ class RifasSeeder extends Seeder
             ['codigo_unico' => 'MACBOOKM3001'],
             [
                 'titulo' => 'MacBook Pro M3 16" 1TB',
+                'slug' => 'macbook-pro-m3-16-1tb',
                 'descripcion' => 'La nueva MacBook Pro con chip M3, 16 pulgadas de pantalla Liquid Retina XDR y 1TB de almacenamiento SSD. Sistema progresivo de premios.',
                 'precio_boleto' => 15.00,
                 'boletos_minimos' => 1000,
@@ -88,7 +90,7 @@ class RifasSeeder extends Seeder
                 ]),
                 'categoria_id' => $categoriaApple->id,
                 'modalidad' => 'progresiva',
-                'estado' => 'futura', // ✅ Se activa cuando se complete el iPhone
+                'estado' => 'programada', // ✅ Se activa cuando se complete el iPhone
                 'tipo_sorteo' => 'aleatorio_simple',
                 'metodo_pago_preferido' => 'yape',
                 'es_destacada' => true,
@@ -126,6 +128,7 @@ class RifasSeeder extends Seeder
             ['codigo_unico' => 'TESLA2025001'],
             [
                 'titulo' => 'Tesla Model 3 2025',
+                'slug' => 'tesla-model-3-2025',
                 'descripcion' => 'Tesla Model 3 último modelo con autopilot avanzado y 500km de autonomía. Rifa simple con sorteo directo.',
                 'precio_boleto' => 50.00,
                 'boletos_minimos' => 2000,
