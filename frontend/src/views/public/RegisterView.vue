@@ -39,7 +39,7 @@
               <div class="input-group">
                 <div class="input-group">
                   <i class="fas fa-calendar input-icon"></i>
-                  <input type="date" class="form-input" v-model="form.fechaNacimiento" 
+                  <input type="date" class="form-input" v-model="form.fechaNacimiento"
                     :class="{ 'has-value': form.fechaNacimiento }" required>
                 </div>
                 <p class="form-help">Fecha de nacimiento</p>
@@ -48,8 +48,7 @@
               <div class="input-group">
                 <div class="input-group">
                   <i class="fas fa-venus-mars input-icon"></i>
-                  <select class="form-input" v-model="form.genero" 
-                    :class="{ 'has-value': form.genero }" required>
+                  <select class="form-input" v-model="form.genero" :class="{ 'has-value': form.genero }" required>
                     <option value="">Seleccionar género</option>
                     <option value="masculino">Masculino</option>
                     <option value="femenino">Femenino</option>
@@ -71,7 +70,7 @@
                   <div class="country-selector">
                     <select v-model="form.pais" class="country-select">
                       <option v-for="country in countryList" :key="country.code" :value="country.code">
-                        {{ country.name }} {{ country.phoneCode }}
+                        {{ country.flag }} {{ country.phoneCode }}
                       </option>
                     </select>
                   </div>
