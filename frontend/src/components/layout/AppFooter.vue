@@ -54,7 +54,8 @@
       </div>
 
       <div class="footer-bottom">
-        <p>&copy; {{ currentYear }} Danilore Rifas. Todos los derechos reservados. Rifas realizadas con total transparencia</p>
+        <p>&copy; {{ currentYear }} Danilore Rifas. Todos los derechos reservados. Rifas realizadas con total
+          transparencia</p>
       </div>
     </div>
   </footer>
@@ -82,11 +83,12 @@ export default {
   margin-top: auto;
 }
 
-.footer-content {
+.footer-content{
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
   gap: 3rem;
-  padding: 3rem 0;
+  padding: 1rem 0;
+  align-items: center;
 }
 
 .footer-main {
@@ -100,6 +102,7 @@ export default {
   margin-bottom: 1.5rem;
   font-weight: 700;
   font-size: 1.5rem;
+  width: 200px;
 }
 
 .logo-icon {
