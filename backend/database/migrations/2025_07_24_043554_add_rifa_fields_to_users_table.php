@@ -40,6 +40,12 @@ return new class extends Migration
             // Preferencias de notificaciones
             $table->json('preferencias_notificacion')->nullable()->after('zona_horaria'); // JSON más flexible
             
+            // Términos y condiciones
+            $table->boolean('acepta_terminos')->default(false)->after('preferencias_notificacion'); // Acepta términos y condiciones
+            $table->datetime('fecha_aceptacion_terminos')->nullable()->after('acepta_terminos'); // Fecha cuando aceptó términos
+            $table->boolean('acepta_marketing')->default(false)->after('fecha_aceptacion_terminos'); // Acepta recibir promociones
+            $table->datetime('fecha_aceptacion_marketing')->nullable()->after('acepta_marketing'); // Fecha cuando aceptó marketing
+            
             // Estadísticas del usuario (se actualizan automáticamente)
             $table->integer('total_boletos_comprados')->default(0)->after('preferencias_notificacion');
             $table->decimal('total_gastado', 12, 2)->default(0)->after('total_boletos_comprados');
@@ -70,7 +76,8 @@ return new class extends Migration
                 'nombre', 'apellido', 'telefono', 'tipo_documento', 'numero_documento', 'fecha_nacimiento', 
                 'genero', 'direccion', 'ciudad', 'departamento', 'codigo_postal', 'pais',
                 'activo', 'verificado', 'ultimo_acceso', 'avatar', 'zona_horaria',
-                'preferencias_notificacion', 'total_boletos_comprados', 'total_gastado', 
+                'preferencias_notificacion', 'acepta_terminos', 'fecha_aceptacion_terminos', 
+                'acepta_marketing', 'fecha_aceptacion_marketing', 'total_boletos_comprados', 'total_gastado', 
                 'total_rifas_participadas', 'rifas_ganadas', 'primera_compra', 'ultima_compra',
                 'doble_autenticacion', 'intentos_login_fallidos', 'bloqueado_hasta'
             ]);

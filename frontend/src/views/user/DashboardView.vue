@@ -1,7 +1,5 @@
 <template>
   <div class="dashboard-page">
-    <AppHeader />
-
     <!-- Hero Section -->
     <section class="dashboard-hero">
       <div class="container">
@@ -15,7 +13,7 @@
               <p>Bienvenido a tu dashboard personal</p>
             </div>
           </div>
-          
+
           <div class="user-stats">
             <div class="stat-card">
               <div class="stat-icon">
@@ -26,7 +24,7 @@
                 <span class="stat-label">Tickets Comprados</span>
               </div>
             </div>
-            
+
             <div class="stat-card">
               <div class="stat-icon">
                 <i class="fas fa-trophy"></i>
@@ -45,27 +43,15 @@
     <section class="dashboard-nav">
       <div class="container">
         <div class="nav-tabs">
-          <button 
-            class="nav-tab" 
-            :class="{ active: activeTab === 'tickets' }"
-            @click="activeTab = 'tickets'"
-          >
+          <button class="nav-tab" :class="{ active: activeTab === 'tickets' }" @click="activeTab = 'tickets'">
             <i class="fas fa-ticket-alt"></i>
             Mis Tickets
           </button>
-          <button 
-            class="nav-tab" 
-            :class="{ active: activeTab === 'history' }"
-            @click="activeTab = 'history'"
-          >
+          <button class="nav-tab" :class="{ active: activeTab === 'history' }" @click="activeTab = 'history'">
             <i class="fas fa-history"></i>
             Historial
           </button>
-          <button 
-            class="nav-tab" 
-            :class="{ active: activeTab === 'profile' }"
-            @click="activeTab = 'profile'"
-          >
+          <button class="nav-tab" :class="{ active: activeTab === 'profile' }" @click="activeTab = 'profile'">
             <i class="fas fa-user"></i>
             Mi Perfil
           </button>
@@ -90,19 +76,15 @@
             <h3>No tienes tickets aún</h3>
             <p>¡Participa en nuestras rifas y aparecerán aquí!</p>
             <router-link to="/" class="btn btn-primary">
-              <i class="fas fa-plus"></i> 
+              <i class="fas fa-plus"></i>
               &nbsp;
               Comprar Tickets
             </router-link>
           </div>
 
           <div v-else class="tickets-grid">
-            <div 
-              v-for="ticket in tickets" 
-              :key="ticket.id"
-              class="ticket-card"
-              :class="{ 'ticket-winner': ticket.estado === 'ganador' }"
-            >
+            <div v-for="ticket in tickets" :key="ticket.id" class="ticket-card"
+              :class="{ 'ticket-winner': ticket.estado === 'ganador' }">
               <div class="ticket-header">
                 <div class="ticket-number">
                   Ticket #{{ ticket.numero }}
@@ -112,7 +94,7 @@
                   {{ getStatusText(ticket.estado) }}
                 </div>
               </div>
-              
+
               <div class="ticket-info">
                 <div class="info-row">
                   <span class="info-label">Rifa:</span>
@@ -158,20 +140,16 @@
           </div>
 
           <div v-else class="history-list">
-            <div 
-              v-for="entry in history" 
-              :key="entry.id"
-              class="history-item"
-            >
+            <div v-for="entry in history" :key="entry.id" class="history-item">
               <div class="history-icon">
                 <i :class="getHistoryIcon(entry.tipo)"></i>
               </div>
-              
+
               <div class="history-content">
                 <div class="history-title">{{ entry.descripcion }}</div>
                 <div class="history-date">{{ formatDate(entry.fecha) }}</div>
               </div>
-              
+
               <div class="history-amount" v-if="entry.monto">
                 <span class="amount">S/ {{ entry.monto }}</span>
               </div>
@@ -191,41 +169,26 @@
               <form @submit.prevent="updateProfile">
                 <div class="form-section">
                   <h3>Información Personal</h3>
-                  
+
                   <div class="input-group">
                     <label>Nombre Completo</label>
-                    <input 
-                      type="text" 
-                      class="form-input"
-                      v-model="profileForm.nombre"
-                      required
-                    >
+                    <input type="text" class="form-input" v-model="profileForm.nombre" required>
                   </div>
-                  
+
                   <div class="input-group">
                     <label>Email</label>
-                    <input 
-                      type="email" 
-                      class="form-input"
-                      v-model="profileForm.email"
-                      required
-                    >
+                    <input type="email" class="form-input" v-model="profileForm.email" required>
                   </div>
-                  
+
                   <div class="input-group">
                     <label>Teléfono</label>
-                    <input 
-                      type="tel" 
-                      class="form-input"
-                      v-model="profileForm.telefono"
-                      required
-                    >
+                    <input type="tel" class="form-input" v-model="profileForm.telefono" required>
                   </div>
                 </div>
 
                 <div class="form-section">
                   <h3>Información de la Cuenta</h3>
-                  
+
                   <div class="info-readonly">
                     <div class="info-item">
                       <span class="info-label">Fecha de Registro:</span>
@@ -251,8 +214,6 @@
         </div>
       </div>
     </section>
-
-    <AppFooter />
   </div>
 </template>
 
@@ -261,20 +222,14 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 import { useRifas } from '@/composables/api/useRifas'
-import AppHeader from '@/components/layout/AppHeader.vue'
-import AppFooter from '@/components/layout/AppFooter.vue'
 
 export default {
   name: 'Dashboard',
-  components: {
-    AppHeader,
-    AppFooter
-  },
   setup() {
     const router = useRouter()
     const { user, tickets, history, isAuthenticated, updateUserProfile } = useAuthStore()
     const { rifas } = useRifas()
-    
+
     const activeTab = ref('tickets')
     const profileForm = ref({
       nombre: '',
@@ -507,8 +462,15 @@ export default {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .content-header {

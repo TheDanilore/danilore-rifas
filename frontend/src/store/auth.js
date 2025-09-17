@@ -137,17 +137,34 @@ export function useAuthStore() {
 
   const register = async (userData) => {
     try {
+      console.log('Store auth.js - userData recibido:', userData)
+      
       // Llamar al servicio de registro real
       const user = await authService.register({
         nombres: userData.nombres,
         apellidos: userData.apellidos,
-        celular: userData.celular,
+        telefono: userData.telefono, // ✅ Corregido: usar telefono en lugar de celular
         email: userData.email,
         password: userData.password,
         tipo_documento: userData.tipo_documento,
         numero_documento: userData.numero_documento,
         fecha_nacimiento: userData.fecha_nacimiento,
-        genero: userData.genero
+        genero: userData.genero,
+        direccion: userData.direccion,
+        ciudad: userData.ciudad,
+        departamento: userData.departamento,
+        codigo_postal: userData.codigo_postal,
+        pais: userData.pais,
+        // Campos de términos y preferencias
+        accept_terms: userData.acceptTerms,
+        accept_marketing: userData.acceptMarketing,
+        // Preferencias de notificación como JSON
+        preferencias_notificacion: {
+          email_promociones: userData.acceptMarketing,
+          email_rifas: userData.acceptMarketing,
+          push_promociones: userData.acceptMarketing,
+          sms_promociones: false // Por defecto desactivado
+        }
       })
       
       // Formatear datos del usuario para el frontend

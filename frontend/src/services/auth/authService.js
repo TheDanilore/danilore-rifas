@@ -21,7 +21,11 @@ export class AuthService {
         ciudad: userData.ciudad,
         departamento: userData.departamento,
         codigo_postal: userData.codigo_postal,
-        pais: userData.pais
+        pais: userData.pais,
+        // Nuevos campos de términos y preferencias
+        accept_terms: userData.accept_terms,
+        accept_marketing: userData.accept_marketing,
+        preferencias_notificacion: userData.preferencias_notificacion
       })
       
       console.log('Respuesta del registro:', response)

@@ -46,8 +46,13 @@ class User extends Authenticatable
         'ultimo_acceso',
         'avatar',
         'zona_horaria',
-        // Preferencias de notificaciones
-        'preferencias_notificacion',
+        // Preferencias de notificaciones (para configuraciones flexibles)
+        'preferencias_notificacion', // JSON: email_rifas, push_promociones, sms_enabled, etc.
+        // Términos legales (campos separados para compliance y auditoría)
+        'acepta_terminos',           // Boolean: REQUERIDO para registro
+        'fecha_aceptacion_terminos', // DateTime: cuándo aceptó términos
+        'acepta_marketing',          // Boolean: opcional para promociones
+        'fecha_aceptacion_marketing', // DateTime: cuándo aceptó marketing
         // Estadísticas del usuario
         'total_boletos_comprados',
         'total_gastado',
@@ -86,6 +91,12 @@ class User extends Authenticatable
             'activo' => 'boolean',
             'verificado' => 'boolean',
             'preferencias_notificacion' => 'json',
+            // Casts para términos y marketing
+            'acepta_terminos' => 'boolean',
+            'fecha_aceptacion_terminos' => 'datetime',
+            'acepta_marketing' => 'boolean', 
+            'fecha_aceptacion_marketing' => 'datetime',
+            // Estadísticas
             'total_boletos_comprados' => 'integer',
             'total_gastado' => 'decimal:2',
             'total_rifas_participadas' => 'integer',

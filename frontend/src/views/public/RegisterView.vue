@@ -74,7 +74,7 @@
                       </option>
                     </select>
                   </div>
-                  <input type="tel" class="form-input phone-input" placeholder="999 888 777" v-model="form.celular"
+                  <input type="tel" class="form-input phone-input" placeholder="999 888 777" v-model="form.telefono"
                     autocomplete="tel" required>
                 </div>
                 <p class="form-help">Para notificaciones importantes</p>
@@ -256,7 +256,7 @@ export default {
     const form = reactive({
       nombres: '',
       apellidos: '',
-      celular: '',
+      telefono: '', // Cambiado de celular a telefono
       email: '',
       password: '',
       confirmPassword: '',
@@ -283,14 +283,17 @@ export default {
 
     // Computed para el teléfono completo
     const fullPhoneNumber = computed(() => {
-      if (form.celular && form.pais) {
-        return formatPhoneWithCountry(form.celular, form.pais)
+      if (form.telefono && form.pais) {
+        const formatted = formatPhoneWithCountry(form.telefono, form.pais)
+        console.log('Formateando teléfono:', { telefono: form.telefono, pais: form.pais, formatted })
+        return formatted
       }
-      return form.celular
+      console.log('Teléfono sin formatear:', form.telefono)
+      return form.telefono
     })
 
     // Limpiar error cuando el usuario escriba
-    watch([() => form.nombres, () => form.apellidos, () => form.celular, () => form.email, () => form.password, () => form.confirmPassword], () => {
+    watch([() => form.nombres, () => form.apellidos, () => form.telefono, () => form.email, () => form.password, () => form.confirmPassword], () => {
       if (errorMessage.value) {
         errorMessage.value = ''
       }
@@ -323,11 +326,16 @@ export default {
         return 'Por favor selecciona tu género'
       }
 
-      if (!form.celular.trim()) {
+      if (!form.telefono.trim()) {
         return 'Por favor ingresa tu número de celular'
       }
 
-      if (!isValidPhone(form.celular, form.pais)) {
+      // Verificar que el teléfono formateado no esté vacío
+      if (!fullPhoneNumber.value || fullPhoneNumber.value.trim() === '') {
+        return 'Error al formatear el número de teléfono'
+      }
+
+      if (!isValidPhone(form.telefono, form.pais)) {
         return 'El número de teléfono no es válido para el país seleccionado'
       }
 
@@ -387,10 +395,17 @@ export default {
           ciudad: form.ciudad || null,
           departamento: form.departamento || null,
           codigo_postal: form.codigoPostal || null,
-          pais: form.pais
+          pais: form.pais,
+          // Campos de términos y preferencias
+          acceptTerms: form.acceptTerms,
+          acceptMarketing: form.acceptMarketing
         }
 
         console.log('Registrando usuario:', userData)
+        console.log('Teléfono original:', form.telefono)
+        console.log('País:', form.pais)
+        console.log('Teléfono completo:', fullPhoneNumber.value)
+        console.log('¿Teléfono válido?', isValidPhone(form.telefono, form.pais))
         await register(userData)
 
         // Después del registro exitoso, hacer login automático

@@ -26,6 +26,14 @@ class AuthController extends Controller
     public function register(Request $request): JsonResponse
     {
         try {
+            // Log de datos recibidos para debugging
+            Log::info('Datos recibidos en register:', [
+                'all_data' => $request->all(),
+                'telefono' => $request->get('telefono'),
+                'pais' => $request->get('pais'),
+                'ip' => $request->ip()
+            ]);
+
             $validator = Validator::make($request->all(), [
                 'nombres' => 'required|string|max:100',
                 'apellidos' => 'required|string|max:100',
@@ -41,7 +49,11 @@ class AuthController extends Controller
                 'departamento' => 'sometimes|nullable|string|max:100',
                 'codigo_postal' => 'sometimes|nullable|string|max:10',
                 'pais' => 'sometimes|string|max:3',
-                'device_name' => 'sometimes|string|max:255'
+                'device_name' => 'sometimes|string|max:255',
+                // Nuevos campos de términos y preferencias
+                'accept_terms' => 'required|boolean',
+                'accept_marketing' => 'sometimes|boolean',
+                'preferencias_notificacion' => 'sometimes|array'
             ]);
 
             if ($validator->fails()) {
@@ -75,6 +87,18 @@ class AuthController extends Controller
                 'codigo_postal' => $request->codigo_postal,
                 'pais' => $request->pais ?? 'PE',
                 'activo' => true,
+                // Guardar preferencias de notificación como JSON
+                'preferencias_notificacion' => $request->preferencias_notificacion ?? [
+                    'email_promociones' => $request->accept_marketing ?? false,
+                    'email_rifas' => $request->accept_marketing ?? false,
+                    'push_promociones' => $request->accept_marketing ?? false,
+                    'sms_promociones' => false
+                ],
+                // Términos y condiciones
+                'acepta_terminos' => $request->accept_terms ?? false,
+                'fecha_aceptacion_terminos' => $request->accept_terms ? now() : null,
+                'acepta_marketing' => $request->accept_marketing ?? false,
+                'fecha_aceptacion_marketing' => $request->accept_marketing ? now() : null,
                 'ultimo_acceso' => now()
             ]);
 
@@ -135,7 +159,7 @@ class AuthController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'email' => 'required|string', // Cambiado para permitir email o teléfono
+                'identifier' => 'required|string', // ✅ Cambiado de 'email' a 'identifier' 
                 'password' => 'required|string',
                 'pais' => 'sometimes|string|max:3',
                 'device_name' => 'sometimes|string|max:255'
@@ -150,7 +174,7 @@ class AuthController extends Controller
             }
 
             // Determinar si es email o teléfono
-            $loginField = $request->email;
+            $loginField = $request->identifier; // ✅ Cambiado de $request->email a $request->identifier
             $isEmail = filter_var($loginField, FILTER_VALIDATE_EMAIL);
             
             // Buscar usuario por email o teléfono
@@ -230,7 +254,7 @@ class AuthController extends Controller
 
         } catch (\Exception $e) {
             Log::error('Error en login', [
-                'email' => $request->email ?? 'unknown',
+                'identifier' => $request->identifier ?? 'unknown', // ✅ Cambiado de 'email' a 'identifier'
                 'error' => $e->getMessage()
             ]);
 
