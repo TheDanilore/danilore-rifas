@@ -1635,13 +1635,6 @@
   gap: 0.25rem;
 }
 
-.stat-label {
-  font-size: 0.75rem;
-  color: var(--admin-gray-400);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
 .stat-value {
   font-weight: 600;
   color: var(--admin-white);

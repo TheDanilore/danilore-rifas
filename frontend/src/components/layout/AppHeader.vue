@@ -3,81 +3,109 @@
     <div class="container">
       <div class="header-content">
         <router-link to="/" class="logo logo-enhanced">
-        <div class="logo-icon">
-          <i class="fas fa-trophy"></i>
-        </div>
-        <div class="logo-content">
-          <h1 class="logo-text">Danilore</h1>
-          <p class="logo-subtitle">Rifas</p>
-        </div>
-      </router-link>
-
-      <nav class="nav-desktop main-nav">
-        <ul class="nav-links">
-          <li><router-link to="/" class="nav-link"><i class="fas fa-home"></i>Inicio</router-link></li>
-          <li><router-link to="/ganadores" class="nav-link"><i class="fas fa-crown"></i>Ganadores</router-link></li>
-          <li><router-link to="/como-funciona" class="nav-link"><i class="fas fa-question-circle"></i>Cómo
-              Funciona</router-link></li>
-          <li><router-link to="/terminos-condiciones" class="nav-link"><i
-                class="fas fa-file-contract"></i>Términos</router-link></li>
-        </ul>
-      </nav>
-
-      <div class="header-actions">
-        <div v-if="!isAuthenticated" class="auth-buttons">
-          <router-link to="/login" class="login-btn">
-            <i class="fas fa-sign-in-alt"></i>
-            Iniciar Sesión
-          </router-link>
-          <router-link to="/register" class="register-btn">
-            <i class="fas fa-user-plus"></i>
-            Registrarse
-          </router-link>
-        </div>
-
-        <div v-else class="user-menu" :class="{ show: showDropdown }">
-          <button class="user-button" @click="toggleDropdown">
-            <div class="user-avatar">
-              <i class="fas fa-user"></i>
-            </div>
-            <span>{{ user?.nombres || user?.nombre || 'Usuario' }}</span>
-            <i class="fas fa-chevron-down"></i>
-          </button>
-          <div class="dropdown-menu" :class="{ show: showDropdown }">
-            <router-link to="/dashboard" @click="closeDropdown">
-              <i class="fas fa-user"></i> Mi Perfil
-            </router-link>
-            <router-link to="/dashboard" @click="closeDropdown">
-              <i class="fas fa-ticket-alt"></i> Mis Rifas
-            </router-link>
-            <router-link to="/dashboard" @click="closeDropdown">
-              <i class="fas fa-history"></i> Historial
-            </router-link>
-            <hr>
-            <a href="#" @click="handleLogout">
-              <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-            </a>
+          <div class="logo-icon">
+            <i class="fas fa-trophy"></i>
           </div>
-        </div>
+          <div class="logo-content">
+            <h1 class="logo-text">Danilore</h1>
+            <p class="logo-subtitle">Rifas</p>
+          </div>
+        </router-link>
 
-        <button class="mobile-menu-btn" @click="toggleMobileMenu">
-          <i class="fas fa-bars"></i>
-        </button>
-      </div>
+        <nav class="nav-desktop main-nav">
+          <ul class="nav-links">
+            <li><router-link to="/" class="nav-link"><i class="fas fa-home"></i>Inicio</router-link></li>
+            <li><router-link to="/ganadores" class="nav-link"><i class="fas fa-crown"></i>Ganadores</router-link></li>
+            <li><router-link to="/como-funciona" class="nav-link"><i class="fas fa-question-circle"></i>Cómo
+                Funciona</router-link></li>
+            <li><router-link to="/terminos-condiciones" class="nav-link"><i
+                  class="fas fa-file-contract"></i>Términos</router-link></li>
+          </ul>
+        </nav>
+
+        <div class="header-actions">
+          <div v-if="!isAuthenticated" class="auth-buttons">
+            <router-link to="/login" class="login-btn">
+              <i class="fas fa-sign-in-alt"></i>
+              Iniciar Sesión
+            </router-link>
+            <router-link to="/register" class="register-btn">
+              <i class="fas fa-user-plus"></i>
+              Registrarse
+            </router-link>
+          </div>
+
+          <div v-else class="user-menu" :class="{ show: showDropdown }">
+            <button class="user-button" @click="toggleDropdown">
+              <div class="user-avatar">
+                <i class="fas fa-user"></i>
+              </div>
+              <span>{{ user?.nombres || user?.nombre || 'Usuario' }}</span>
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-menu" :class="{ show: showDropdown }">
+              <router-link to="/dashboard" @click="closeDropdown">
+                <i class="fas fa-trophy"></i> Dashboard
+              </router-link>
+              <router-link to="/perfil" @click="closeDropdown">
+                <i class="fas fa-user"></i> Mi Perfil
+              </router-link>
+              <router-link to="/mis-rifas" @click="closeDropdown">
+                <i class="fas fa-ticket-alt"></i> Mis Rifas
+              </router-link>
+              <router-link to="/historial" @click="closeDropdown">
+                <i class="fas fa-history"></i> Historial
+              </router-link>
+              <hr>
+              <a href="#" @click="handleLogout">
+                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+              </a>
+            </div>
+          </div>
+
+          <button class="mobile-menu-btn" @click="toggleMobileMenu">
+            <i class="fas fa-bars"></i>
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- Mobile Menu -->
+    <div v-if="showMobileMenu" class="mobile-overlay" @click="closeMobileMenu"></div>
     <div class="mobile-menu" :class="{ show: showMobileMenu }">
+      <div class="mobile-menu-header">
+        <h3>Menú</h3>
+        <button class="mobile-close-btn" @click="closeMobileMenu">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
       <div class="mobile-menu-content">
-        <router-link to="/" @click="closeMobileMenu">Inicio</router-link>
-        <router-link to="/ganadores" @click="closeMobileMenu">Ganadores</router-link>
-        <router-link to="/como-funciona" @click="closeMobileMenu">Cómo Funciona</router-link>
-        <router-link to="/terminos-condiciones" @click="closeMobileMenu">Términos</router-link>
+        <router-link to="/" @click="closeMobileMenu">
+          <i class="fas fa-home"></i>
+          <span>Inicio</span>
+        </router-link>
+        <router-link to="/ganadores" @click="closeMobileMenu">
+          <i class="fas fa-crown"></i>
+          <span>Ganadores</span>
+        </router-link>
+        <router-link to="/como-funciona" @click="closeMobileMenu">
+          <i class="fas fa-question-circle"></i>
+          <span>Cómo Funciona</span>
+        </router-link>
+        <router-link to="/terminos-condiciones" @click="closeMobileMenu">
+          <i class="fas fa-file-contract"></i>
+          <span>Términos</span>
+        </router-link>
 
         <div v-if="!isAuthenticated" class="mobile-auth">
-          <router-link to="/login" @click="closeMobileMenu">Iniciar Sesión</router-link>
-          <router-link to="/register" @click="closeMobileMenu">Registrarse</router-link>
+          <router-link to="/login" @click="closeMobileMenu">
+            <i class="fas fa-sign-in-alt"></i>
+            <span>Iniciar Sesión</span>
+          </router-link>
+          <router-link to="/register" @click="closeMobileMenu">
+            <i class="fas fa-user-plus"></i>
+            <span>Registrarse</span>
+          </router-link>
         </div>
 
         <div v-else class="mobile-user">
@@ -85,10 +113,26 @@
             <i class="fas fa-user"></i>
             <span>{{ user?.nombres || user?.nombre || 'Usuario' }}</span>
           </div>
-          <router-link to="/dashboard" @click="closeMobileMenu">Mi Perfil</router-link>
-          <router-link to="/dashboard" @click="closeMobileMenu">Mis Rifas</router-link>
-          <router-link to="/dashboard" @click="closeMobileMenu">Historial</router-link>
-          <a href="#" @click="handleLogout">Cerrar Sesión</a>
+          <router-link to="/dashboard" @click="closeDropdown">
+            <i class="fas fa-trophy"></i> 
+            <span>Dashboard</span>
+          </router-link>
+          <router-link to="/perfil" @click="closeMobileMenu">
+            <i class="fas fa-user"></i>
+            <span>Mi Perfil</span>
+          </router-link>
+          <router-link to="/mis-rifas" @click="closeMobileMenu">
+            <i class="fas fa-ticket-alt"></i>
+            <span>Mis Rifas</span>
+          </router-link>
+          <router-link to="/historial" @click="closeMobileMenu">
+            <i class="fas fa-history"></i>
+            <span>Historial</span>
+          </router-link>
+          <a href="#" @click="handleLogout">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Cerrar Sesión</span>
+          </a>
         </div>
       </div>
     </div>
@@ -121,22 +165,33 @@ export default {
 
     const closeMobileMenu = () => {
       showMobileMenu.value = false
+      document.body.style.overflow = 'auto'
     }
 
     const toggleMobileMenu = () => {
       showMobileMenu.value = !showMobileMenu.value
+
+      // Bloquear/desbloquear scroll del body
+      if (showMobileMenu.value) {
+        document.body.style.overflow = 'hidden'
+      } else {
+        document.body.style.overflow = 'auto'
+      }
     }
 
     const handleLogout = async (event) => {
       event.preventDefault()
-      
+
       try {
         // Cerrar cualquier menú abierto inmediatamente
         showDropdown.value = false
         showMobileMenu.value = false
-        
+
+        // Restaurar scroll del body
+        document.body.style.overflow = 'auto'
+
         await logout()
-        
+
         // Asegurar redirección a inicio
         setTimeout(() => {
           if (window.location.pathname !== '/') {
@@ -148,12 +203,13 @@ export default {
         // Incluso si hay error, limpiar UI
         showDropdown.value = false
         showMobileMenu.value = false
+        document.body.style.overflow = 'auto'
       }
     }
 
     onMounted(() => {
       window.addEventListener('scroll', handleScroll)
-      
+
       // Cerrar dropdown al hacer click fuera
       document.addEventListener('click', (e) => {
         const userMenu = e.target.closest('.user-menu')
@@ -234,7 +290,8 @@ export default {
 .logo-text {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #6366f1; /* Fallback color */
+  color: #6366f1;
+  /* Fallback color */
   background: linear-gradient(135deg, var(--primary-purple, #6366f1), var(--accent-blue, #3b82f6));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -466,102 +523,166 @@ export default {
   color: var(--primary-purple);
 }
 
+.mobile-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  opacity: 1;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
 .mobile-menu {
   display: none;
   position: fixed;
-  top: 4rem;
+  top: 0;
   right: 0;
-  width: 300px;
-  height: calc(100vh - 4rem);
+  width: 85%;
+  max-width: 320px;
+  height: 100vh;
   background: var(--white);
-  box-shadow: var(--shadow-xl);
-  z-index: 999;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 1001;
   transform: translateX(100%);
   transition: transform 0.3s ease;
+  overflow-y: auto;
 }
 
 .mobile-menu.show {
   transform: translateX(0);
 }
 
-.mobile-menu-content {
-  padding: 2rem;
+.mobile-menu-header {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--gray-200);
+  background: var(--gray-50);
 }
 
-.mobile-menu-content a {
+.mobile-menu-header h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.mobile-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--gray-600);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: var(--border-radius);
+  transition: all 0.3s ease;
+}
+
+.mobile-close-btn:hover {
+  background: var(--gray-200);
+  color: var(--gray-800);
+}
+
+.mobile-menu-content {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 4rem);
+}
+
+.mobile-menu-content>a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   text-decoration: none;
   color: var(--gray-700);
   font-weight: 500;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--gray-200);
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--gray-100);
+  transition: all 0.3s ease;
 }
 
-.mobile-menu-content a:hover {
+.mobile-menu-content>a i {
+  font-size: 1rem;
+  width: 1.25rem;
+  text-align: center;
+}
+
+.mobile-menu-content>a:hover,
+.mobile-menu-content>a.router-link-active {
+  background: var(--gray-50);
   color: var(--primary-purple);
 }
 
 .mobile-auth {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0;
   margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 2px solid var(--gray-200);
+  padding: 1rem 0;
+  border-top: 2px solid var(--gray-100);
 }
 
-.mobile-auth a {
-  padding: 0.75rem 1rem;
-  text-align: center;
-  border-radius: var(--border-radius);
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-decoration: none;
+.mobile-auth a,
+.mobile-user a {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: var(--gray-700);
+  font-weight: 500;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--gray-100);
   transition: all 0.3s ease;
-  border: 2px solid var(--primary-color);
 }
 
-.mobile-auth a:first-child {
-  background: transparent;
-  color: var(--primary-color);
+.mobile-auth a i,
+.mobile-user a i {
+  font-size: 1rem;
+  width: 1.25rem;
+  text-align: center;
 }
 
-.mobile-auth a:first-child:hover {
-  background: var(--primary-color);
-  color: var(--white);
+.mobile-auth a:hover,
+.mobile-user a:hover {
+  background: var(--gray-50);
+  color: var(--primary-purple);
 }
 
 .mobile-auth a:last-child {
-  background: var(--primary-color);
-  color: var(--white);
-}
-
-.mobile-auth a:last-child:hover {
-  background: var(--primary-color);
-  border-color: var(--primary-color);
+  border-bottom: none;
 }
 
 .mobile-user {
   margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 2px solid var(--gray-200);
+  padding: 1rem 0;
+  border-top: 2px solid var(--gray-100);
 }
 
 .mobile-user-info {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1rem 0;
+  padding: 1rem 1.5rem;
   font-weight: 600;
   color: var(--gray-800);
-  border-bottom: 1px solid var(--gray-200);
-  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--gray-100);
+  margin-bottom: 0;
+  background: var(--gray-50);
 }
 
 .mobile-user-info i {
@@ -570,7 +691,30 @@ export default {
 }
 
 .mobile-user a {
-  padding: 0.75rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: var(--gray-700);
+  font-weight: 500;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--gray-100);
+  transition: all 0.3s ease;
+}
+
+.mobile-user a:hover {
+  background: var(--gray-50);
+  color: var(--primary-purple);
+}
+
+.mobile-user a:last-child {
+  color: var(--error-color);
+  border-bottom: none;
+}
+
+.mobile-user a:last-child:hover {
+  background: var(--error-light);
+  color: var(--error-color);
 }
 
 /* MOBILE - Mostrar menú móvil */
@@ -629,12 +773,22 @@ export default {
   }
 
   .mobile-menu {
-    width: 100vw;
-    top: 4rem;
+    width: 100%;
+    max-width: none;
   }
 
-  .mobile-menu-content {
-    padding: 1rem 1.5rem;
+  .mobile-menu-header {
+    padding: 1rem;
+  }
+
+  .mobile-menu-content>a,
+  .mobile-auth a,
+  .mobile-user a {
+    padding: 0.875rem 1rem;
+  }
+
+  .mobile-user-info {
+    padding: 0.875rem 1rem;
   }
 }
 </style>

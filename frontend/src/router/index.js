@@ -9,6 +9,9 @@ import Ganadores from '@/views/public/GanadoresView.vue'
 import ComoFunciona from '@/views/public/ComoFuncionaView.vue'
 import TerminosCondiciones from '@/views/public/TerminosView.vue'
 import Dashboard from '@/views/user/DashboardView.vue'
+import Perfil from '@/views/user/PerfilView.vue'
+import MisRifas from '@/views/user/MisRifasView.vue'
+import Historial from '@/views/user/HistorialView.vue'
 import AdminLogin from '@/views/admin/AdminLoginView.vue'
 import AdminDashboard from '@/views/admin/AdminDashboardView.vue'
 import AdminRifas from '@/views/admin/AdminRifasView.vue'
@@ -99,15 +102,21 @@ const routes = [
   },
   {
     path: '/perfil',
-    redirect: '/dashboard'
+    name: 'Perfil',
+    component: Perfil,
+    meta: { requiresAuth: true }
   },
   {
     path: '/mis-rifas',
-    redirect: '/dashboard'
+    name: 'MisRifas',
+    component: MisRifas,
+    meta: { requiresAuth: true }
   },
   {
     path: '/historial',
-    redirect: '/dashboard'
+    name: 'Historial',
+    component: Historial,
+    meta: { requiresAuth: true }
   },
   // Ruta 404 - debe ir al final
   {

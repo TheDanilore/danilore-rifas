@@ -238,6 +238,7 @@ export default {
 
   .footer-logo {
     justify-content: center;
+    width: 100%;
   }
 
   .social-links {

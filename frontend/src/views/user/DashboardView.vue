@@ -42,19 +42,45 @@
     <!-- Dashboard Navigation -->
     <section class="dashboard-nav">
       <div class="container">
-        <div class="nav-tabs">
-          <button class="nav-tab" :class="{ active: activeTab === 'tickets' }" @click="activeTab = 'tickets'">
-            <i class="fas fa-ticket-alt"></i>
-            Mis Tickets
-          </button>
-          <button class="nav-tab" :class="{ active: activeTab === 'history' }" @click="activeTab = 'history'">
-            <i class="fas fa-history"></i>
-            Historial
-          </button>
-          <button class="nav-tab" :class="{ active: activeTab === 'profile' }" @click="activeTab = 'profile'">
-            <i class="fas fa-user"></i>
-            Mi Perfil
-          </button>
+        <div class="nav-cards">
+          <router-link to="/perfil" class="nav-card">
+            <div class="nav-card-icon">
+              <i class="fas fa-user"></i>
+            </div>
+            <div class="nav-card-content">
+              <h3>Mi Perfil</h3>
+              <p>Gestiona tu información personal y configuración</p>
+            </div>
+            <div class="nav-card-arrow">
+              <i class="fas fa-chevron-right"></i>
+            </div>
+          </router-link>
+
+          <router-link to="/mis-rifas" class="nav-card">
+            <div class="nav-card-icon">
+              <i class="fas fa-ticket-alt"></i>
+            </div>
+            <div class="nav-card-content">
+              <h3>Mis Rifas</h3>
+              <p>Ve todos tus boletos y participa en rifas activas</p>
+            </div>
+            <div class="nav-card-arrow">
+              <i class="fas fa-chevron-right"></i>
+            </div>
+          </router-link>
+
+          <router-link to="/historial" class="nav-card">
+            <div class="nav-card-icon">
+              <i class="fas fa-history"></i>
+            </div>
+            <div class="nav-card-content">
+              <h3>Historial</h3>
+              <p>Revisa tu actividad, compras y transacciones</p>
+            </div>
+            <div class="nav-card-arrow">
+              <i class="fas fa-chevron-right"></i>
+            </div>
+          </router-link>
         </div>
       </div>
     </section>
@@ -62,153 +88,115 @@
     <!-- Dashboard Content -->
     <section class="dashboard-content">
       <div class="container">
-        <!-- Mis Tickets -->
-        <div v-if="activeTab === 'tickets'" class="tab-content">
-          <div class="content-header">
-            <h2>Mis Tickets</h2>
-            <p>Todos los tickets que has comprado en nuestras rifas</p>
+        <!-- Resumen de Actividad -->
+        <div class="dashboard-overview">
+          <div class="overview-header">
+            <h2>Resumen de tu Actividad</h2>
+            <p>Un vistazo rápido a tu participación en nuestras rifas</p>
           </div>
 
-          <div v-if="tickets.length === 0" class="empty-state">
-            <div class="empty-icon">
-              <i class="fas fa-ticket-alt"></i>
-            </div>
-            <h3>No tienes tickets aún</h3>
-            <p>¡Participa en nuestras rifas y aparecerán aquí!</p>
-            <router-link to="/" class="btn btn-primary">
-              <i class="fas fa-plus"></i>
-              &nbsp;
-              Comprar Tickets
-            </router-link>
-          </div>
-
-          <div v-else class="tickets-grid">
-            <div v-for="ticket in tickets" :key="ticket.id" class="ticket-card"
-              :class="{ 'ticket-winner': ticket.estado === 'ganador' }">
-              <div class="ticket-header">
-                <div class="ticket-number">
-                  Ticket #{{ ticket.numero }}
-                </div>
-                <div class="ticket-status" :class="ticket.estado">
-                  <i :class="getStatusIcon(ticket.estado)"></i>
-                  {{ getStatusText(ticket.estado) }}
-                </div>
+          <div class="overview-grid">
+            <!-- Últimos Boletos -->
+            <div class="overview-card">
+              <div class="card-header">
+                <h3>
+                  <i class="fas fa-ticket-alt"></i>
+                  Últimos Boletos
+                </h3>
+                <router-link to="/mis-rifas" class="view-all-link">
+                  Ver todos
+                  <i class="fas fa-arrow-right"></i>
+                </router-link>
               </div>
-
-              <div class="ticket-info">
-                <div class="info-row">
-                  <span class="info-label">Rifa:</span>
-                  <span class="info-value">{{ getRifaName(ticket.rifaId) }}</span>
+              <div class="card-content">
+                <div v-if="recentTickets.length === 0" class="empty-mini">
+                  <i class="fas fa-ticket-alt"></i>
+                  <span>No tienes boletos aún</span>
+                  <router-link to="/" class="mini-cta">Comprar ahora</router-link>
                 </div>
-                <div class="info-row">
-                  <span class="info-label">Fecha:</span>
-                  <span class="info-value">{{ formatDate(ticket.fechaCompra) }}</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Monto:</span>
-                  <span class="info-value">S/ {{ ticket.monto }}</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Pago:</span>
-                  <span class="info-value">{{ ticket.metodoPago }}</span>
-                </div>
-              </div>
-
-              <div class="ticket-actions">
-                <button class="btn btn-outline btn-sm" @click="viewRifaDetails(ticket.rifaId)">
-                  <i class="fas fa-eye"></i>
-                  Ver Rifa
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Historial -->
-        <div v-if="activeTab === 'history'" class="tab-content">
-          <div class="content-header">
-            <h2>Historial de Actividades</h2>
-            <p>Registro completo de todas tus actividades</p>
-          </div>
-
-          <div v-if="history.length === 0" class="empty-state">
-            <div class="empty-icon">
-              <i class="fas fa-history"></i>
-            </div>
-            <h3>Sin actividad aún</h3>
-            <p>Tu historial aparecerá aquí cuando empieces a participar</p>
-          </div>
-
-          <div v-else class="history-list">
-            <div v-for="entry in history" :key="entry.id" class="history-item">
-              <div class="history-icon">
-                <i :class="getHistoryIcon(entry.tipo)"></i>
-              </div>
-
-              <div class="history-content">
-                <div class="history-title">{{ entry.descripcion }}</div>
-                <div class="history-date">{{ formatDate(entry.fecha) }}</div>
-              </div>
-
-              <div class="history-amount" v-if="entry.monto">
-                <span class="amount">S/ {{ entry.monto }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Mi Perfil -->
-        <div v-if="activeTab === 'profile'" class="tab-content">
-          <div class="content-header">
-            <h2>Mi Perfil</h2>
-            <p>Administra tu información personal</p>
-          </div>
-
-          <div class="profile-content">
-            <div class="profile-form">
-              <form @submit.prevent="updateProfile">
-                <div class="form-section">
-                  <h3>Información Personal</h3>
-
-                  <div class="input-group">
-                    <label>Nombre Completo</label>
-                    <input type="text" class="form-input" v-model="profileForm.nombre" required>
-                  </div>
-
-                  <div class="input-group">
-                    <label>Email</label>
-                    <input type="email" class="form-input" v-model="profileForm.email" required>
-                  </div>
-
-                  <div class="input-group">
-                    <label>Teléfono</label>
-                    <input type="tel" class="form-input" v-model="profileForm.telefono" required>
-                  </div>
-                </div>
-
-                <div class="form-section">
-                  <h3>Información de la Cuenta</h3>
-
-                  <div class="info-readonly">
-                    <div class="info-item">
-                      <span class="info-label">Fecha de Registro:</span>
-                      <span class="info-value">{{ formatDate(user?.fechaRegistro) }}</span>
+                <div v-else class="mini-list">
+                  <div v-for="ticket in recentTickets.slice(0, 3)" :key="ticket.id" class="mini-item">
+                    <div class="mini-info">
+                      <span class="mini-title">Boleto #{{ ticket.numero }}</span>
+                      <span class="mini-subtitle">{{ ticket.rifaNombre }}</span>
                     </div>
-                    <div class="info-item">
-                      <span class="info-label">ID de Usuario:</span>
-                      <span class="info-value">{{ user?.id }}</span>
+                    <div class="mini-status" :class="ticket.estado">
+                      {{ getStatusText(ticket.estado) }}
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
 
-                <div class="form-actions">
-                  <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i>
-                    &nbsp;
-                    Guardar Cambios
-                  </button>
+            <!-- Actividad Reciente -->
+            <div class="overview-card">
+              <div class="card-header">
+                <h3>
+                  <i class="fas fa-clock"></i>
+                  Actividad Reciente
+                </h3>
+                <router-link to="/historial" class="view-all-link">
+                  Ver todo
+                  <i class="fas fa-arrow-right"></i>
+                </router-link>
+              </div>
+              <div class="card-content">
+                <div v-if="recentActivity.length === 0" class="empty-mini">
+                  <i class="fas fa-history"></i>
+                  <span>Sin actividad reciente</span>
                 </div>
-              </form>
+                <div v-else class="mini-list">
+                  <div v-for="activity in recentActivity.slice(0, 3)" :key="activity.id" class="mini-item">
+                    <div class="mini-info">
+                      <span class="mini-title">{{ activity.descripcion }}</span>
+                      <span class="mini-subtitle">{{ formatDate(activity.fecha) }}</span>
+                    </div>
+                    <div v-if="activity.monto" class="mini-amount">
+                      S/ {{ activity.monto }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Rifas Activas -->
+            <div class="overview-card full-width">
+              <div class="card-header">
+                <h3>
+                  <i class="fas fa-fire"></i>
+                  Rifas Activas
+                </h3>
+                <router-link to="/" class="view-all-link">
+                  Ver todas
+                  <i class="fas fa-arrow-right"></i>
+                </router-link>
+              </div>
+              <div class="card-content">
+                <div v-if="activeRifas.length === 0" class="empty-mini">
+                  <i class="fas fa-trophy"></i>
+                  <span>No hay rifas activas en este momento</span>
+                </div>
+                <div v-else class="rifas-mini-grid">
+                  <div v-for="rifa in activeRifas.slice(0, 4)" :key="rifa.id" class="rifa-mini-card">
+                    <div class="rifa-mini-image">
+                      <img :src="rifa.imagen || '/images/default-rifa.jpg'" :alt="rifa.titulo" @error="handleImageError">
+                    </div>
+                    <div class="rifa-mini-info">
+                      <h4>{{ rifa.titulo }}</h4>
+                      <p class="rifa-mini-price">S/ {{ rifa.precio }} por boleto</p>
+                      <div class="rifa-mini-progress">
+                        <div class="progress-bar">
+                          <div class="progress-fill" :style="{ width: rifa.progreso + '%' }"></div>
+                        </div>
+                        <span class="progress-text">{{ rifa.progreso }}% completado</span>
+                      </div>
+                    </div>
+                    <router-link :to="`/rifa/${rifa.id}`" class="rifa-mini-action">
+                      Participar
+                    </router-link>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -227,14 +215,20 @@ export default {
   name: 'Dashboard',
   setup() {
     const router = useRouter()
-    const { user, tickets, history, isAuthenticated, updateUserProfile } = useAuthStore()
+    const { user, tickets, history, isAuthenticated } = useAuthStore()
     const { rifas } = useRifas()
 
-    const activeTab = ref('tickets')
-    const profileForm = ref({
-      nombre: '',
-      email: '',
-      telefono: ''
+    // Datos computados para mostrar resúmenes
+    const recentTickets = computed(() => {
+      return tickets.value?.slice(0, 3) || []
+    })
+
+    const recentActivity = computed(() => {
+      return history.value?.slice(0, 3) || []
+    })
+
+    const activeRifas = computed(() => {
+      return rifas.value?.filter(rifa => rifa.estado === 'activa').slice(0, 4) || []
     })
 
     onMounted(() => {
@@ -243,81 +237,41 @@ export default {
         router.push('/login')
         return
       }
-
-      // Inicializar formulario de perfil
-      if (user.value) {
-        profileForm.value = {
-          nombre: user.value.nombre || '',
-          email: user.value.email || '',
-          telefono: user.value.telefono || ''
-        }
-      }
     })
 
-    const getRifaName = (rifaId) => {
-      const rifa = rifas.value.find(r => r.id === rifaId)
-      return rifa ? rifa.titulo : 'Rifa no encontrada'
-    }
-
-    const getStatusIcon = (status) => {
-      switch (status) {
-        case 'ganador': return 'fas fa-crown'
-        case 'perdedor': return 'fas fa-times-circle'
-        default: return 'fas fa-clock'
+    // Funciones de utilidad
+    const getStatusText = (estado) => {
+      const estados = {
+        'activo': 'Activo',
+        'ganador': 'Ganador',
+        'perdedor': 'Perdedor',
+        'pendiente': 'Pendiente'
       }
-    }
-
-    const getStatusText = (status) => {
-      switch (status) {
-        case 'ganador': return 'Ganador'
-        case 'perdedor': return 'No ganó'
-        default: return 'En proceso'
-      }
-    }
-
-    const getHistoryIcon = (tipo) => {
-      switch (tipo) {
-        case 'compra': return 'fas fa-shopping-cart'
-        case 'ganancia': return 'fas fa-trophy'
-        case 'reembolso': return 'fas fa-undo'
-        default: return 'fas fa-circle'
-      }
+      return estados[estado] || estado
     }
 
     const formatDate = (dateString) => {
+      if (!dateString) return ''
       const date = new Date(dateString)
       return date.toLocaleDateString('es-PE', {
         year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+        month: 'short',
+        day: 'numeric'
       })
     }
 
-    const viewRifaDetails = (rifaId) => {
-      router.push(`/rifa/${rifaId}`)
-    }
-
-    const updateProfile = () => {
-      updateUserProfile(profileForm.value)
-      // Mostrar mensaje de éxito (podrías usar una librería de toasts)
-      alert('Perfil actualizado correctamente')
+    const handleImageError = (event) => {
+      event.target.src = '/images/default-rifa.jpg'
     }
 
     return {
       user,
-      tickets,
-      history,
-      activeTab,
-      profileForm,
-      getRifaName,
-      getStatusIcon,
+      recentTickets,
+      recentActivity,
+      activeRifas,
       getStatusText,
-      getHistoryIcon,
       formatDate,
-      viewRifaDetails,
-      updateProfile
+      handleImageError
     }
   }
 }
@@ -371,6 +325,7 @@ export default {
 .welcome-text p {
   margin: 0;
   opacity: 0.9;
+  color: var(--gray-100);
 }
 
 .user-stats {
@@ -416,39 +371,75 @@ export default {
 .dashboard-nav {
   background: var(--white);
   border-bottom: 1px solid var(--gray-200);
-  padding: 0;
+  padding: 2rem 0;
 }
 
-.nav-tabs {
+.nav-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.nav-card {
+  background: var(--white);
+  border-radius: var(--border-radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  border: 2px solid var(--gray-100);
   display: flex;
-  gap: 0;
+  align-items: center;
+  gap: 1rem;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+  cursor: pointer;
 }
 
-.nav-tab {
-  flex: 1;
-  padding: 1rem 2rem;
-  border: none;
-  background: transparent;
-  color: var(--gray-600);
-  font-weight: 500;
-  cursor: pointer;
+.nav-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  border-color: var(--primary-purple);
+}
+
+.nav-card-icon {
+  width: 3rem;
+  height: 3rem;
+  background: linear-gradient(135deg, var(--primary-purple), var(--primary-indigo));
+  border-radius: var(--border-radius-lg);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  transition: all 0.3s ease;
-  border-bottom: 3px solid transparent;
+  color: white;
+  font-size: 1.25rem;
+  flex-shrink: 0;
 }
 
-.nav-tab:hover {
-  background: var(--gray-50);
+.nav-card-content {
+  flex: 1;
+}
+
+.nav-card-content h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
   color: var(--gray-800);
+  margin: 0 0 0.25rem 0;
 }
 
-.nav-tab.active {
+.nav-card-content p {
+  font-size: 0.875rem;
+  color: var(--gray-600);
+  margin: 0;
+}
+
+.nav-card-arrow {
+  color: var(--gray-400);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.nav-card:hover .nav-card-arrow {
   color: var(--primary-purple);
-  border-bottom-color: var(--primary-purple);
-  background: var(--gray-50);
+  transform: translateX(4px);
 }
 
 /* Dashboard Content */
@@ -748,6 +739,264 @@ export default {
   border-top: 1px solid var(--gray-200);
 }
 
+/* Dashboard Overview */
+.dashboard-overview {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.overview-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.overview-header h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  margin-bottom: 0.5rem;
+}
+
+.overview-header p {
+  color: var(--gray-600);
+  font-size: 1.125rem;
+}
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+}
+
+.overview-card {
+  background: var(--white);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  border: 1px solid var(--gray-100);
+}
+
+.overview-card.full-width {
+  grid-column: 1 / -1;
+}
+
+.card-header {
+  padding: 1.5rem 1.5rem 1rem 1.5rem;
+  border-bottom: 1px solid var(--gray-100);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-header h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.card-header h3 i {
+  color: var(--primary-purple);
+}
+
+.view-all-link {
+  color: var(--primary-purple);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.3s ease;
+}
+
+.view-all-link:hover {
+  color: var(--primary-indigo);
+}
+
+.card-content {
+  padding: 1.5rem;
+}
+
+.empty-mini {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--gray-500);
+}
+
+.empty-mini i {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: var(--gray-400);
+}
+
+.mini-cta {
+  display: inline-block;
+  margin-top: 0.5rem;
+  color: var(--primary-purple);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.mini-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mini-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: var(--gray-50);
+  border-radius: var(--border-radius);
+}
+
+.mini-info {
+  flex: 1;
+}
+
+.mini-title {
+  display: block;
+  font-weight: 500;
+  color: var(--gray-800);
+  font-size: 0.875rem;
+}
+
+.mini-subtitle {
+  display: block;
+  color: var(--gray-600);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.mini-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--border-radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.mini-status.activo {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.mini-status.ganador {
+  background: #fef3cd;
+  color: #d97706;
+}
+
+.mini-status.perdedor {
+  background: #fecaca;
+  color: #dc2626;
+}
+
+.mini-amount {
+  font-weight: 600;
+  color: var(--primary-purple);
+  font-size: 0.875rem;
+}
+
+/* Rifas Mini Grid */
+.rifas-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.rifa-mini-card {
+  background: var(--gray-50);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  border: 1px solid var(--gray-200);
+  transition: all 0.3s ease;
+}
+
+.rifa-mini-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.rifa-mini-image {
+  width: 100%;
+  height: 120px;
+  overflow: hidden;
+}
+
+.rifa-mini-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.rifa-mini-info {
+  padding: 1rem;
+}
+
+.rifa-mini-info h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin: 0 0 0.5rem 0;
+  line-height: 1.3;
+}
+
+.rifa-mini-price {
+  color: var(--primary-purple);
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin: 0 0 1rem 0;
+}
+
+.rifa-mini-progress {
+  margin-bottom: 1rem;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--gray-200);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-purple), var(--primary-indigo));
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 0.75rem;
+  color: var(--gray-600);
+}
+
+.rifa-mini-action {
+  display: block;
+  width: 100%;
+  padding: 0.5rem;
+  background: var(--primary-purple);
+  color: white;
+  text-decoration: none;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: var(--border-radius);
+  transition: all 0.3s ease;
+}
+
+.rifa-mini-action:hover {
+  background: var(--primary-indigo);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .hero-content {
@@ -763,17 +1012,16 @@ export default {
     min-width: auto;
   }
 
-  .nav-tabs {
-    flex-direction: column;
-  }
-
-  .nav-tab {
-    justify-content: flex-start;
-    padding: 1rem 1.5rem;
-  }
-
-  .tickets-grid {
+  .nav-cards {
     grid-template-columns: 1fr;
+  }
+
+  .overview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rifas-mini-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   }
 
   .user-welcome {
