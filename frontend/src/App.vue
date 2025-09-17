@@ -1,10 +1,10 @@
 <template>
   <div id="app" :class="appClasses">
-    <AppHeader v-if="!route.path.startsWith('/admin')" />
+    <AppHeader v-if="!route.path.startsWith('/admin') && !route.path.startsWith('/login') && !route.path.startsWith('/register')" />
     <main class="main-content">
       <router-view />
     </main>
-    <AppFooter v-if="!route.path.startsWith('/admin')" />
+    <AppFooter v-if="!route.path.startsWith('/admin') && !route.path.startsWith('/login') && !route.path.startsWith('/register')" />
   </div>
 </template>
 

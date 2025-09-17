@@ -17,7 +17,7 @@
   --admin-success-green: #10b981;
   --admin-warning-orange: #f59e0b;
   --admin-danger-red: #ef4444;
-  
+
   /* Grises */
   --admin-gray-50: #f8fafc;
   --admin-gray-100: #f1f5f9;
@@ -30,12 +30,12 @@
   --admin-gray-800: #1e293b;
   --admin-gray-900: #0f172a;
   --admin-white: #ffffff;
-  
+
   /* Text colors */
   --admin-text-primary: #1e293b;
   --admin-text-secondary: #475569;
   --admin-text-muted: #64748b;
-  
+
   /* Bordes y sombras */
   --admin-border-radius: 0.75rem;
   --admin-border-radius-lg: 1rem;
@@ -620,8 +620,13 @@
 }
 
 @keyframes adminFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .admin-modal-content {
@@ -640,11 +645,12 @@
 }
 
 @keyframes adminSlideIn {
-  from { 
+  from {
     transform: translateY(-20px) scale(0.95);
     opacity: 0;
   }
-  to { 
+
+  to {
     transform: translateY(0) scale(1);
     opacity: 1;
   }
@@ -1136,42 +1142,121 @@
    UTILIDADES
    ========================================================================== */
 
-.admin-text-center { text-align: center; }
-.admin-text-left { text-align: left; }
-.admin-text-right { text-align: right; }
+.admin-text-center {
+  text-align: center;
+}
 
-.admin-font-bold { font-weight: 600; }
-.admin-font-semibold { font-weight: 500; }
+.admin-text-left {
+  text-align: left;
+}
 
-.admin-text-sm { font-size: 0.875rem; }
-.admin-text-xs { font-size: 0.75rem; }
-.admin-text-lg { font-size: 1.125rem; }
+.admin-text-right {
+  text-align: right;
+}
 
-.admin-mb-0 { margin-bottom: 0; }
-.admin-mb-1 { margin-bottom: 0.25rem; }
-.admin-mb-2 { margin-bottom: 0.5rem; }
-.admin-mb-3 { margin-bottom: 0.75rem; }
-.admin-mb-4 { margin-bottom: 1rem; }
+.admin-font-bold {
+  font-weight: 600;
+}
 
-.admin-mt-0 { margin-top: 0; }
-.admin-mt-1 { margin-top: 0.25rem; }
-.admin-mt-2 { margin-top: 0.5rem; }
-.admin-mt-3 { margin-top: 0.75rem; }
-.admin-mt-4 { margin-top: 1rem; }
+.admin-font-semibold {
+  font-weight: 500;
+}
 
-.admin-p-0 { padding: 0; }
-.admin-p-1 { padding: 0.25rem; }
-.admin-p-2 { padding: 0.5rem; }
-.admin-p-3 { padding: 0.75rem; }
-.admin-p-4 { padding: 1rem; }
+.admin-text-sm {
+  font-size: 0.875rem;
+}
 
-.admin-hidden { display: none; }
-.admin-block { display: block; }
-.admin-flex { display: flex; }
-.admin-grid { display: grid; }
+.admin-text-xs {
+  font-size: 0.75rem;
+}
 
-.admin-w-full { width: 100%; }
-.admin-h-full { height: 100%; }
+.admin-text-lg {
+  font-size: 1.125rem;
+}
+
+.admin-mb-0 {
+  margin-bottom: 0;
+}
+
+.admin-mb-1 {
+  margin-bottom: 0.25rem;
+}
+
+.admin-mb-2 {
+  margin-bottom: 0.5rem;
+}
+
+.admin-mb-3 {
+  margin-bottom: 0.75rem;
+}
+
+.admin-mb-4 {
+  margin-bottom: 1rem;
+}
+
+.admin-mt-0 {
+  margin-top: 0;
+}
+
+.admin-mt-1 {
+  margin-top: 0.25rem;
+}
+
+.admin-mt-2 {
+  margin-top: 0.5rem;
+}
+
+.admin-mt-3 {
+  margin-top: 0.75rem;
+}
+
+.admin-mt-4 {
+  margin-top: 1rem;
+}
+
+.admin-p-0 {
+  padding: 0;
+}
+
+.admin-p-1 {
+  padding: 0.25rem;
+}
+
+.admin-p-2 {
+  padding: 0.5rem;
+}
+
+.admin-p-3 {
+  padding: 0.75rem;
+}
+
+.admin-p-4 {
+  padding: 1rem;
+}
+
+.admin-hidden {
+  display: none;
+}
+
+.admin-block {
+  display: block;
+}
+
+.admin-flex {
+  display: flex;
+}
+
+.admin-grid {
+  display: grid;
+}
+
+.admin-w-full {
+  width: 100%;
+}
+
+.admin-h-full {
+  height: 100%;
+}
 
 /* ==========================================================================
    HEADER Y FOOTER LAYOUT
@@ -1610,6 +1695,7 @@
 .footer-links {
   display: flex;
   gap: 1.5rem;
+  flex-direction: column;
 }
 
 .footer-link {

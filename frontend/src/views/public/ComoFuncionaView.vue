@@ -380,6 +380,8 @@ export default {
   display: flex;
   flex-direction: column;
   background: var(--gray-50);
+  width: 100%;
+  overflow-x: hidden;
 }
 
 /* Hero Section */
@@ -388,6 +390,8 @@ export default {
   padding: 4rem 0;
   text-align: center;
   background: linear-gradient(135deg, var(--primary-indigo) 0%, var(--primary-blue) 50%, var(--primary-purple) 100%);
+  width: 100%;
+  overflow: hidden;
 }
 
 .hero-bg {
@@ -853,21 +857,101 @@ export default {
 
 /* Responsive */
 @media (max-width: 768px) {
+  .como-funciona-page {
+    overflow-x: hidden;
+  }
+
+  .hero {
+    padding: 2rem 0;
+  }
+
+  .hero-title {
+    font-size: clamp(1.75rem, 8vw, 2.5rem);
+    line-height: 1.2;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+    padding: 0 1rem;
+  }
+
+  .hero-icons {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .info-icon {
+    font-size: 1.5rem;
+  }
+
+  .section-title {
+    font-size: 1.75rem;
+    padding: 0 1rem;
+    line-height: 1.3;
+  }
+
   .pasos-grid {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 0 1rem;
+  }
+
+  .paso-card {
+    padding: 1.5rem 1rem;
+    margin: 0;
   }
 
   .caracteristicas-grid {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 0 1rem;
+  }
+
+  .caracteristica-card {
+    padding: 1.5rem 1rem;
   }
 
   .desbloqueo-content {
     grid-template-columns: 1fr;
     gap: 2rem;
+    padding: 0 1rem;
+  }
+
+  .desbloqueo-pasos {
+    gap: 1.5rem;
+  }
+
+  .desbloqueo-paso {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+  }
+
+  .paso-texto {
+    text-align: center;
+  }
+
+  .rifa-sequence {
+    gap: 0.75rem;
+  }
+
+  .rifa-item {
+    min-width: 120px;
+    padding: 1rem;
+  }
+
+  .rifa-icon {
+    font-size: 1.5rem;
   }
 
   .pagos-grid {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 0 1rem;
+  }
+
+  .pago-card {
+    padding: 1.5rem 1rem;
   }
 
   .pago-ventajas {
@@ -875,12 +959,75 @@ export default {
     gap: 0.5rem;
   }
 
-  .section-title {
-    font-size: 2rem;
+  .faq-grid {
+    padding: 0 1rem;
+  }
+
+  .faq-header {
+    padding: 1rem;
+  }
+
+  .faq-pregunta {
+    font-size: 0.95rem;
+    line-height: 1.4;
+    padding-right: 1rem;
+  }
+
+  .faq-respuesta {
+    padding: 0 1rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .cta-content {
+    padding: 0 1rem;
   }
 
   .cta-content h2 {
-    font-size: 2rem;
+    font-size: 1.75rem;
+    line-height: 1.3;
+  }
+
+  .cta-content p {
+    font-size: 1rem;
+  }
+
+  .btn-lg {
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+    width: 100%;
+    max-width: 280px;
+  }
+
+  /* Fix container overflow */
+  .container {
+    max-width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+
+  /* Prevent horizontal scroll */
+  * {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  body {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  /* Fix section spacing */
+  .proceso-section,
+  .caracteristicas-section,
+  .desbloqueo-section,
+  .pagos-section,
+  .faq-section,
+  .cta-section {
+    padding: 2.5rem 0;
+    width: 100%;
+    overflow-x: hidden;
   }
 }
 </style>
