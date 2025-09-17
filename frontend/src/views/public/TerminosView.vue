@@ -1,7 +1,5 @@
 <template>
     <div class="terminos-page">
-        <AppHeader />
-
         <!-- Hero Section -->
         <section class="hero hero-enhanced hero-content-page">
             <div class="hero-bg"></div>
@@ -602,22 +600,14 @@
                 </div>
             </div>
         </section>
-
-        <AppFooter />
     </div>
 </template>
 
 <script>
 import { ref, onMounted, onUnmounted } from 'vue'
-import AppHeader from '@/components/layout/AppHeader.vue'
-import AppFooter from '@/components/layout/AppFooter.vue'
 
 export default {
     name: 'TerminosCondiciones',
-    components: {
-        AppHeader,
-        AppFooter
-    },
     setup() {
         const activeSection = ref('')
 

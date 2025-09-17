@@ -210,30 +210,44 @@ export function useAuthStore() {
         currentUser.value = JSON.parse(userData)
         isAdminUser.value = isAdmin
         
-        // Luego verificar si el token sigue siendo válido
-        const profile = await authService.getProfile()
-        
-        // Actualizar con datos frescos del servidor
-        currentUser.value = {
-          ...currentUser.value,
-          ...profile
+        // Intentar verificar si el token sigue siendo válido (opcional)
+        try {
+          const profile = await authService.getProfile()
+          
+          if (profile) {
+            // Actualizar con datos frescos del servidor solo si se recibe respuesta válida
+            currentUser.value = {
+              ...currentUser.value,
+              ...profile
+            }
+            isAdminUser.value = profile.rol === 'admin'
+            
+            // Actualizar localStorage con datos frescos
+            localStorage.setItem('currentUser', JSON.stringify(currentUser.value))
+            localStorage.setItem('isAdmin', isAdminUser.value.toString())
+          }
+        } catch (profileError) {
+          // Si falla la verificación del perfil, pero tenemos datos locales válidos, continuar
+          console.log('Error verificando perfil, manteniendo datos locales:', profileError.response?.status)
+          
+          // Solo cerrar sesión si es un error de autenticación crítico
+          if (profileError.response?.status === 401) {
+            console.log('Token expirado, cerrando sesión...')
+            await logout()
+            return
+          }
         }
-        isAdminUser.value = profile.rol === 'admin'
-        
-        // Actualizar localStorage con datos frescos
-        localStorage.setItem('currentUser', JSON.stringify(currentUser.value))
-        localStorage.setItem('isAdmin', isAdminUser.value.toString())
         
         await loadUserData()
       } catch (error) {
         console.log('Error en checkAuthStatus:', error.response?.status, error.message)
-        // Limpiar sesión si hay cualquier error de autenticación 
-        if (error.response?.status === 401 || error.response?.status === 403 || error.message === 'Unauthenticated.') {
-          console.log('Token inválido o expirado, limpiando sesión...')
+        // Solo limpiar sesión para errores críticos de autenticación
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          console.log('Token inválido, limpiando sesión...')
           await logout()
         } else {
-          // Para otros errores (conexión, etc.), mantener la sesión local
-          console.warn('Error verificando autenticación, manteniendo sesión local:', error)
+          // Para otros errores, mantener la sesión local
+          console.log('Error de conexión, manteniendo sesión local')
         }
       }
     } else {

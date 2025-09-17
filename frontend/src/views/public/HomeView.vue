@@ -1,7 +1,5 @@
 <template>
   <div class="home-page">
-    <AppHeader />
-    
     <!-- Hero Section -->
     <section class="hero hero-enhanced">
       <div class="hero-bg"></div>
@@ -403,26 +401,17 @@
 
     <!-- Overlay para cerrar tooltip al hacer clic fuera -->
     <div v-if="levelDetailModal" class="tooltip-overlay" @click="closeLevelDetailModal"></div>
-
-    <!-- Footer -->
-    <AppFooter />
   </div>
 </template>
 
 <script>
 import { useRouter } from 'vue-router'
 import { ref } from 'vue'
-import AppHeader from '@/components/layout/AppHeader.vue'
-import AppFooter from '@/components/layout/AppFooter.vue'
 import { useRifasWithFilters } from '@/composables/api/useRifasWithFilters'
 import { useAuthStore } from '@/store/auth'
 
 export default {
   name: 'Home',
-  components: {
-    AppHeader,
-    AppFooter
-  },
   setup() {
     const router = useRouter()
     const { isAuthenticated } = useAuthStore()

@@ -1,7 +1,5 @@
 <template>
   <div class="ganadores-page">
-    <AppHeader />
-
     <!-- Hero Section -->
     <section class="hero hero-enhanced hero-secondary">
       <div class="hero-bg"></div>
@@ -163,24 +161,16 @@
         </div>
       </div>
     </section>
-
-    <AppFooter />
   </div>
 </template>
 
 <script>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import AppHeader from '@/components/layout/AppHeader.vue'
-import AppFooter from '@/components/layout/AppFooter.vue'
 import { formatDate } from '@/utils/helpers'
 
 export default {
   name: 'Ganadores',
-  components: {
-    AppHeader,
-    AppFooter
-  },
   setup() {
     const router = useRouter()
     const loading = ref(true)

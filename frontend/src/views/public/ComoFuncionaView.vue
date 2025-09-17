@@ -1,7 +1,5 @@
 <template>
   <div class="como-funciona-page">
-    <AppHeader />
-
     <!-- Hero Section -->
     <section class="hero hero-enhanced hero-content-page">
       <div class="hero-bg"></div>
@@ -23,14 +21,10 @@
     <section class="proceso-section">
       <div class="container">
         <h2 class="section-title">🚀 Proceso Simple en 4 Pasos</h2>
-        
+
         <div class="pasos-grid">
-          <div 
-            v-for="(paso, index) in pasos" 
-            :key="paso.id"
-            class="paso-card"
-            :class="{ 'paso-destacado': index === 0 }"
-          >
+          <div v-for="(paso, index) in pasos" :key="paso.id" class="paso-card"
+            :class="{ 'paso-destacado': index === 0 }">
             <div class="paso-numero">
               {{ index + 1 }}
             </div>
@@ -39,7 +33,7 @@
             </div>
             <h3 class="paso-titulo">{{ paso.titulo }}</h3>
             <p class="paso-descripcion">{{ paso.descripcion }}</p>
-            
+
             <div v-if="paso.detalles" class="paso-detalles">
               <ul>
                 <li v-for="detalle in paso.detalles" :key="detalle">
@@ -57,13 +51,9 @@
     <section class="caracteristicas-section">
       <div class="container">
         <h2 class="section-title">✨ ¿Por Qué Elegir Danilore Rifas?</h2>
-        
+
         <div class="caracteristicas-grid">
-          <div 
-            v-for="caracteristica in caracteristicas" 
-            :key="caracteristica.id"
-            class="caracteristica-card"
-          >
+          <div v-for="caracteristica in caracteristicas" :key="caracteristica.id" class="caracteristica-card">
             <div class="caracteristica-icon">
               <i :class="caracteristica.icon"></i>
             </div>
@@ -78,14 +68,14 @@
     <section class="desbloqueo-section">
       <div class="container">
         <h2 class="section-title">🔓 Sistema de Desbloqueo Progresivo</h2>
-        
+
         <div class="desbloqueo-content">
           <div class="desbloqueo-text">
             <h3>¿Cómo funcionan las rifas secuenciales?</h3>
             <p>
               Nuestro innovador sistema de desbloqueo progresivo hace que cada rifa sea más emocionante:
             </p>
-            
+
             <div class="desbloqueo-pasos">
               <div class="desbloqueo-paso">
                 <div class="paso-icon-small">
@@ -95,7 +85,7 @@
                   <strong>Rifa Activa:</strong> Solo una rifa está disponible para participar en cada momento
                 </div>
               </div>
-              
+
               <div class="desbloqueo-paso">
                 <div class="paso-icon-small">
                   <i class="fas fa-target"></i>
@@ -104,7 +94,7 @@
                   <strong>Objetivo Alcanzado:</strong> Cuando se venden suficientes tickets, la rifa se confirma
                 </div>
               </div>
-              
+
               <div class="desbloqueo-paso">
                 <div class="paso-icon-small">
                   <i class="fas fa-unlock"></i>
@@ -115,7 +105,7 @@
               </div>
             </div>
           </div>
-          
+
           <div class="desbloqueo-visual">
             <div class="rifa-sequence">
               <div class="rifa-item active">
@@ -125,11 +115,11 @@
                 <span>AirPods Pro</span>
                 <div class="rifa-status">Activa</div>
               </div>
-              
+
               <div class="arrow">
                 <i class="fas fa-arrow-down"></i>
               </div>
-              
+
               <div class="rifa-item next">
                 <div class="rifa-icon">
                   <i class="fas fa-spray-can"></i>
@@ -137,11 +127,11 @@
                 <span>Perfume Dior</span>
                 <div class="rifa-status">Próxima</div>
               </div>
-              
+
               <div class="arrow">
                 <i class="fas fa-arrow-down"></i>
               </div>
-              
+
               <div class="rifa-item locked">
                 <div class="rifa-icon">
                   <i class="fas fa-mobile-alt"></i>
@@ -159,7 +149,7 @@
     <section class="pagos-section">
       <div class="container">
         <h2 class="section-title">💳 Métodos de Pago</h2>
-        
+
         <div class="pagos-grid">
           <div class="pago-card">
             <div class="pago-icon">
@@ -178,7 +168,7 @@
               </span>
             </div>
           </div>
-          
+
           <div class="pago-card">
             <div class="pago-icon">
               <img src="https://images.seeklogo.com/logo-png/38/1/plin-logo-png_seeklogo-386806.png" alt="Plin">
@@ -204,15 +194,10 @@
     <section class="faq-section">
       <div class="container">
         <h2 class="section-title">❓ Preguntas Frecuentes</h2>
-        
+
         <div class="faq-grid">
-          <div 
-            v-for="faq in faqs" 
-            :key="faq.id"
-            class="faq-card"
-            :class="{ 'faq-open': faq.open }"
-            @click="toggleFAQ(faq)"
-          >
+          <div v-for="faq in faqs" :key="faq.id" class="faq-card" :class="{ 'faq-open': faq.open }"
+            @click="toggleFAQ(faq)">
             <div class="faq-header">
               <h3 class="faq-pregunta">{{ faq.pregunta }}</h3>
               <div class="faq-toggle">
@@ -241,22 +226,14 @@
         </div>
       </div>
     </section>
-
-    <AppFooter />
   </div>
 </template>
 
 <script>
 import { ref } from 'vue'
-import AppHeader from '@/components/layout/AppHeader.vue'
-import AppFooter from '@/components/layout/AppFooter.vue'
 
 export default {
   name: 'ComoFunciona',
-  components: {
-    AppHeader,
-    AppFooter
-  },
   setup() {
     const pasos = ref([
       {
@@ -866,6 +843,7 @@ export default {
   font-size: 1.125rem;
   margin-bottom: 2rem;
   opacity: 0.9;
+  color: var(--gray-100);
 }
 
 .btn-lg {
@@ -891,7 +869,7 @@ export default {
   .pagos-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .pago-ventajas {
     flex-direction: column;
     gap: 0.5rem;

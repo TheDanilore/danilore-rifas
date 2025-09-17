@@ -1,19 +1,34 @@
 <template>
   <div id="app" :class="appClasses">
-    <router-view />
+    <AppHeader v-if="!route.path.startsWith('/admin')" />
+    <main class="main-content">
+      <router-view />
+    </main>
+    <AppFooter v-if="!route.path.startsWith('/admin')" />
   </div>
 </template>
 
 <script>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
+import AppHeader from '@/components/layout/AppHeader.vue'
+import AppFooter from '@/components/layout/AppFooter.vue'
 
 export default {
   name: 'App',
+  components: {
+    AppHeader,
+    AppFooter
+  },
   setup() {
     const route = useRoute()
-    const { isAuthenticated, user } = useAuthStore()
+    const { isAuthenticated, user, checkAuthStatus } = useAuthStore()
+
+    // Inicializar estado de autenticación al cargar la app
+    onMounted(async () => {
+      await checkAuthStatus()
+    })
 
     const appClasses = computed(() => {
       const classes = []
@@ -36,6 +51,7 @@ export default {
     })
 
     return {
+      route,
       appClasses
     }
   }

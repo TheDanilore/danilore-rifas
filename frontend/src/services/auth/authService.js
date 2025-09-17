@@ -28,18 +28,16 @@ export class AuthService {
         preferencias_notificacion: userData.preferencias_notificacion
       })
       
-      console.log('Respuesta del registro:', response)
-      
       if (response.success) {
-        // Guardar token
-        localStorage.setItem('auth_token', response.data.token)
+        // Guardar token - el backend devuelve el token en data.token.access_token
+        const token = response.data.token?.access_token || response.data.token
+        localStorage.setItem('auth_token', token)
         return response.data.user
       }
       
       throw new Error(response.message || 'Error en el registro')
     } catch (error) {
-      console.error('Error en registro:', error)
-      console.error('Detalles del error:', error.response?.data)
+      console.error('Error en registro:', error.response?.data?.message || error.message)
       throw error
     }
   }
@@ -49,24 +47,21 @@ export class AuthService {
    */
   async login(credentials) {
     try {
-      console.log('Datos enviados para login:', credentials)
       const response = await apiClient.post('/auth/login', {
         identifier: credentials.identifier,
         password: credentials.password
       })
       
-      console.log('Respuesta del login:', response)
-      
       if (response.success) {
-        // Guardar token
-        localStorage.setItem('auth_token', response.data.token)
+        // Guardar token - el backend devuelve el token en data.token.access_token
+        const token = response.data.token?.access_token || response.data.token
+        localStorage.setItem('auth_token', token)
         return response.data.user
       }
       
       throw new Error(response.message || 'Credenciales incorrectas')
     } catch (error) {
-      console.error('Error en login:', error)
-      console.error('Detalles del error:', error.response?.data)
+      console.error('Error en login:', error.response?.data?.message || error.message)
       throw error
     }
   }
@@ -92,7 +87,7 @@ export class AuthService {
    */
   async getProfile() {
     try {
-      const response = await apiClient.get('/auth/profile')
+      const response = await apiClient.get('/auth/me')
       if (response.success) {
         return response.data
       }

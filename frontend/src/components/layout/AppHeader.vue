@@ -1,7 +1,8 @@
 <template>
   <header class="header app-header" :class="{ scrolled: isScrolled }">
-    <div class="container header-container">
-      <router-link to="/" class="logo logo-enhanced">
+    <div class="container">
+      <div class="header-content">
+        <router-link to="/" class="logo logo-enhanced">
         <div class="logo-icon">
           <i class="fas fa-trophy"></i>
         </div>
@@ -62,6 +63,7 @@
         <button class="mobile-menu-btn" @click="toggleMobileMenu">
           <i class="fas fa-bars"></i>
         </button>
+      </div>
       </div>
     </div>
 
@@ -143,10 +145,24 @@ export default {
       }
     }
 
-    const handleLogout = () => {
-      logout()
-      showDropdown.value = false
-      showMobileMenu.value = false
+    const handleLogout = async () => {
+      try {
+        await logout()
+        showDropdown.value = false
+        showMobileMenu.value = false
+        
+        // Asegurar redirección a inicio
+        setTimeout(() => {
+          if (window.location.pathname !== '/') {
+            window.location.href = '/'
+          }
+        }, 100)
+      } catch (error) {
+        console.error('Error en logout:', error)
+        // Incluso si hay error, limpiar UI
+        showDropdown.value = false
+        showMobileMenu.value = false
+      }
     }
 
     onMounted(() => {
@@ -435,16 +451,16 @@ export default {
 .mobile-menu {
   display: none;
   position: fixed;
-  top: 4rem;
+  top: 0;
   right: 0;
-  width: 320px;
-  height: calc(100vh - 4rem);
+  width: 100vw;
+  height: 100vh;
   background: var(--white);
-  box-shadow: var(--shadow-xl);
   z-index: 999;
   transform: translateX(100%);
   transition: transform 0.3s ease;
   border-left: 1px solid var(--gray-200);
+  overflow-y: auto;
 }
 
 .mobile-menu.show {
@@ -458,6 +474,7 @@ export default {
   padding: 1.5rem 2rem;
   border-bottom: 1px solid var(--gray-200);
   background: var(--gray-50);
+  min-height: 4rem;
 }
 
 .mobile-menu-header h2 {
@@ -488,7 +505,7 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  height: calc(100% - 4rem);
+  height: calc(100vh - 4rem);
   overflow-y: auto;
 }
 
@@ -586,19 +603,20 @@ export default {
   }
 
   .mobile-menu {
-    width: 100%;
+    width: 100vw;
     right: 0;
-    top: 3.5rem;
-    height: calc(100vh - 3.5rem);
+    top: 0;
+    height: 100vh;
   }
 
   .mobile-menu-content {
     padding: 1rem 1.5rem;
-    height: calc(100% - 3.5rem);
+    height: calc(100vh - 4rem);
   }
 
   .mobile-menu-header {
     padding: 1rem 1.5rem;
+    min-height: 3.5rem;
   }
 }
 </style>

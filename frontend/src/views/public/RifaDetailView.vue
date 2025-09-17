@@ -1,7 +1,5 @@
 <template>
     <div class="rifa-detail-page">
-        <AppHeader />
-
         <div v-if="loading" class="loading-state">
             <i class="fas fa-spinner fa-spin"></i>
             <p>Cargando información de la rifa...</p>
@@ -557,17 +555,12 @@
         </div>
         <!-- Overlay para cerrar tooltip al hacer clic fuera -->
         <div v-if="levelDetailModal" class="tooltip-overlay" @click="closeLevelDetailModal"></div>
-
-        <!-- Footer -->
-        <AppFooter />
     </div>
 </template>
 
 <script>
 import { onMounted, computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import AppHeader from '@/components/layout/AppHeader.vue'
-import AppFooter from '@/components/layout/AppFooter.vue'
 import MediaGallery from '@/components/ui/MediaGallery.vue'
 import { useRifaDetail } from '@/composables/api/useRifaDetail'
 import { useAuthStore } from '@/store/auth'
@@ -577,8 +570,6 @@ export default {
     name: 'RifaDetail',
     inheritAttrs: false,
     components: {
-        AppHeader,
-        AppFooter,
         MediaGallery
     },
     setup() {
