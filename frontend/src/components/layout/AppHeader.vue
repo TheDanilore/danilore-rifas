@@ -35,12 +35,12 @@
           </router-link>
         </div>
 
-        <div v-else class="user-menu">
+        <div v-else class="user-menu" :class="{ show: showDropdown }">
           <button class="user-button" @click="toggleDropdown">
             <div class="user-avatar">
               <i class="fas fa-user"></i>
             </div>
-            <span>{{ user?.nombre || 'Usuario' }}</span>
+            <span>{{ user?.nombres || user?.nombre || 'Usuario' }}</span>
             <i class="fas fa-chevron-down"></i>
           </button>
           <div class="dropdown-menu" :class="{ show: showDropdown }">
@@ -83,7 +83,7 @@
         <div v-else class="mobile-user">
           <div class="mobile-user-info">
             <i class="fas fa-user"></i>
-            <span>{{ user?.nombre || 'Usuario' }}</span>
+            <span>{{ user?.nombres || user?.nombre || 'Usuario' }}</span>
           </div>
           <router-link to="/dashboard" @click="closeMobileMenu">Mi Perfil</router-link>
           <router-link to="/dashboard" @click="closeMobileMenu">Mis Rifas</router-link>
@@ -127,11 +127,15 @@ export default {
       showMobileMenu.value = !showMobileMenu.value
     }
 
-    const handleLogout = async () => {
+    const handleLogout = async (event) => {
+      event.preventDefault()
+      
       try {
-        await logout()
+        // Cerrar cualquier menú abierto inmediatamente
         showDropdown.value = false
         showMobileMenu.value = false
+        
+        await logout()
         
         // Asegurar redirección a inicio
         setTimeout(() => {
@@ -149,9 +153,11 @@ export default {
 
     onMounted(() => {
       window.addEventListener('scroll', handleScroll)
+      
       // Cerrar dropdown al hacer click fuera
       document.addEventListener('click', (e) => {
-        if (!e.target.closest('.user-menu')) {
+        const userMenu = e.target.closest('.user-menu')
+        if (!userMenu && showDropdown.value) {
           showDropdown.value = false
         }
       })
@@ -264,7 +270,43 @@ export default {
 .auth-buttons {
   display: flex;
   align-items: center;
+  gap: 0.75rem;
+}
+
+.login-btn,
+.register-btn {
+  display: flex;
+  align-items: center;
   gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  border-radius: var(--border-radius, 8px);
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.login-btn {
+  color: var(--primary-purple, #6366f1);
+  border-color: var(--primary-purple, #6366f1);
+  background: transparent;
+}
+
+.login-btn:hover {
+  background: var(--primary-purple, #6366f1);
+  color: var(--white, #ffffff);
+}
+
+.register-btn {
+  background: var(--primary-purple, #6366f1);
+  color: var(--white, #ffffff);
+  border-color: var(--primary-purple, #6366f1);
+}
+
+.register-btn:hover {
+  background: var(--primary-dark, #4f46e5);
+  border-color: var(--primary-dark, #4f46e5);
 }
 
 .user-menu {
@@ -324,46 +366,59 @@ export default {
 .user-button {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 0.5rem;
-  border-radius: var(--border-radius);
-  transition: background 0.3s ease;
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius, 8px);
+  transition: all 0.3s ease;
+  color: var(--gray-700, #374151);
+  font-weight: 500;
 }
 
 .user-button:hover {
-  background: var(--gray-100);
+  background: var(--gray-100, #f3f4f6);
+}
+
+.user-button i.fas.fa-chevron-down {
+  font-size: 0.75rem;
+  transition: transform 0.3s ease;
+}
+
+.user-menu.show .user-button i.fas.fa-chevron-down {
+  transform: rotate(180deg);
 }
 
 .user-avatar {
-  background: linear-gradient(135deg, var(--primary-purple), var(--accent-purple));
-  padding: 0.25rem;
-  border-radius: var(--border-radius-full);
-  color: var(--gray-600);
-  width: 2rem;
-  height: 2rem;
+  background: linear-gradient(135deg, var(--primary-purple, #6366f1), var(--accent-purple, #8b5cf6));
+  padding: 0.5rem;
+  border-radius: var(--border-radius-full, 50%);
+  color: var(--white, #ffffff);
+  width: 2.5rem;
+  height: 2.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 1rem;
 }
 
 .dropdown-menu {
   position: absolute;
   top: 100%;
   right: 0;
-  background: var(--white);
-  border: 1px solid var(--gray-200);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-lg);
+  background: var(--white, #ffffff);
+  border: 1px solid var(--gray-200, #e5e7eb);
+  border-radius: var(--border-radius, 8px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   min-width: 200px;
   padding: 0.5rem 0;
   opacity: 0;
   visibility: hidden;
   transform: translateY(-10px);
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   z-index: 1000;
+  margin-top: 0.5rem;
 }
 
 .dropdown-menu.show {
@@ -375,21 +430,23 @@ export default {
 .dropdown-menu a {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
   text-decoration: none;
-  color: var(--gray-700);
-  transition: background 0.3s ease;
+  color: var(--gray-700, #374151);
+  transition: all 0.3s ease;
+  font-weight: 500;
 }
 
 .dropdown-menu a:hover {
-  background: var(--gray-50);
+  background: var(--gray-50, #f9fafb);
+  color: var(--primary-purple, #6366f1);
 }
 
 .dropdown-menu hr {
   margin: 0.5rem 0;
   border: none;
-  border-top: 1px solid var(--gray-200);
+  border-top: 1px solid var(--gray-200, #e5e7eb);
 }
 
 .mobile-menu-btn {

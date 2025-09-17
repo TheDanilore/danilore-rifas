@@ -641,51 +641,9 @@ img {
   box-shadow: var(--shadow-lg);
 }
 
-/* AUTHENTICATED USER STYLES - Para usuarios autenticados normales */
-.app-authenticated {
-  --page-background: var(--background-secondary);
-  --page-accent: var(--secondary-color);
-}
 
-.app-authenticated .app-header {
-  height: var(--navbar-height);
-  background: var(--white);
-  border-bottom: 1px solid var(--gray-200);
-  box-shadow: var(--shadow-sm);
-}
 
-.app-authenticated .user-nav {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-4);
-}
 
-.app-authenticated .user-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--border-radius-full);
-  background: var(--primary-color);
-  color: var(--white);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: var(--font-weight-medium);
-  font-size: var(--font-size-sm);
-}
-
-.app-authenticated .main-content {
-  background: var(--background-secondary);
-  min-height: calc(100vh - var(--navbar-height));
-  padding: var(--spacing-6) 0;
-}
-
-.app-authenticated .content-card {
-  background: var(--white);
-  border-radius: var(--border-radius-xl);
-  box-shadow: var(--shadow-sm);
-  padding: var(--spacing-6);
-  margin-bottom: var(--spacing-6);
-}
 
 /* ADMIN USER STYLES - Para usuarios administradores */
 .app-admin {

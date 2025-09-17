@@ -36,8 +36,6 @@ export default {
       // Determinar el tipo de usuario y aplicar la clase correspondiente
       if (route.path.startsWith('/admin')) {
         classes.push('app-admin')
-      } else if (isAuthenticated.value) {
-        classes.push('app-authenticated')
       } else {
         classes.push('app-public')
       }
