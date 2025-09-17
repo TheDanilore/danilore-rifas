@@ -64,6 +64,32 @@ class User extends Authenticatable
         'doble_autenticacion',
         'intentos_login_fallidos',
         'bloqueado_hasta',
+        // Nuevos campos mejorados
+        'ip_registro',
+        'ip_ultimo_acceso',
+        'dispositivo_preferido',
+        'user_agent_ultimo_acceso',
+        'configuracion_notificaciones',
+        'idioma',
+        'tema_preferido',
+        'perfil_adicional',
+        'configuracion_privacidad',
+        'ultimo_intento_fallido',
+        'cuenta_bloqueada',
+        'motivo_bloqueo',
+        'bloqueado_por',
+        'configuracion_2fa',
+        'dos_factores_habilitado',
+        'codigos_recuperacion_2fa',
+        'preferencias_marketing',
+        'version_terminos_aceptada',
+        'configuracion_cuenta',
+        'es_cuenta_demo',
+        'demo_expira_en',
+        'origen_registro',
+        'codigo_referido_usado',
+        'codigo_referido_personal',
+        'estadisticas_usuario'
     ];
 
     /**
@@ -106,6 +132,20 @@ class User extends Authenticatable
             'doble_autenticacion' => 'boolean',
             'intentos_login_fallidos' => 'integer',
             'bloqueado_hasta' => 'datetime',
+            // Nuevos casts
+            'configuracion_notificaciones' => 'json',
+            'perfil_adicional' => 'json',
+            'configuracion_privacidad' => 'json',
+            'ultimo_intento_fallido' => 'datetime',
+            'cuenta_bloqueada' => 'boolean',
+            'configuracion_2fa' => 'json',
+            'dos_factores_habilitado' => 'boolean',
+            'preferencias_marketing' => 'json',
+            'fecha_aceptacion_terminos' => 'datetime',
+            'configuracion_cuenta' => 'json',
+            'es_cuenta_demo' => 'boolean',
+            'demo_expira_en' => 'datetime',
+            'estadisticas_usuario' => 'json'
         ];
     }
 
@@ -153,6 +193,21 @@ class User extends Authenticatable
     public function configuracionesModificadas(): HasMany
     {
         return $this->hasMany(Configuracion::class, 'modificado_por');
+    }
+
+    public function usuariosBloqueados(): HasMany
+    {
+        return $this->hasMany(User::class, 'bloqueado_por');
+    }
+
+    public function bloqueadoPor()
+    {
+        return $this->belongsTo(User::class, 'bloqueado_por');
+    }
+
+    public function reportesResueltos(): HasMany
+    {
+        return $this->hasMany(Reporte::class, 'resuelto_por');
     }
 
     public function cuponesCreados(): HasMany

@@ -66,7 +66,7 @@ class AuthController extends Controller
 
             // Combinar nombres y apellidos para el campo name
             $fullName = trim($request->nombres . ' ' . $request->apellidos);
-            
+
             // Formatear teléfono con código de país
             $telefonoCompleto = $this->formatearTelefonoConPais($request->telefono, $request->pais ?? 'PE');
 
@@ -167,7 +167,6 @@ class AuthController extends Controller
                     ]
                 ]
             ], 201);
-
         } catch (\Exception $e) {
             Log::error('Error en registro de usuario', [
                 'error' => $e->getMessage(),
@@ -205,7 +204,7 @@ class AuthController extends Controller
             // Determinar si es email o teléfono
             $loginField = $request->identifier; // ✅ Cambiado de $request->email a $request->identifier
             $isEmail = filter_var($loginField, FILTER_VALIDATE_EMAIL);
-            
+
             // Buscar usuario por email o teléfono
             $user = null;
             if ($isEmail) {
@@ -213,11 +212,11 @@ class AuthController extends Controller
             } else {
                 // Formatear teléfono con código de país para búsqueda consistente
                 $telefonoFormateado = $this->formatearTelefonoConPais($loginField, $request->pais ?? 'PE');
-                
+
                 // Buscar por teléfono (tanto el formato original como el formateado)
                 $user = User::where('telefono', $loginField)
-                          ->orWhere('telefono', $telefonoFormateado)
-                          ->first();
+                    ->orWhere('telefono', $telefonoFormateado)
+                    ->first();
             }
 
             if (!$user || !Hash::check($request->password, $user->password)) {
@@ -309,7 +308,6 @@ class AuthController extends Controller
                     ]
                 ]
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error en login', [
                 'identifier' => $request->identifier ?? 'unknown', // ✅ Cambiado de 'email' a 'identifier'
@@ -506,6 +504,12 @@ class AuthController extends Controller
      */
     public function updateProfile(Request $request): JsonResponse
     {
+
+        // Log de datos recibidos para debugging
+        Log::info('Datos recibidos en updateProfile:', [
+            'all_data' => $request->all(),
+        ]);
+
         /** @var User $user */
         $user = $request->user();
 
@@ -539,9 +543,22 @@ class AuthController extends Controller
         try {
             // Actualizar nombre completo si se proporcionan nombre y apellido
             $updateData = $request->only([
-                'nombre', 'apellido', 'email', 'telefono', 'fecha_nacimiento', 'genero',
-                'direccion', 'ciudad', 'departamento', 'codigo_postal', 'pais',
-                'avatar', 'zona_horaria', 'preferencias_notificacion', 'acepta_marketing'
+                'name',
+                'nombre',
+                'apellido',
+                'email',
+                'telefono',
+                'fecha_nacimiento',
+                'genero',
+                'direccion',
+                'ciudad',
+                'departamento',
+                'codigo_postal',
+                'pais',
+                'avatar',
+                'zona_horaria',
+                'preferencias_notificacion',
+                'acepta_marketing'
             ]);
 
             // Si se actualizan nombre o apellido, actualizar también el campo name
@@ -549,8 +566,6 @@ class AuthController extends Controller
                 $nombre = $request->get('nombre', $user->nombre);
                 $apellido = $request->get('apellido', $user->apellido);
                 $updateData['name'] = trim($nombre . ' ' . $apellido);
-            } elseif ($request->has('name')) {
-                $updateData['name'] = $request->name;
             }
 
             // Actualizar fecha de aceptación de marketing si cambia
@@ -605,7 +620,6 @@ class AuthController extends Controller
                     ]
                 ]
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -621,51 +635,109 @@ class AuthController extends Controller
     {
         // Retornamos los permisos definidos en el seeder de Spatie Permission
         // Esto asegura consistencia con el sistema de permisos
-        
+
         switch ($role) {
             case 'super_admin':
                 return [
                     // Super admin tiene todos los permisos
-                    'usuarios.ver', 'usuarios.crear', 'usuarios.editar', 'usuarios.eliminar',
-                    'rifas.ver.admin', 'rifas.crear', 'rifas.editar', 'rifas.eliminar', 'rifas.cambiar.estado', 'rifas.exportar',
-                    'ventas.ver.admin', 'ventas.reportes', 'ventas.gestionar',
-                    'premios.crear', 'premios.editar', 'premios.eliminar', 'premios.subir.imagenes', 'premios.eliminar.imagenes',
-                    'categorias.crear', 'categorias.editar', 'categorias.eliminar',
-                    'niveles.crear', 'niveles.editar', 'niveles.eliminar',
-                    'dashboard.ver', 'estadisticas.ver', 'actividad.ver',
-                    'media.subir', 'media.eliminar', 'media.gestionar',
-                    'ventas.crear', 'ventas.confirmar.pago', 'ventas.ver.propias',
-                    'perfil.ver', 'perfil.editar'
+                    'usuarios.ver',
+                    'usuarios.crear',
+                    'usuarios.editar',
+                    'usuarios.eliminar',
+                    'rifas.ver.admin',
+                    'rifas.crear',
+                    'rifas.editar',
+                    'rifas.eliminar',
+                    'rifas.cambiar.estado',
+                    'rifas.exportar',
+                    'ventas.ver.admin',
+                    'ventas.reportes',
+                    'ventas.gestionar',
+                    'premios.crear',
+                    'premios.editar',
+                    'premios.eliminar',
+                    'premios.subir.imagenes',
+                    'premios.eliminar.imagenes',
+                    'categorias.crear',
+                    'categorias.editar',
+                    'categorias.eliminar',
+                    'niveles.crear',
+                    'niveles.editar',
+                    'niveles.eliminar',
+                    'dashboard.ver',
+                    'estadisticas.ver',
+                    'actividad.ver',
+                    'media.subir',
+                    'media.eliminar',
+                    'media.gestionar',
+                    'ventas.crear',
+                    'ventas.confirmar.pago',
+                    'ventas.ver.propias',
+                    'perfil.ver',
+                    'perfil.editar'
                 ];
-                
+
             case 'admin':
                 return [
-                    'usuarios.ver', 'usuarios.crear', 'usuarios.editar', 'usuarios.eliminar',
-                    'rifas.ver.admin', 'rifas.crear', 'rifas.editar', 'rifas.eliminar', 'rifas.cambiar.estado', 'rifas.exportar',
-                    'ventas.ver.admin', 'ventas.reportes', 'ventas.gestionar',
-                    'premios.crear', 'premios.editar', 'premios.eliminar', 'premios.subir.imagenes', 'premios.eliminar.imagenes',
-                    'categorias.crear', 'categorias.editar', 'categorias.eliminar',
-                    'niveles.crear', 'niveles.editar', 'niveles.eliminar',
-                    'dashboard.ver', 'estadisticas.ver', 'actividad.ver',
-                    'media.subir', 'media.eliminar', 'media.gestionar',
-                    'perfil.ver', 'perfil.editar'
+                    'usuarios.ver',
+                    'usuarios.crear',
+                    'usuarios.editar',
+                    'usuarios.eliminar',
+                    'rifas.ver.admin',
+                    'rifas.crear',
+                    'rifas.editar',
+                    'rifas.eliminar',
+                    'rifas.cambiar.estado',
+                    'rifas.exportar',
+                    'ventas.ver.admin',
+                    'ventas.reportes',
+                    'ventas.gestionar',
+                    'premios.crear',
+                    'premios.editar',
+                    'premios.eliminar',
+                    'premios.subir.imagenes',
+                    'premios.eliminar.imagenes',
+                    'categorias.crear',
+                    'categorias.editar',
+                    'categorias.eliminar',
+                    'niveles.crear',
+                    'niveles.editar',
+                    'niveles.eliminar',
+                    'dashboard.ver',
+                    'estadisticas.ver',
+                    'actividad.ver',
+                    'media.subir',
+                    'media.eliminar',
+                    'media.gestionar',
+                    'perfil.ver',
+                    'perfil.editar'
                 ];
-            
+
             case 'moderador':
                 return [
-                    'rifas.ver.admin', 'rifas.editar', 'rifas.cambiar.estado',
-                    'ventas.ver.admin', 'ventas.gestionar',
-                    'premios.editar', 'premios.subir.imagenes',
-                    'dashboard.ver', 'estadisticas.ver', 'actividad.ver',
+                    'rifas.ver.admin',
+                    'rifas.editar',
+                    'rifas.cambiar.estado',
+                    'ventas.ver.admin',
+                    'ventas.gestionar',
+                    'premios.editar',
+                    'premios.subir.imagenes',
+                    'dashboard.ver',
+                    'estadisticas.ver',
+                    'actividad.ver',
                     'media.subir',
-                    'perfil.ver', 'perfil.editar'
+                    'perfil.ver',
+                    'perfil.editar'
                 ];
-            
+
             case 'usuario':
             default:
                 return [
-                    'ventas.crear', 'ventas.confirmar.pago', 'ventas.ver.propias',
-                    'perfil.ver', 'perfil.editar'
+                    'ventas.crear',
+                    'ventas.confirmar.pago',
+                    'ventas.ver.propias',
+                    'perfil.ver',
+                    'perfil.editar'
                 ];
         }
     }
@@ -693,12 +765,12 @@ class AuthController extends Controller
 
         // Limpiar el número de caracteres no numéricos excepto '+'
         $telefonoLimpio = preg_replace('/[^\d+]/', '', $telefono);
-        
+
         // Si ya tiene código de país, devolverlo tal como está
         if (str_starts_with($telefonoLimpio, '+')) {
             return $telefonoLimpio;
         }
-        
+
         // Si no tiene código de país, agregarlo
         $codigoPais = $codigosPais[$pais] ?? $codigosPais['PE'];
         return $codigoPais . $telefonoLimpio;
@@ -750,7 +822,6 @@ class AuthController extends Controller
                 'success' => true,
                 'message' => 'Contraseña cambiada exitosamente'
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error al cambiar contraseña', [
                 'error' => $e->getMessage(),
@@ -774,7 +845,7 @@ class AuthController extends Controller
             /** @var \App\Models\User $user */
             $user = Auth::user();
             $currentTokenId = $request->user()->currentAccessToken()->id;
-            
+
             $tokens = $user->tokens()->where('name', '!=', 'admin-token')->get()->map(function ($token) use ($currentTokenId) {
                 return [
                     'id' => $token->id,
@@ -790,7 +861,6 @@ class AuthController extends Controller
                 'data' => $tokens,
                 'message' => 'Tokens obtenidos exitosamente'
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -807,9 +877,9 @@ class AuthController extends Controller
         try {
             /** @var \App\Models\User $user */
             $user = Auth::user();
-            
+
             $token = $user->tokens()->where('id', $tokenId)->first();
-            
+
             if (!$token) {
                 return response()->json([
                     'success' => false,
@@ -837,7 +907,6 @@ class AuthController extends Controller
                 'success' => true,
                 'message' => 'Dispositivo desconectado exitosamente'
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

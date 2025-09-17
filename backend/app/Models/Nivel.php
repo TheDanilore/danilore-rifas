@@ -21,8 +21,8 @@ class Nivel extends Model
         'tickets_necesarios',
         'tickets_acumulados',
         'valor_aproximado',
-        'imagen',
         'media_gallery',
+        'imagen',
         'orden',
         'estado',
         'desbloqueado',
@@ -119,8 +119,8 @@ class Nivel extends Model
 
         // Desbloquear siguiente nivel
         $siguienteNivel = Nivel::where('premio_id', $this->premio_id)
-                              ->where('orden', $this->orden + 1)
-                              ->first();
+            ->where('orden', $this->orden + 1)
+            ->first();
 
         if ($siguienteNivel) {
             $siguienteNivel->update([
@@ -155,8 +155,8 @@ class Nivel extends Model
 
         // Los demás niveles se desbloquean cuando el anterior está completado
         $nivelAnterior = Nivel::where('premio_id', $this->premio_id)
-                             ->where('orden', $this->orden - 1)
-                             ->first();
+            ->where('orden', $this->orden - 1)
+            ->first();
 
         return $nivelAnterior && $nivelAnterior->estado === 'completado';
     }

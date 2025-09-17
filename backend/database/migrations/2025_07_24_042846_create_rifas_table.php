@@ -22,14 +22,14 @@ return new class extends Migration
             $table->integer('boletos_vendidos')->default(0);
             $table->integer('boletos_reservados')->default(0); // Reservados temporalmente
             $table->integer('boletos_disponibles')->storedAs('COALESCE(boletos_maximos, 999999) - boletos_vendidos - boletos_reservados');
-            
+
             // Medios y presentación
             $table->string('imagen_principal')->nullable();
             $table->json('imagenes_adicionales')->nullable();
             $table->json('media_gallery')->nullable(); // Para múltiples medios (videos, etc.)
             $table->string('video_presentacion')->nullable(); // URL del video principal
             $table->json('colores_tema')->nullable(); // Colores personalizados para la rifa
-            
+
             // Fechas y tiempos
             $table->datetime('fecha_inicio');
             $table->datetime('fecha_fin');
@@ -38,7 +38,7 @@ return new class extends Migration
             $table->datetime('fecha_ultimo_sorteo')->nullable(); // Para rifas con múltiples sorteos
             $table->integer('tiempo_reserva_minutos')->default(15); // Tiempo para completar el pago
             $table->integer('dias_entrega_premio')->default(30); // Días máximos para entregar premio
-            
+
             // Estados y configuración
             $table->enum('estado', ['borrador', 'programada', 'activa', 'pausada', 'finalizada', 'cancelada', 'completada'])->default('borrador');
             $table->enum('tipo', ['actual', 'futura'])->default('futura');
@@ -48,9 +48,8 @@ return new class extends Migration
             $table->unsignedBigInteger('categoria_id')->nullable();
             $table->string('codigo_unico', 20)->unique();
             $table->string('slug')->unique(); // Para URLs amigables
-            
+
             // Configuraciones especiales
-            $table->boolean('es_destacada')->default(false);
             $table->boolean('es_premium')->default(false);
             $table->boolean('es_patrocinada')->default(false); // Para rifas con patrocinio
             $table->boolean('permite_multiples_boletos')->default(true);
@@ -62,12 +61,12 @@ return new class extends Migration
             $table->boolean('requiere_verificacion_identidad')->default(false);
             $table->boolean('permite_transferencia_boletos')->default(false);
             $table->boolean('auto_sorteo_al_completar')->default(true); // Sorteo automático al completar boletos
-            
+
             // Términos y condiciones
             $table->text('terminos_condiciones')->nullable();
             $table->text('bases_legales')->nullable();
             $table->text('informacion_sorteo')->nullable();
-            
+
             // Sistema progresivo
             $table->integer('total_premios')->default(0); // Calculado automáticamente
             $table->integer('premios_desbloqueados')->default(0); // Calculado automáticamente
@@ -78,7 +77,7 @@ return new class extends Migration
             $table->decimal('porcentaje_minimo_activacion', 5, 2)->default(0); // % mínimo para activar
             $table->boolean('sistema_progresivo_activo')->default(true); // Si usa sistema progresivo
             $table->json('reglas_progresion')->nullable(); // Reglas específicas de progresión
-            
+
             // Estadísticas y métricas
             $table->integer('vistas')->default(0);
             $table->integer('vistas_unicas')->default(0); // Visitantes únicos
@@ -89,16 +88,15 @@ return new class extends Migration
             $table->integer('total_comentarios')->default(0);
             $table->integer('total_participantes_unicos')->default(0); // Usuarios únicos que compraron
             $table->decimal('tasa_conversion', 5, 2)->default(0); // % de visitantes que compran
-            
+
             // Configuración financiera
-            $table->decimal('comision_plataforma', 5, 2)->default(10.00); // Porcentaje
             $table->decimal('total_recaudado', 12, 2)->default(0);
             $table->decimal('total_comisiones', 12, 2)->default(0);
             $table->decimal('total_neto_organizador', 12, 2)->default(0); // Lo que recibe el organizador
             $table->decimal('precio_minimo_garantizado', 12, 2)->nullable(); // Precio mínimo garantizado
             $table->decimal('bono_participacion', 10, 2)->default(0); // Bono por participar
             $table->json('estructura_precios')->nullable(); // Precios escalonados por cantidad
-            
+
             // Administración y control
             $table->unsignedBigInteger('creado_por')->nullable(); // Usuario administrador
             $table->unsignedBigInteger('organizador_id')->nullable(); // Usuario organizador (diferente del creador)
@@ -113,14 +111,14 @@ return new class extends Migration
             $table->unsignedBigInteger('moderado_por')->nullable(); // Quién la moderó
             $table->string('razon_suspension', 500)->nullable(); // Razón si fue suspendida
             $table->json('configuracion_seo')->nullable(); // Configuraciones SEO específicas
-            
+
             $table->timestamps();
-            
+
             // Índices optimizados
             $table->index(['estado', 'tipo', 'fecha_inicio']);
             $table->index(['tipo', 'orden']);
             $table->index('categoria_id');
-            $table->index(['es_destacada', 'es_premium']);
+            $table->index(['es_premium']);
             $table->index(['visible_publico', 'estado']);
             $table->index(['fecha_inicio', 'fecha_fin']);
             $table->index(['modalidad', 'estado']);
@@ -137,7 +135,7 @@ return new class extends Migration
             $table->index(['total_participantes_unicos', 'estado']);
             $table->index(['vistas', 'created_at']); // Para rifas populares
             $table->index(['precio_boleto', 'categoria_id']); // Para filtros de precio
-            
+
             // Relaciones
             $table->foreign('categoria_id')->references('id')->on('categorias')->onDelete('set null');
             $table->foreign('rifa_requerida_id')->references('id')->on('rifas')->onDelete('set null');

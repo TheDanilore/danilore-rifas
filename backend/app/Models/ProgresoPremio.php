@@ -28,12 +28,26 @@ class ProgresoPremio extends Model
         'velocidad_venta',
         'fecha_estimada_completacion',
         'historial_diario',
-        'observaciones'
+        'observaciones',
+        'es_publico',
+        'orden_visualizacion',
+        'color_progreso',
+        'mensaje_personalizado',
+        'hitos',
+        'fecha_ultimo_calculo',
+        'estadisticas',
+        'tendencia_ventas',
+        'velocidad_ventas',
+        'proyeccion_finalizacion',
+        'tendencia_alcista',
+        'porcentaje_notificacion',
+        'notificacion_enviada'
     ];
 
     protected $casts = [
         'tickets_actuales' => 'integer',
         'tickets_objetivo' => 'integer',
+        'tickets_restantes' => 'integer',
         'tickets_hoy' => 'integer',
         'tickets_esta_semana' => 'integer',
         'porcentaje_completado' => 'decimal:2',
@@ -42,7 +56,18 @@ class ProgresoPremio extends Model
         'fecha_alcanzado' => 'datetime',
         'ultimo_ticket' => 'datetime',
         'fecha_estimada_completacion' => 'datetime',
-        'historial_diario' => 'json'
+        'historial_diario' => 'json',
+        'es_publico' => 'boolean',
+        'orden_visualizacion' => 'integer',
+        'hitos' => 'json',
+        'fecha_ultimo_calculo' => 'datetime',
+        'estadisticas' => 'json',
+        'tendencia_ventas' => 'decimal:2',
+        'velocidad_ventas' => 'decimal:2',
+        'proyeccion_finalizacion' => 'datetime',
+        'tendencia_alcista' => 'boolean',
+        'porcentaje_notificacion' => 'decimal:2',
+        'notificacion_enviada' => 'boolean'
     ];
 
     // Relaciones

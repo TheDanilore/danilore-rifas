@@ -28,7 +28,6 @@ return new class extends Migration
             $table->decimal('velocidad_venta', 8, 2)->default(0); // Tickets por día promedio
             $table->datetime('fecha_estimada_completacion')->nullable(); // Estimación basada en velocidad
             $table->json('historial_diario')->nullable(); // Historial de ventas por día
-            $table->text('observaciones')->nullable(); // Notas del administrador
             $table->timestamps();
             
             // Índices optimizados

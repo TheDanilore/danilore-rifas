@@ -16,28 +16,40 @@ class Configuracion extends Model
         'clave',
         'valor',
         'tipo',
+        'grupo',
         'categoria',
         'descripcion',
-        'opciones_validas',
         'valor_defecto',
-        'es_publica',
-        'es_editable',
+        'editable',
+        'visible_admin',
         'requiere_reinicio',
-        'validacion_regex',
+        'validaciones',
         'orden',
         'modificado_por',
-        'fecha_modificacion'
+        'fecha_modificacion',
+        'comentario_modificacion',
+        'activa',
+        'icono',
+        'ayuda',
+        'dependencias',
+        'tipo_input',
+        'opciones',
+        'es_visible',
+        'es_sistema'
     ];
 
     protected $casts = [
-        'valor' => 'json',
-        'opciones_validas' => 'json',
-        'valor_defecto' => 'json',
-        'es_publica' => 'boolean',
-        'es_editable' => 'boolean',
+        'editable' => 'boolean',
+        'visible_admin' => 'boolean',
         'requiere_reinicio' => 'boolean',
+        'validaciones' => 'json',
         'orden' => 'integer',
-        'fecha_modificacion' => 'datetime'
+        'fecha_modificacion' => 'datetime',
+        'activa' => 'boolean',
+        'dependencias' => 'json',
+        'opciones' => 'json',
+        'es_visible' => 'boolean',
+        'es_sistema' => 'boolean'
     ];
 
     // Relaciones
@@ -47,19 +59,24 @@ class Configuracion extends Model
     }
 
     // Scopes
-    public function scopePublicas($query)
+    public function scopeVisiblesAdmin($query)
     {
-        return $query->where('es_publica', true);
+        return $query->where('visible_admin', true);
     }
 
     public function scopeEditables($query)
     {
-        return $query->where('es_editable', true);
+        return $query->where('editable', true);
     }
 
     public function scopePorCategoria($query, $categoria)
     {
         return $query->where('categoria', $categoria);
+    }
+
+    public function scopePorGrupo($query, $grupo)
+    {
+        return $query->where('grupo', $grupo);
     }
 
     public function scopePorTipo($query, $tipo)
@@ -75,7 +92,7 @@ class Configuracion extends Model
     // Métodos auxiliares
     public function actualizar($nuevoValor, $usuarioModificador = null)
     {
-        if (!$this->es_editable) {
+        if (!$this->editable) {
             throw new \Exception('Esta configuración no es editable');
         }
 

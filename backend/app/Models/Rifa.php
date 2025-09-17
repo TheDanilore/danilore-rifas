@@ -102,6 +102,32 @@ class Rifa extends Model
         'moderado_por',
         'razon_suspension',
         'configuracion_seo',
+        // Nuevos campos mejorados
+        'limite_por_usuario',
+        'codigo_promocional',
+        'descuento_promocional',
+        'codigo_valido_hasta',
+        'codigo_max_usos',
+        'codigo_usos_actuales',
+        'configuracion_notificaciones',
+        'etiquetas',
+        'nivel_dificultad',
+        'edad_minima',
+        'paises_permitidos',
+        'paises_restringidos',
+        'configuracion_pagos',
+        'tiempo_reserva_tickets',
+        'max_tickets_por_compra',
+        'mostrar_estadisticas',
+        'permitir_comentarios',
+        'moderar_comentarios',
+        'video_promocional',
+        'redes_sociales',
+        'terminos_especificos',
+        'politica_devoluciones',
+        'meta_titulo',
+        'meta_descripcion',
+        'meta_keywords'
     ];
 
     protected $casts = [
@@ -168,6 +194,25 @@ class Rifa extends Model
         'clics_compartir' => 'integer',
         'total_comentarios' => 'integer',
         'total_participantes_unicos' => 'integer',
+        // Nuevos casts
+        'limite_por_usuario' => 'integer',
+        'descuento_promocional' => 'decimal:2',
+        'codigo_valido_hasta' => 'datetime',
+        'codigo_max_usos' => 'integer',
+        'codigo_usos_actuales' => 'integer',
+        'configuracion_notificaciones' => 'json',
+        'etiquetas' => 'json',
+        'nivel_dificultad' => 'integer',
+        'edad_minima' => 'integer',
+        'paises_permitidos' => 'json',
+        'paises_restringidos' => 'json',
+        'configuracion_pagos' => 'json',
+        'tiempo_reserva_tickets' => 'integer',
+        'max_tickets_por_compra' => 'integer',
+        'mostrar_estadisticas' => 'boolean',
+        'permitir_comentarios' => 'boolean',
+        'moderar_comentarios' => 'boolean',
+        'redes_sociales' => 'json'
     ];
 
     // Relaciones

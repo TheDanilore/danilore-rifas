@@ -16,45 +16,78 @@ class Sorteo extends Model
 
     protected $fillable = [
         'rifa_id',
-        'premio_id',
+        'codigo_sorteo',
         'fecha_programada',
-        'fecha_ejecutado',
-        'metodo_sorteo',
-        'seed_aleatorio',
-        'parametros_sorteo',
-        'resultado',
-        'boletos_participantes',
-        'boleto_ganador_id',
-        'numero_ganador',
+        'fecha_realizada',
         'estado',
-        'observaciones',
-        'ejecutado_por',
-        'validado_por',
-        'fecha_validacion',
-        'hash_verificacion',
+        'tipo',
+        'descripcion',
+        'metodo_sorteo',
+        'configuracion_sorteo',
+        'semilla_aleatoriedad',
+        'publico',
         'url_transmision',
-        'grabacion_url',
-        'testigos',
-        'certificado_sorteo',
-        'notificaciones_enviadas',
-        'es_automatico',
-        'intento_numero',
-        'tiempo_ejecucion'
+        'resultados',
+        'total_participantes',
+        'total_boletos_participantes',
+        'hash_verificacion',
+        'evidencia_sorteo',
+        'archivos_evidencia',
+        'verificado',
+        'verificado_por',
+        'fecha_verificacion',
+        'realizado_por',
+        'observaciones',
+        'log_acciones',
+        // Nuevos campos mejorados
+        'transmision_en_vivo',
+        'plataforma_transmision',
+        'seed_aleatorio',
+        'algoritmo_usado',
+        'intentos_sorteo',
+        'motivo_repeticion',
+        'es_prueba',
+        'duracion_segundos',
+        'espectadores_en_vivo',
+        'max_espectadores',
+        'log_eventos',
+        'estadisticas_transmision',
+        'zona_horaria',
+        'fecha_inicio_transmision',
+        'fecha_fin_transmision',
+        'autorizados_sorteo',
+        'certificado',
+        'entidad_certificadora',
+        'numero_certificacion',
+        'comentarios_publicos',
+        'notas_internas'
     ];
 
     protected $casts = [
         'fecha_programada' => 'datetime',
-        'fecha_ejecutado' => 'datetime',
-        'fecha_validacion' => 'datetime',
-        'parametros_sorteo' => 'json',
-        'resultado' => 'json',
-        'boletos_participantes' => 'json',
-        'numero_ganador' => 'integer',
-        'testigos' => 'json',
-        'notificaciones_enviadas' => 'boolean',
-        'es_automatico' => 'boolean',
-        'intento_numero' => 'integer',
-        'tiempo_ejecucion' => 'decimal:3'
+        'fecha_realizada' => 'datetime',
+        'fecha_verificacion' => 'datetime',
+        'configuracion_sorteo' => 'json',
+        'publico' => 'boolean',
+        'resultados' => 'json',
+        'total_participantes' => 'integer',
+        'total_boletos_participantes' => 'integer',
+        'archivos_evidencia' => 'json',
+        'verificado' => 'boolean',
+        'log_acciones' => 'json',
+        // Nuevos casts
+        'transmision_en_vivo' => 'boolean',
+        'intentos_sorteo' => 'integer',
+        'es_prueba' => 'boolean',
+        'duracion_segundos' => 'integer',
+        'espectadores_en_vivo' => 'integer',
+        'max_espectadores' => 'integer',
+        'log_eventos' => 'json',
+        'estadisticas_transmision' => 'json',
+        'fecha_inicio_transmision' => 'datetime',
+        'fecha_fin_transmision' => 'datetime',
+        'autorizados_sorteo' => 'json',
+        'certificado' => 'boolean'
     ];
 
     // Relaciones
@@ -63,24 +96,14 @@ class Sorteo extends Model
         return $this->belongsTo(Rifa::class);
     }
 
-    public function premio(): BelongsTo
+    public function verificadoPor(): BelongsTo
     {
-        return $this->belongsTo(Premio::class);
+        return $this->belongsTo(User::class, 'verificado_por');
     }
 
-    public function boletoGanador(): BelongsTo
+    public function realizadoPor(): BelongsTo
     {
-        return $this->belongsTo(Boleto::class, 'boleto_ganador_id');
-    }
-
-    public function ejecutadoPor(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'ejecutado_por');
-    }
-
-    public function validadoPor(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'validado_por');
+        return $this->belongsTo(User::class, 'realizado_por');
     }
 
     // Scopes
@@ -89,9 +112,9 @@ class Sorteo extends Model
         return $query->where('estado', 'programado');
     }
 
-    public function scopeEjecutados($query)
+    public function scopeCompletados($query)
     {
-        return $query->where('estado', 'ejecutado');
+        return $query->where('estado', 'completado');
     }
 
     public function scopeValidados($query)

@@ -349,6 +349,89 @@
         </div>
       </div>
     </div>
+
+    <!-- Devices Management Modal -->
+    <div v-if="showDevicesModal" class="modal-overlay" @click="showDevicesModal = false">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>Gestionar Dispositivos</h3>
+          <button @click="showDevicesModal = false" class="modal-close">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        
+        <div class="modal-body">
+          <!-- Loading State -->
+          <div v-if="loadingDevices" class="loading-state">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Cargando dispositivos...</p>
+          </div>
+
+          <!-- Devices List -->
+          <div v-else class="devices-list">
+            <p class="devices-info">
+              <i class="fas fa-info-circle"></i>
+              Aquí puedes ver todos los dispositivos donde tienes sesión activa.
+            </p>
+            
+            <div v-if="devices.length === 0" class="empty-devices">
+              <i class="fas fa-mobile-alt"></i>
+              <p>No se encontraron dispositivos activos</p>
+            </div>
+            
+            <div v-else class="device-cards">
+              <div 
+                v-for="device in devices" 
+                :key="device.id" 
+                class="device-card"
+                :class="{ 'current-device': device.is_current }"
+              >
+                <div class="device-info">
+                  <div class="device-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                  </div>
+                  <div class="device-details">
+                    <h4>{{ device.name || 'Dispositivo Desconocido' }}</h4>
+                    <p class="device-meta">
+                      <i class="fas fa-clock"></i>
+                      Último acceso: {{ formatDate(device.last_used_at) }}
+                    </p>
+                    <p class="device-meta">
+                      <i class="fas fa-calendar"></i>
+                      Creado: {{ formatDate(device.created_at) }}
+                    </p>
+                    <span v-if="device.is_current" class="current-badge">
+                      <i class="fas fa-check-circle"></i>
+                      Dispositivo Actual
+                    </span>
+                  </div>
+                </div>
+                <div class="device-actions">
+                  <button 
+                    v-if="!device.is_current"
+                    @click="revokeDevice(device.id)" 
+                    class="btn btn-outline btn-danger"
+                  >
+                    <i class="fas fa-sign-out-alt"></i>
+                    Cerrar Sesión
+                  </button>
+                  <span v-else class="current-device-label">
+                    No puedes cerrar tu sesión actual
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="devices-footer">
+              <button @click="logoutAllDevices" class="btn btn-danger">
+                <i class="fas fa-power-off"></i>
+                Cerrar Sesión en Todos los Dispositivos
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -356,7 +439,7 @@
 import { ref, onMounted, reactive } from 'vue'
 import { useAuthStore } from '@/store/auth'
 import { userService } from '@/services/api/userService'
-import { formatDate, showNotification, showConfirm } from '@/utils/helpers'
+import { formatDate, formatDateForInput, showNotification, showConfirm } from '@/utils/helpers'
 
 export default {
   name: 'PerfilView',
@@ -369,9 +452,12 @@ export default {
     const updating = ref(false)
     const showPasswordModal = ref(false)
     const changingPassword = ref(false)
+    const showDevicesModal = ref(false)
+    const loadingDevices = ref(false)
     
     const user = ref({})
     const userStats = ref({})
+    const devices = ref([])
     
     const editForm = reactive({
       nombres: '',
@@ -413,7 +499,7 @@ export default {
         editForm.apellidos = user.value.apellidos || user.value.apellido || ''
         editForm.email = user.value.email || ''
         editForm.telefono = user.value.telefono || ''
-        editForm.fecha_nacimiento = user.value.fecha_nacimiento || ''
+        editForm.fecha_nacimiento = formatDateForInput(user.value.fecha_nacimiento) || ''
         editForm.genero = user.value.genero || ''
         editForm.direccion = user.value.direccion || ''
         editForm.ciudad = user.value.ciudad || ''
@@ -433,7 +519,7 @@ export default {
         editForm.apellidos = user.value.apellidos || user.value.apellido || ''
         editForm.email = user.value.email || ''
         editForm.telefono = user.value.telefono || ''
-        editForm.fecha_nacimiento = user.value.fecha_nacimiento || ''
+        editForm.fecha_nacimiento = formatDateForInput(user.value.fecha_nacimiento) || ''
         editForm.genero = user.value.genero || ''
         editForm.direccion = user.value.direccion || ''
         editForm.ciudad = user.value.ciudad || ''
@@ -501,13 +587,40 @@ export default {
 
     const loadTokens = async () => {
       try {
-        const devices = await userService.getDevices()
-        console.log('Dispositivos:', devices)
-        // Aquí podrías abrir un modal con la lista de dispositivos
-        showNotification('Dispositivos cargados en consola', 'info')
+        loadingDevices.value = true
+        const devicesList = await userService.getDevices()
+        console.log('Dispositivos:', devicesList)
+        devices.value = devicesList
+        showDevicesModal.value = true
       } catch (err) {
         console.error('Error al cargar dispositivos:', err)
         showNotification('Error al cargar dispositivos', 'error')
+      } finally {
+        loadingDevices.value = false
+      }
+    }
+
+    const revokeDevice = async (tokenId) => {
+      const confirmed = await showConfirm({
+        title: '¿Revocar dispositivo?',
+        message: '¿Estás seguro de que deseas cerrar sesión en este dispositivo?',
+        type: 'warning',
+        confirmText: 'Revocar',
+        cancelText: 'Cancelar'
+      })
+      
+      if (!confirmed) {
+        return
+      }
+      
+      try {
+        await userService.revokeDevice(tokenId)
+        showNotification('Dispositivo revocado correctamente', 'success')
+        // Recargar la lista de dispositivos
+        await loadTokens()
+      } catch (err) {
+        console.error('Error al revocar dispositivo:', err)
+        showNotification('Error al revocar el dispositivo', 'error')
       }
     }
 
@@ -557,8 +670,11 @@ export default {
       updating,
       showPasswordModal,
       changingPassword,
+      showDevicesModal,
+      loadingDevices,
       user,
       userStats,
+      devices,
       editForm,
       passwordForm,
       loadUserProfile,
@@ -566,6 +682,7 @@ export default {
       updateProfile,
       changePassword,
       loadTokens,
+      revokeDevice,
       logoutAllDevices,
       formatDate,
       formatGender
@@ -813,6 +930,11 @@ export default {
   overflow-y: auto;
 }
 
+/* Larger modal for devices */
+.modal-content:has(.devices-list) {
+  max-width: 700px;
+}
+
 .modal-header {
   padding: 1.5rem;
   border-bottom: 1px solid var(--gray-200);
@@ -844,6 +966,143 @@ export default {
   padding: 1.5rem;
 }
 
+/* Devices Modal Styles */
+.devices-info {
+  background: var(--info-bg, #e3f2fd);
+  color: var(--info-color, #0277bd);
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.empty-devices {
+  text-align: center;
+  padding: 2rem;
+  color: var(--gray-600);
+}
+
+.empty-devices i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.device-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.device-card {
+  border: 1px solid var(--gray-200);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.3s ease;
+}
+
+.device-card:hover {
+  border-color: var(--primary-purple);
+  box-shadow: 0 2px 8px rgba(91, 44, 135, 0.1);
+}
+
+.device-card.current-device {
+  border-color: var(--success-color, #22c55e);
+  background: var(--success-bg, #f0fdf4);
+}
+
+.device-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.device-icon {
+  width: 3rem;
+  height: 3rem;
+  background: linear-gradient(135deg, var(--primary-purple), var(--primary-indigo));
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.25rem;
+}
+
+.device-details h4 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.device-meta {
+  font-size: 0.875rem;
+  color: var(--gray-600);
+  margin: 0.25rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.current-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--success-color, #22c55e);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--border-radius-sm, 4px);
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+.device-actions {
+  flex-shrink: 0;
+}
+
+.current-device-label {
+  font-size: 0.875rem;
+  color: var(--gray-600);
+  font-style: italic;
+}
+
+.btn-danger {
+  background: var(--error-color, #ef4444);
+  color: white;
+  border: 1px solid var(--error-color, #ef4444);
+}
+
+.btn-danger:hover {
+  background: var(--error-hover, #dc2626);
+  border-color: var(--error-hover, #dc2626);
+}
+
+.btn-outline.btn-danger {
+  background: transparent;
+  color: var(--error-color, #ef4444);
+  border: 1px solid var(--error-color, #ef4444);
+}
+
+.btn-outline.btn-danger:hover {
+  background: var(--error-color, #ef4444);
+  color: white;
+}
+
+.devices-footer {
+  border-top: 1px solid var(--gray-200);
+  padding-top: 1.5rem;
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .form-actions {
@@ -856,6 +1115,24 @@ export default {
   
   .form-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .device-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .device-actions {
+    width: 100%;
+  }
+  
+  .device-actions .btn {
+    width: 100%;
+  }
+  
+  .modal-content {
+    max-width: 95%;
   }
 }
 </style>

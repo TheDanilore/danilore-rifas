@@ -14,57 +14,87 @@ class Reporte extends Model
     protected $table = 'reportes';
 
     protected $fillable = [
-        'tipo_reporte',
-        'periodo_inicio',
-        'periodo_fin',
+        'nombre',
+        'descripcion',
+        'tipo',
         'parametros',
-        'datos_calculados',
-        'estado',
-        'progreso',
-        'fecha_generacion',
-        'generado_por',
-        'archivo_url',
-        'tamaño_archivo',
+        'configuracion',
         'formato',
-        'tiempo_procesamiento',
-        'filas_procesadas',
-        'errores',
-        'hash_datos',
-        'version_esquema',
+        'estado',
+        'error_mensaje',
+        'archivo_generado',
+        'total_registros',
+        'fecha_inicio_procesamiento',
+        'fecha_fin_procesamiento',
+        'solicitado_por',
         'programado',
         'frecuencia',
         'proxima_ejecucion',
-        'notificar_completado',
-        'destinatarios'
+        'resuelto',
+        'resuelto_por',
+        'fecha_resolucion',
+        'accion_tomada',
+        'prioridad',
+        'categoria',
+        'subcategoria',
+        'evidencias',
+        'ip_reporter',
+        'user_agent_reporter',
+        'seguimiento',
+        'reportes_similares',
+        'es_duplicado',
+        'reporte_original_id',
+        'tiempo_estimado_resolucion',
+        'notificar_resolucion',
+        'feedback_reporter',
+        'rating_resolucion'
     ];
 
     protected $casts = [
-        'periodo_inicio' => 'datetime',
-        'periodo_fin' => 'datetime',
         'parametros' => 'json',
-        'datos_calculados' => 'json',
-        'progreso' => 'integer',
-        'fecha_generacion' => 'datetime',
-        'tamaño_archivo' => 'integer',
-        'tiempo_procesamiento' => 'decimal:3',
-        'filas_procesadas' => 'integer',
-        'errores' => 'json',
+        'configuracion' => 'json',
+        'total_registros' => 'integer',
+        'fecha_inicio_procesamiento' => 'datetime',
+        'fecha_fin_procesamiento' => 'datetime',
         'programado' => 'boolean',
         'proxima_ejecucion' => 'datetime',
-        'notificar_completado' => 'boolean',
-        'destinatarios' => 'json'
+        'resuelto' => 'boolean',
+        'fecha_resolucion' => 'datetime',
+        'prioridad' => 'integer',
+        'evidencias' => 'json',
+        'seguimiento' => 'json',
+        'reportes_similares' => 'integer',
+        'es_duplicado' => 'boolean',
+        'tiempo_estimado_resolucion' => 'integer',
+        'notificar_resolucion' => 'boolean',
+        'rating_resolucion' => 'integer'
     ];
 
     // Relaciones
-    public function generadoPor(): BelongsTo
+    public function solicitadoPor(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'generado_por');
+        return $this->belongsTo(User::class, 'solicitado_por');
+    }
+
+    public function resuelto_por(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'resuelto_por');
+    }
+
+    public function reporteOriginal(): BelongsTo
+    {
+        return $this->belongsTo(Reporte::class, 'reporte_original_id');
+    }
+
+    public function reportesDuplicados()
+    {
+        return $this->hasMany(Reporte::class, 'reporte_original_id');
     }
 
     // Scopes
     public function scopePorTipo($query, $tipo)
     {
-        return $query->where('tipo_reporte', $tipo);
+        return $query->where('tipo', $tipo);
     }
 
     public function scopeCompletados($query)

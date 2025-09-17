@@ -16,34 +16,40 @@ class Comentario extends Model
     protected $fillable = [
         'user_id',
         'rifa_id',
-        'contenido',
-        'calificacion',
-        'es_anonimo',
-        'mostrar_nombre_usuario',
         'comentario_padre_id',
-        'nivel',
+        'comentario',
+        'rating',
+        'activo',
+        'moderado',
+        'moderado_por',
+        'fecha_moderacion',
+        'razon_moderacion',
+        'likes',
+        'dislikes',
         'ip_address',
         'user_agent',
-        'aprobado',
-        'aprobado_por',
-        'fecha_aprobacion',
-        'reportado',
-        'reportes_count',
-        'motivo_reporte',
-        'estado',
-        'metadata'
+        'editado',
+        'fecha_edicion',
+        'editado_por',
+        'es_spam',
+        'reportes',
+        'imagenes',
+        'notificar_respuestas'
     ];
 
     protected $casts = [
-        'calificacion' => 'integer',
-        'es_anonimo' => 'boolean',
-        'mostrar_nombre_usuario' => 'boolean',
-        'nivel' => 'integer',
-        'aprobado' => 'boolean',
-        'reportado' => 'boolean',
-        'reportes_count' => 'integer',
-        'fecha_aprobacion' => 'datetime',
-        'metadata' => 'json'
+        'rating' => 'decimal:2',
+        'activo' => 'boolean',
+        'moderado' => 'boolean',
+        'fecha_moderacion' => 'datetime',
+        'likes' => 'integer',
+        'dislikes' => 'integer',
+        'editado' => 'boolean',
+        'fecha_edicion' => 'datetime',
+        'es_spam' => 'boolean',
+        'reportes' => 'integer',
+        'imagenes' => 'json',
+        'notificar_respuestas' => 'boolean'
     ];
 
     // Relaciones
@@ -68,31 +74,36 @@ class Comentario extends Model
                     ->orderBy('created_at', 'asc');
     }
 
-    public function aprobadoPor(): BelongsTo
+    public function moderadoPor(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'aprobado_por');
+        return $this->belongsTo(User::class, 'moderado_por');
     }
 
     // Scopes
-    public function scopeAprobados($query)
+    public function scopeActivos($query)
     {
-        return $query->where('aprobado', true);
+        return $query->where('activo', true);
     }
 
-    public function scopePendientes($query)
+    public function scopeModerados($query)
     {
-        return $query->where('aprobado', false);
+        return $query->where('moderado', true);
+    }
+
+    public function scopePendienteModeracion($query)
+    {
+        return $query->where('moderado', false);
     }
 
     public function scopePublicos($query)
     {
-        return $query->where('estado', 'publico')
-                    ->where('aprobado', true);
+        return $query->where('activo', true)
+                    ->where('moderado', true);
     }
 
-    public function scopePorCalificacion($query, $calificacion)
+    public function scopePorRating($query, $rating)
     {
-        return $query->where('calificacion', $calificacion);
+        return $query->where('rating', $rating);
     }
 
     public function scopePrincipales($query)
