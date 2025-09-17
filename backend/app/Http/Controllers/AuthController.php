@@ -123,12 +123,41 @@ class AuthController extends Controller
                     'user' => [
                         'id' => $user->id,
                         'name' => $user->name,
+                        'nombre' => $user->nombre,
+                        'apellido' => $user->apellido,
                         'email' => $user->email,
                         'telefono' => $user->telefono,
+                        'tipo_documento' => $user->tipo_documento,
+                        'numero_documento' => $user->numero_documento,
+                        'fecha_nacimiento' => $user->fecha_nacimiento,
+                        'genero' => $user->genero,
+                        'direccion' => $user->direccion,
+                        'ciudad' => $user->ciudad,
+                        'departamento' => $user->departamento,
+                        'codigo_postal' => $user->codigo_postal,
+                        'pais' => $user->pais,
+                        'avatar' => $user->avatar,
+                        'zona_horaria' => $user->zona_horaria,
+                        'preferencias_notificacion' => $user->preferencias_notificacion,
+                        'total_boletos_comprados' => $user->total_boletos_comprados,
+                        'total_gastado' => $user->total_gastado,
+                        'total_rifas_participadas' => $user->total_rifas_participadas,
+                        'rifas_ganadas' => $user->rifas_ganadas,
+                        'primera_compra' => $user->primera_compra,
+                        'ultima_compra' => $user->ultima_compra,
                         'role' => $user->getRoleNames()->first(),
                         'permissions' => $user->getAllPermissions()->pluck('name'),
                         'activo' => $user->activo,
-                        'created_at' => $user->created_at
+                        'verificado' => $user->verificado,
+                        'ultimo_acceso' => $user->ultimo_acceso,
+                        'doble_autenticacion' => $user->doble_autenticacion,
+                        'acepta_terminos' => $user->acepta_terminos,
+                        'fecha_aceptacion_terminos' => $user->fecha_aceptacion_terminos,
+                        'acepta_marketing' => $user->acepta_marketing,
+                        'fecha_aceptacion_marketing' => $user->fecha_aceptacion_marketing,
+                        'email_verified_at' => $user->email_verified_at,
+                        'created_at' => $user->created_at,
+                        'updated_at' => $user->updated_at
                     ],
                     'token' => [
                         'access_token' => $token->plainTextToken,
@@ -236,12 +265,41 @@ class AuthController extends Controller
                     'user' => [
                         'id' => $user->id,
                         'name' => $user->name,
+                        'nombre' => $user->nombre,
+                        'apellido' => $user->apellido,
                         'email' => $user->email,
                         'telefono' => $user->telefono,
+                        'tipo_documento' => $user->tipo_documento,
+                        'numero_documento' => $user->numero_documento,
+                        'fecha_nacimiento' => $user->fecha_nacimiento,
+                        'genero' => $user->genero,
+                        'direccion' => $user->direccion,
+                        'ciudad' => $user->ciudad,
+                        'departamento' => $user->departamento,
+                        'codigo_postal' => $user->codigo_postal,
+                        'pais' => $user->pais,
+                        'avatar' => $user->avatar,
+                        'zona_horaria' => $user->zona_horaria,
+                        'preferencias_notificacion' => $user->preferencias_notificacion,
+                        'total_boletos_comprados' => $user->total_boletos_comprados,
+                        'total_gastado' => $user->total_gastado,
+                        'total_rifas_participadas' => $user->total_rifas_participadas,
+                        'rifas_ganadas' => $user->rifas_ganadas,
+                        'primera_compra' => $user->primera_compra,
+                        'ultima_compra' => $user->ultima_compra,
                         'role' => $userRole,
                         'permissions' => $user->getAllPermissions()->pluck('name'),
                         'activo' => $user->activo,
-                        'ultimo_acceso' => $user->ultimo_acceso
+                        'verificado' => $user->verificado,
+                        'ultimo_acceso' => $user->ultimo_acceso,
+                        'doble_autenticacion' => $user->doble_autenticacion,
+                        'acepta_terminos' => $user->acepta_terminos,
+                        'fecha_aceptacion_terminos' => $user->fecha_aceptacion_terminos,
+                        'acepta_marketing' => $user->acepta_marketing,
+                        'fecha_aceptacion_marketing' => $user->fecha_aceptacion_marketing,
+                        'email_verified_at' => $user->email_verified_at,
+                        'created_at' => $user->created_at,
+                        'updated_at' => $user->updated_at
                     ],
                     'token' => [
                         'access_token' => $token->plainTextToken,
@@ -280,13 +338,41 @@ class AuthController extends Controller
                     'user' => [
                         'id' => $user->id,
                         'name' => $user->name,
+                        'nombre' => $user->nombre,
+                        'apellido' => $user->apellido,
                         'email' => $user->email,
                         'telefono' => $user->telefono,
+                        'tipo_documento' => $user->tipo_documento,
+                        'numero_documento' => $user->numero_documento,
+                        'fecha_nacimiento' => $user->fecha_nacimiento,
+                        'genero' => $user->genero,
+                        'direccion' => $user->direccion,
+                        'ciudad' => $user->ciudad,
+                        'departamento' => $user->departamento,
+                        'codigo_postal' => $user->codigo_postal,
+                        'pais' => $user->pais,
+                        'avatar' => $user->avatar,
+                        'zona_horaria' => $user->zona_horaria,
+                        'preferencias_notificacion' => $user->preferencias_notificacion,
+                        'total_boletos_comprados' => $user->total_boletos_comprados,
+                        'total_gastado' => $user->total_gastado,
+                        'total_rifas_participadas' => $user->total_rifas_participadas,
+                        'rifas_ganadas' => $user->rifas_ganadas,
+                        'primera_compra' => $user->primera_compra,
+                        'ultima_compra' => $user->ultima_compra,
                         'role' => $user->getRoleNames()->first(),
                         'permissions' => $user->getAllPermissions()->pluck('name'),
                         'activo' => $user->activo,
+                        'verificado' => $user->verificado,
                         'ultimo_acceso' => $user->ultimo_acceso,
-                        'created_at' => $user->created_at
+                        'doble_autenticacion' => $user->doble_autenticacion,
+                        'acepta_terminos' => $user->acepta_terminos,
+                        'fecha_aceptacion_terminos' => $user->fecha_aceptacion_terminos,
+                        'acepta_marketing' => $user->acepta_marketing,
+                        'fecha_aceptacion_marketing' => $user->fecha_aceptacion_marketing,
+                        'email_verified_at' => $user->email_verified_at,
+                        'created_at' => $user->created_at,
+                        'updated_at' => $user->updated_at
                     ],
                     'token_info' => [
                         'name' => $currentToken->name,
@@ -416,54 +502,6 @@ class AuthController extends Controller
     }
 
     /**
-     * Revocar token específico
-     */
-    public function revokeToken(Request $request, $tokenId): JsonResponse
-    {
-        try {
-            $user = $request->user();
-            $token = $user->tokens()->where('id', $tokenId)->first();
-
-            if (!$token) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Token no encontrado'
-                ], 404);
-            }
-
-            $tokenName = $token->name;
-            $token->delete();
-
-            Log::info('Token revocado', [
-                'user_id' => $user->id,
-                'token_id' => $tokenId,
-                'token_name' => $tokenName
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Token revocado exitosamente',
-                'data' => [
-                    'revoked_token_id' => $tokenId,
-                    'revoked_token_name' => $tokenName
-                ]
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error al revocar token', [
-                'error' => $e->getMessage(),
-                'user_id' => $request->user()->id ?? 'unknown',
-                'token_id' => $tokenId
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al revocar token',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
      * Actualizar perfil
      */
     public function updateProfile(Request $request): JsonResponse
@@ -473,13 +511,21 @@ class AuthController extends Controller
 
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|string|max:255',
-            'telefono' => 'sometimes|string|max:15',
-            'fecha_nacimiento' => 'sometimes|date',
-            'genero' => 'sometimes|in:masculino,femenino,otro',
-            'direccion' => 'sometimes|string|max:255',
+            'nombre' => 'sometimes|string|max:100',
+            'apellido' => 'sometimes|string|max:100',
+            'email' => 'sometimes|email|max:255|unique:users,email,' . $user->id,
+            'telefono' => 'sometimes|string|max:20|unique:users,telefono,' . $user->id,
+            'fecha_nacimiento' => 'sometimes|date|before:today',
+            'genero' => 'sometimes|in:masculino,femenino,otro,no_especificar',
+            'direccion' => 'sometimes|string|max:500',
             'ciudad' => 'sometimes|string|max:100',
             'departamento' => 'sometimes|string|max:100',
-            'codigo_postal' => 'sometimes|string|max:10'
+            'codigo_postal' => 'sometimes|string|max:10',
+            'pais' => 'sometimes|string|max:3',
+            'avatar' => 'sometimes|string|max:255',
+            'zona_horaria' => 'sometimes|string|max:50',
+            'preferencias_notificacion' => 'sometimes|array',
+            'acepta_marketing' => 'sometimes|boolean'
         ]);
 
         if ($validator->fails()) {
@@ -491,15 +537,73 @@ class AuthController extends Controller
         }
 
         try {
-            $user->update($request->only([
-                'name', 'telefono', 'fecha_nacimiento', 'genero',
-                'direccion', 'ciudad', 'departamento', 'codigo_postal'
-            ]));
+            // Actualizar nombre completo si se proporcionan nombre y apellido
+            $updateData = $request->only([
+                'nombre', 'apellido', 'email', 'telefono', 'fecha_nacimiento', 'genero',
+                'direccion', 'ciudad', 'departamento', 'codigo_postal', 'pais',
+                'avatar', 'zona_horaria', 'preferencias_notificacion', 'acepta_marketing'
+            ]);
+
+            // Si se actualizan nombre o apellido, actualizar también el campo name
+            if ($request->has('nombre') || $request->has('apellido')) {
+                $nombre = $request->get('nombre', $user->nombre);
+                $apellido = $request->get('apellido', $user->apellido);
+                $updateData['name'] = trim($nombre . ' ' . $apellido);
+            } elseif ($request->has('name')) {
+                $updateData['name'] = $request->name;
+            }
+
+            // Actualizar fecha de aceptación de marketing si cambia
+            if ($request->has('acepta_marketing')) {
+                $updateData['fecha_aceptacion_marketing'] = $request->acepta_marketing ? now() : null;
+            }
+
+            $user->update($updateData);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Perfil actualizado correctamente',
-                'data' => $user
+                'data' => [
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'nombre' => $user->nombre,
+                        'apellido' => $user->apellido,
+                        'email' => $user->email,
+                        'telefono' => $user->telefono,
+                        'tipo_documento' => $user->tipo_documento,
+                        'numero_documento' => $user->numero_documento,
+                        'fecha_nacimiento' => $user->fecha_nacimiento,
+                        'genero' => $user->genero,
+                        'direccion' => $user->direccion,
+                        'ciudad' => $user->ciudad,
+                        'departamento' => $user->departamento,
+                        'codigo_postal' => $user->codigo_postal,
+                        'pais' => $user->pais,
+                        'avatar' => $user->avatar,
+                        'zona_horaria' => $user->zona_horaria,
+                        'preferencias_notificacion' => $user->preferencias_notificacion,
+                        'total_boletos_comprados' => $user->total_boletos_comprados,
+                        'total_gastado' => $user->total_gastado,
+                        'total_rifas_participadas' => $user->total_rifas_participadas,
+                        'rifas_ganadas' => $user->rifas_ganadas,
+                        'primera_compra' => $user->primera_compra,
+                        'ultima_compra' => $user->ultima_compra,
+                        'role' => $user->getRoleNames()->first(),
+                        'permissions' => $user->getAllPermissions()->pluck('name'),
+                        'activo' => $user->activo,
+                        'verificado' => $user->verificado,
+                        'ultimo_acceso' => $user->ultimo_acceso,
+                        'doble_autenticacion' => $user->doble_autenticacion,
+                        'acepta_terminos' => $user->acepta_terminos,
+                        'fecha_aceptacion_terminos' => $user->fecha_aceptacion_terminos,
+                        'acepta_marketing' => $user->acepta_marketing,
+                        'fecha_aceptacion_marketing' => $user->fecha_aceptacion_marketing,
+                        'email_verified_at' => $user->email_verified_at,
+                        'created_at' => $user->created_at,
+                        'updated_at' => $user->updated_at
+                    ]
+                ]
             ]);
 
         } catch (\Exception $e) {
@@ -598,5 +702,147 @@ class AuthController extends Controller
         // Si no tiene código de país, agregarlo
         $codigoPais = $codigosPais[$pais] ?? $codigosPais['PE'];
         return $codigoPais . $telefonoLimpio;
+    }
+
+    /**
+     * Cambiar contraseña del usuario autenticado
+     */
+    public function changePassword(Request $request): JsonResponse
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'current_password' => 'required|string',
+                'new_password' => 'required|string|min:8|confirmed',
+                'new_password_confirmation' => 'required|string'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Datos de validación incorrectos',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            /** @var \App\Models\User $user */
+            $user = Auth::user();
+
+            // Verificar la contraseña actual
+            if (!Hash::check($request->current_password, $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'La contraseña actual es incorrecta'
+                ], 422);
+            }
+
+            // Actualizar la contraseña
+            $user->update([
+                'password' => Hash::make($request->new_password)
+            ]);
+
+            Log::info('Contraseña cambiada exitosamente', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'ip' => $request->ip()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Contraseña cambiada exitosamente'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error al cambiar contraseña', [
+                'error' => $e->getMessage(),
+                'user_id' => Auth::id(),
+                'ip' => $request->ip()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error interno del servidor'
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtener lista de tokens activos (dispositivos)
+     */
+    public function getTokens(Request $request): JsonResponse
+    {
+        try {
+            /** @var \App\Models\User $user */
+            $user = Auth::user();
+            $currentTokenId = $request->user()->currentAccessToken()->id;
+            
+            $tokens = $user->tokens()->where('name', '!=', 'admin-token')->get()->map(function ($token) use ($currentTokenId) {
+                return [
+                    'id' => $token->id,
+                    'name' => $token->name,
+                    'last_used_at' => $token->last_used_at,
+                    'created_at' => $token->created_at,
+                    'is_current' => $token->id === $currentTokenId
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $tokens,
+                'message' => 'Tokens obtenidos exitosamente'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener tokens: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Revocar un token específico
+     */
+    public function revokeToken(Request $request, $tokenId): JsonResponse
+    {
+        try {
+            /** @var \App\Models\User $user */
+            $user = Auth::user();
+            
+            $token = $user->tokens()->where('id', $tokenId)->first();
+            
+            if (!$token) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Token no encontrado'
+                ], 404);
+            }
+
+            // No permitir revocar el token actual
+            if ($token->id === $user->currentAccessToken()->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No puedes revocar el token de la sesión actual'
+                ], 422);
+            }
+
+            $token->delete();
+
+            Log::info('Token revocado', [
+                'user_id' => $user->id,
+                'token_id' => $tokenId,
+                'ip' => $request->ip()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Dispositivo desconectado exitosamente'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al revocar token: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

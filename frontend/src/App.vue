@@ -1,10 +1,14 @@
 <template>
   <div id="app" :class="appClasses">
-    <AppHeader v-if="!route.path.startsWith('/admin') && !route.path.startsWith('/login') && !route.path.startsWith('/register')" />
+    <AppHeader v-if="!isPublicRoute" />
     <main class="main-content">
       <router-view />
     </main>
-    <AppFooter v-if="!route.path.startsWith('/admin') && !route.path.startsWith('/login') && !route.path.startsWith('/register')" />
+    <AppFooter v-if="!isPublicRoute" />
+    
+    <!-- Sistemas globales -->
+    <NotificationSystem />
+    <ConfirmModal />
   </div>
 </template>
 
@@ -14,20 +18,38 @@ import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
+import NotificationSystem, { useNotifications } from '@/components/common/NotificationSystem.vue'
+import ConfirmModal, { useConfirmModal } from '@/components/common/ConfirmModal.vue'
 
 export default {
   name: 'App',
   components: {
     AppHeader,
-    AppFooter
+    AppFooter,
+    NotificationSystem,
+    ConfirmModal
   },
   setup() {
     const route = useRoute()
-    const { isAuthenticated, user, checkAuthStatus } = useAuthStore()
-
-    // Inicializar estado de autenticación al cargar la app
+    const { checkAuthStatus } = useAuthStore()
+    const notifications = useNotifications()
+    const confirmModal = useConfirmModal()
+    
+    const isPublicRoute = computed(() => {
+      // Solo ocultar header y footer en login y register
+      const hideHeaderFooterRoutes = ['/login', '/register']
+      
+      return hideHeaderFooterRoutes.includes(route.path)
+    })
+    
     onMounted(async () => {
       await checkAuthStatus()
+
+      
+      
+      // Exponer sistemas globalmente para compatibilidad
+      window.__notificationSystem = notifications
+      window.__confirmModal = confirmModal
     })
 
     const appClasses = computed(() => {
@@ -47,15 +69,14 @@ export default {
       
       return classes
     })
-
+    
     return {
-      route,
+      isPublicRoute,
       appClasses
     }
   }
 }
 </script>
-
 <style>
 /* Estilos críticos directos para asegurar que se vean los elementos */
 #app {

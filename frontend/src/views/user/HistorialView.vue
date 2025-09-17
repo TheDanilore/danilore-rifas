@@ -409,21 +409,49 @@ export default {
         
         if (activeTab.value === 'ventas') {
           const response = await userService.getMisVentas(params)
-          ventas.value = response.data.ventas || []
-          pagination.value = response.data.pagination || {}
+          if (response && response.data) {
+            ventas.value = response.data.ventas || []
+            pagination.value = response.data.pagination || {}
+          } else {
+            console.error('Respuesta de API inválida para ventas:', response)
+            ventas.value = []
+            pagination.value = {}
+            showNotification('Error: Respuesta de servidor inválida', 'error')
+          }
         } else if (activeTab.value === 'pagos') {
           const response = await userService.getPagos(params)
-          pagos.value = response.data.pagos || []
-          pagination.value = response.data.pagination || {}
+          if (response && response.data) {
+            pagos.value = response.data.pagos || []
+            pagination.value = response.data.pagination || {}
+          } else {
+            console.error('Respuesta de API inválida para pagos:', response)
+            pagos.value = []
+            pagination.value = {}
+            showNotification('Error: Respuesta de servidor inválida', 'error')
+          }
         } else if (activeTab.value === 'actividad') {
           const response = await userService.getActivity(params)
-          actividades.value = response.data.actividades || []
-          pagination.value = response.data.pagination || {}
+          if (response && response.data) {
+            actividades.value = response.data.actividades || []
+            pagination.value = response.data.pagination || {}
+          } else {
+            console.error('Respuesta de API inválida para actividad:', response)
+            actividades.value = []
+            pagination.value = {}
+            showNotification('Error: Respuesta de servidor inválida', 'error')
+          }
         }
         
       } catch (err) {
         console.error('Error al cargar datos:', err)
         error.value = err.response?.data?.message || 'Error al cargar los datos'
+        showNotification(error.value, 'error')
+        
+        // Resetear datos en caso de error
+        ventas.value = []
+        pagos.value = []
+        actividades.value = []
+        pagination.value = {}
       } finally {
         loading.value = false
       }

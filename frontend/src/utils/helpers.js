@@ -1,5 +1,20 @@
 // Utilidades de formato de fecha
 export const formatDate = (dateString) => {
+  if (!dateString) return ''
+  
+  // Si es formato ISO (YYYY-MM-DD), lo parseamos correctamente
+  const parts = dateString.split('-')
+  if (parts.length === 3) {
+    // Crear fecha con año, mes-1 (porque los meses son 0-indexados), día
+    const date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]))
+    return date.toLocaleDateString("es-PE", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
+  }
+  
+  // Fallback para otros formatos
   const date = new Date(dateString)
   return date.toLocaleDateString("es-PE", {
     year: "numeric",
@@ -9,6 +24,9 @@ export const formatDate = (dateString) => {
 }
 
 export const formatDateTime = (dateString) => {
+  if (!dateString) return ''
+  
+  // Si es formato ISO con timezone (2025-09-17T00:44:26), parseamos correctamente
   const date = new Date(dateString)
   return date.toLocaleDateString("es-PE", {
     year: "numeric",
@@ -47,7 +65,28 @@ export const formatNumber = (number) => {
   return number.toLocaleString('es-PE')
 }
 
-// Utilidades de validación
+// Utilidades de notificaciones
+export const showNotification = (message, type = 'info', duration = 5000) => {
+  // Esta función será implementada por el sistema de notificaciones
+  // Fallback a console para compatibilidad
+  console.log(`[${type.toUpperCase()}] ${message}`)
+  
+  // Si el sistema de notificaciones está disponible, lo usará
+  if (window.__notificationSystem) {
+    return window.__notificationSystem.addNotification(message, type, duration)
+  }
+  
+  return null
+}
+
+export const showConfirm = async (options) => {
+  // Fallback a confirm nativo si el sistema de modales no está disponible
+  if (window.__confirmModal) {
+    return await window.__confirmModal.showConfirm(options)
+  }
+  
+  return confirm(options.message || '¿Estás seguro?')
+}
 export const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   return emailRegex.test(email)
@@ -100,18 +139,6 @@ export const copyToClipboard = async (text) => {
   } catch (err) {
     console.error('Error copying to clipboard:', err)
     return false
-  }
-}
-
-export const showNotification = (message, type = 'info') => {
-  // Esta función se puede expandir con una librería de notificaciones
-  console.log(`${type.toUpperCase()}: ${message}`)
-  
-  // Por ahora usamos alert, pero se puede mejorar
-  if (type === 'error') {
-    alert(`Error: ${message}`)
-  } else if (type === 'success') {
-    alert(`Éxito: ${message}`)
   }
 }
 

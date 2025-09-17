@@ -13,17 +13,98 @@ class PagoController extends Controller
     /**
      * Obtener pagos del usuario autenticado
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $pagos = Pago::where('user_id', Auth::id())
-                        ->with(['venta.rifa'])
-                        ->orderBy('created_at', 'desc')
-                        ->paginate(20);
+            $query = Pago::where('user_id', Auth::id())
+                        ->with(['venta.rifa']);
+
+            // Filtros
+            if ($request->estado) {
+                $query->where('estado', $request->estado);
+            }
+
+            if ($request->metodo) {
+                $query->where('metodo_pago', $request->metodo);
+            }
+
+            if ($request->periodo) {
+                switch ($request->periodo) {
+                    case 'hoy':
+                        $query->whereDate('created_at', today());
+                        break;
+                    case 'semana':
+                        $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+                        break;
+                    case 'mes':
+                        $query->whereMonth('created_at', now()->month)
+                              ->whereYear('created_at', now()->year);
+                        break;
+                    case 'año':
+                        $query->whereYear('created_at', now()->year);
+                        break;
+                }
+            }
+
+            // Ordenamiento
+            $sort = $request->sort ?? 'fecha_desc';
+            switch ($sort) {
+                case 'fecha_asc':
+                    $query->orderBy('created_at', 'asc');
+                    break;
+                case 'monto_desc':
+                    $query->orderBy('monto', 'desc');
+                    break;
+                case 'monto_asc':
+                    $query->orderBy('monto', 'asc');
+                    break;
+                default: // fecha_desc
+                    $query->orderBy('created_at', 'desc');
+                    break;
+            }
+
+            $perPage = $request->per_page ?? 20;
+            $pagos = $query->paginate($perPage);
+
+            // Formatear pagos para el frontend
+            $pagosFormatted = $pagos->getCollection()->map(function($pago) {
+                return [
+                    'id' => $pago->id,
+                    'referencia' => $pago->referencia,
+                    'monto' => $pago->monto,
+                    'estado' => $pago->estado,
+                    'metodo' => $pago->metodo_pago,
+                    'numero_operacion' => $pago->numero_operacion,
+                    'fecha_transaccion' => $pago->fecha_transaccion,
+                    'comprobante_url' => $pago->comprobante_url,
+                    'created_at' => $pago->created_at,
+                    'updated_at' => $pago->updated_at,
+                    'venta' => $pago->venta ? [
+                        'id' => $pago->venta->id,
+                        'codigo' => $pago->venta->codigo_venta,
+                        'total' => $pago->venta->total,
+                        'estado' => $pago->venta->estado,
+                        'rifa' => $pago->venta->rifa ? [
+                            'id' => $pago->venta->rifa->id,
+                            'nombre' => $pago->venta->rifa->nombre
+                        ] : null
+                    ] : null
+                ];
+            });
 
             return response()->json([
                 'success' => true,
-                'data' => $pagos,
+                'data' => [
+                    'pagos' => $pagosFormatted,
+                    'pagination' => [
+                        'total' => $pagos->total(),
+                        'current_page' => $pagos->currentPage(),
+                        'per_page' => $pagos->perPage(),
+                        'last_page' => $pagos->lastPage(),
+                        'from' => $pagos->firstItem(),
+                        'to' => $pagos->lastItem()
+                    ]
+                ],
                 'message' => 'Pagos obtenidos exitosamente'
             ]);
 

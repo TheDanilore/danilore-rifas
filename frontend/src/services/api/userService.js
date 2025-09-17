@@ -1,4 +1,4 @@
-import { api } from './api'
+import { apiClient } from './api'
 
 /**
  * Servicio para manejo de datos de usuario autenticado
@@ -8,8 +8,12 @@ export const userService = {
   // Perfil de usuario
   async getProfile() {
     try {
-      const response = await api.get('/auth/me')
-      return response.data
+      const response = await apiClient.get('/user/perfil')
+      // El backend devuelve { success: true, data: { user: {...}, stats: {...} } }
+      if (response.success && response.data) {
+        return response.data
+      }
+      throw new Error('Estructura de respuesta inválida')
     } catch (error) {
       console.error('Error al obtener perfil:', error)
       throw error
@@ -18,18 +22,70 @@ export const userService = {
 
   async updateProfile(profileData) {
     try {
-      const response = await api.put('/auth/profile', profileData)
-      return response.data
+      const response = await apiClient.put('/user/perfil/actualizar', profileData)
+      // El backend devuelve { success: true, data: { user: {...} }, message: "..." }
+      if (response.success && response.data) {
+        return response.data
+      }
+      throw new Error('Estructura de respuesta inválida')
     } catch (error) {
       console.error('Error al actualizar perfil:', error)
       throw error
     }
   },
 
+  // Cambiar contraseña
+  async changePassword(passwordData) {
+    try {
+      const response = await apiClient.put('/auth/change-password', passwordData)
+      return response
+    } catch (error) {
+      console.error('Error al cambiar contraseña:', error)
+      throw error
+    }
+  },
+
+  // Gestión de dispositivos/tokens
+  async getDevices() {
+    try {
+      const response = await apiClient.get('/auth/tokens')
+      if (response.success && response.data) {
+        return response.data
+      }
+      return []
+    } catch (error) {
+      console.error('Error al obtener dispositivos:', error)
+      throw error
+    }
+  },
+
+  async revokeDevice(tokenId) {
+    try {
+      const response = await apiClient.delete(`/auth/tokens/${tokenId}`)
+      return response
+    } catch (error) {
+      console.error('Error al revocar dispositivo:', error)
+      throw error
+    }
+  },
+
+  async logoutAllDevices() {
+    try {
+      const response = await apiClient.post('/auth/logout-all')
+      return response
+    } catch (error) {
+      console.error('Error al cerrar todas las sesiones:', error)
+      throw error
+    }
+  },
+
   async getActivity() {
     try {
-      const response = await api.get('/user/perfil/actividad')
-      return response.data
+      const response = await apiClient.get('/user/perfil/actividad')
+      if (response.success && response.data) {
+        return response.data
+      }
+      return response.data || []
     } catch (error) {
       console.error('Error al obtener actividad:', error)
       throw error
@@ -39,8 +95,11 @@ export const userService = {
   // Boletos del usuario
   async getBoletos(params = {}) {
     try {
-      const response = await api.get('/user/boletos', { params })
-      return response.data
+      const response = await apiClient.get('/user/boletos', { params })
+      if (response.success && response.data) {
+        return response.data
+      }
+      return response.data || []
     } catch (error) {
       console.error('Error al obtener boletos:', error)
       throw error
@@ -49,7 +108,10 @@ export const userService = {
 
   async getBoleto(id) {
     try {
-      const response = await api.get(`/user/boletos/${id}`)
+      const response = await apiClient.get(`/user/boletos/${id}`)
+      if (response.success && response.data) {
+        return response.data
+      }
       return response.data
     } catch (error) {
       console.error('Error al obtener boleto:', error)
@@ -59,7 +121,7 @@ export const userService = {
 
   async transferirBoleto(boletoId, destinatarioEmail) {
     try {
-      const response = await api.post(`/user/boletos/${boletoId}/transferir`, {
+      const response = await apiClient.post(`/user/boletos/${boletoId}/transferir`, {
         destinatario_email: destinatarioEmail
       })
       return response.data
@@ -71,7 +133,7 @@ export const userService = {
 
   async getHistorialTransferencias(boletoId) {
     try {
-      const response = await api.get(`/user/boletos/${boletoId}/historial-transferencias`)
+      const response = await apiClient.get(`/user/boletos/${boletoId}/historial-transferencias`)
       return response.data
     } catch (error) {
       console.error('Error al obtener historial de transferencias:', error)
@@ -81,7 +143,7 @@ export const userService = {
 
   async verificarEstadoBoletos(rifaId) {
     try {
-      const response = await api.get(`/user/boletos/rifa/${rifaId}/verificar-estado`)
+      const response = await apiClient.get(`/user/boletos/rifa/${rifaId}/verificar-estado`)
       return response.data
     } catch (error) {
       console.error('Error al verificar estado de boletos:', error)
@@ -92,7 +154,7 @@ export const userService = {
   // Ventas del usuario
   async getMisVentas(params = {}) {
     try {
-      const response = await api.get('/user/ventas/mis-ventas', { params })
+      const response = await apiClient.get('/user/ventas/mis-ventas', { params })
       return response.data
     } catch (error) {
       console.error('Error al obtener ventas:', error)
@@ -102,7 +164,7 @@ export const userService = {
 
   async confirmarPago(codigo, pagoData) {
     try {
-      const response = await api.post(`/user/ventas/${codigo}/confirmar-pago`, pagoData)
+      const response = await apiClient.post(`/user/ventas/${codigo}/confirmar-pago`, pagoData)
       return response.data
     } catch (error) {
       console.error('Error al confirmar pago:', error)
@@ -113,7 +175,7 @@ export const userService = {
   // Pagos
   async getPagos(params = {}) {
     try {
-      const response = await api.get('/user/pagos', { params })
+      const response = await apiClient.get('/user/pagos', { params })
       return response.data
     } catch (error) {
       console.error('Error al obtener pagos:', error)
@@ -123,7 +185,7 @@ export const userService = {
 
   async getPago(id) {
     try {
-      const response = await api.get(`/user/pagos/${id}`)
+      const response = await apiClient.get(`/user/pagos/${id}`)
       return response.data
     } catch (error) {
       console.error('Error al obtener pago:', error)
@@ -133,7 +195,7 @@ export const userService = {
 
   async crearPago(pagoData) {
     try {
-      const response = await api.post('/user/pagos', pagoData)
+      const response = await apiClient.post('/user/pagos', pagoData)
       return response.data
     } catch (error) {
       console.error('Error al crear pago:', error)
@@ -144,7 +206,7 @@ export const userService = {
   // Favoritos
   async getFavoritos() {
     try {
-      const response = await api.get('/user/favoritos')
+      const response = await apiClient.get('/user/favoritos')
       return response.data
     } catch (error) {
       console.error('Error al obtener favoritos:', error)
@@ -154,7 +216,7 @@ export const userService = {
 
   async toggleFavorito(rifaId) {
     try {
-      const response = await api.post('/user/favoritos/toggle', { rifa_id: rifaId })
+      const response = await apiClient.post('/user/favoritos/toggle', { rifa_id: rifaId })
       return response.data
     } catch (error) {
       console.error('Error al toggle favorito:', error)
@@ -164,7 +226,7 @@ export const userService = {
 
   async verificarFavorito(rifaId) {
     try {
-      const response = await api.get(`/user/favoritos/verificar/${rifaId}`)
+      const response = await apiClient.get(`/user/favoritos/verificar/${rifaId}`)
       return response.data
     } catch (error) {
       console.error('Error al verificar favorito:', error)
@@ -175,7 +237,7 @@ export const userService = {
   // Notificaciones
   async getNotificaciones(params = {}) {
     try {
-      const response = await api.get('/user/notificaciones', { params })
+      const response = await apiClient.get('/user/notificaciones', { params })
       return response.data
     } catch (error) {
       console.error('Error al obtener notificaciones:', error)
@@ -185,7 +247,7 @@ export const userService = {
 
   async getResumenNotificaciones() {
     try {
-      const response = await api.get('/user/notificaciones/resumen')
+      const response = await apiClient.get('/user/notificaciones/resumen')
       return response.data
     } catch (error) {
       console.error('Error al obtener resumen de notificaciones:', error)
@@ -195,7 +257,7 @@ export const userService = {
 
   async marcarNotificacionLeida(notificacionId) {
     try {
-      const response = await api.patch(`/user/notificaciones/${notificacionId}/leida`)
+      const response = await apiClient.patch(`/user/notificaciones/${notificacionId}/leida`)
       return response.data
     } catch (error) {
       console.error('Error al marcar notificación como leída:', error)
@@ -205,7 +267,7 @@ export const userService = {
 
   async marcarTodasNotificacionesLeidas() {
     try {
-      const response = await api.patch('/user/notificaciones/marcar-todas-leidas')
+      const response = await apiClient.patch('/user/notificaciones/marcar-todas-leidas')
       return response.data
     } catch (error) {
       console.error('Error al marcar todas las notificaciones como leídas:', error)
@@ -216,7 +278,7 @@ export const userService = {
   // Tokens de autenticación
   async getTokens() {
     try {
-      const response = await api.get('/auth/tokens')
+      const response = await apiClient.get('/auth/tokens')
       return response.data
     } catch (error) {
       console.error('Error al obtener tokens:', error)
@@ -226,7 +288,7 @@ export const userService = {
 
   async revokeToken(tokenId) {
     try {
-      const response = await api.delete(`/auth/tokens/${tokenId}`)
+      const response = await apiClient.delete(`/auth/tokens/${tokenId}`)
       return response.data
     } catch (error) {
       console.error('Error al revocar token:', error)

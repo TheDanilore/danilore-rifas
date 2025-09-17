@@ -334,12 +334,24 @@ export default {
         error.value = null
         
         const response = await userService.getBoletos(filters)
-        boletos.value = response.data.boletos || []
-        pagination.value = response.data.pagination || {}
+        
+        // Validar que la respuesta tenga la estructura esperada
+        if (response && response.data) {
+          boletos.value = response.data.boletos || []
+          pagination.value = response.data.pagination || {}
+        } else {
+          console.error('Respuesta de API inválida:', response)
+          boletos.value = []
+          pagination.value = {}
+          showNotification('Error: Respuesta de servidor inválida', 'error')
+        }
         
       } catch (err) {
         console.error('Error al cargar boletos:', err)
         error.value = err.response?.data?.message || 'Error al cargar los boletos'
+        showNotification(error.value, 'error')
+        boletos.value = []
+        pagination.value = {}
       } finally {
         loading.value = false
       }

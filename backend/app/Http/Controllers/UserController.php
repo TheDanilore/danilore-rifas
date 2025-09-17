@@ -21,30 +21,69 @@ class UserController extends Controller
             /** @var \App\Models\User $user */
             $user = Auth::user();
             
+            // Devolver todos los campos del usuario
             $perfil = [
                 'id' => $user->id,
                 'name' => $user->name,
+                'nombres' => $user->nombre, // Mapear nombre a nombres para el frontend
+                'apellidos' => $user->apellido, // Mapear apellido a apellidos para el frontend
+                'nombre' => $user->nombre,
+                'apellido' => $user->apellido,
                 'email' => $user->email,
                 'telefono' => $user->telefono,
+                'tipo_documento' => $user->tipo_documento,
+                'numero_documento' => $user->numero_documento,
                 'fecha_nacimiento' => $user->fecha_nacimiento,
+                'genero' => $user->genero,
+                'direccion' => $user->direccion,
                 'ciudad' => $user->ciudad,
+                'departamento' => $user->departamento,
+                'codigo_postal' => $user->codigo_postal,
+                'pais' => $user->pais,
                 'activo' => $user->activo,
                 'verificado' => $user->verificado,
                 'ultimo_acceso' => $user->ultimo_acceso,
+                'avatar' => $user->avatar,
+                'zona_horaria' => $user->zona_horaria,
+                'preferencias_notificacion' => $user->preferencias_notificacion,
+                'total_boletos_comprados' => $user->total_boletos_comprados,
+                'total_gastado' => $user->total_gastado,
+                'total_rifas_participadas' => $user->total_rifas_participadas,
+                'rifas_ganadas' => $user->rifas_ganadas,
+                'primera_compra' => $user->primera_compra,
+                'ultima_compra' => $user->ultima_compra,
+                'doble_autenticacion' => $user->doble_autenticacion,
+                'intentos_login_fallidos' => $user->intentos_login_fallidos,
+                'bloqueado_hasta' => $user->bloqueado_hasta,
+                'acepta_terminos' => $user->acepta_terminos,
+                'fecha_aceptacion_terminos' => $user->fecha_aceptacion_terminos,
+                'acepta_marketing' => $user->acepta_marketing,
+                'fecha_aceptacion_marketing' => $user->fecha_aceptacion_marketing,
+                'email_verified_at' => $user->email_verified_at,
                 'created_at' => $user->created_at,
+                'updated_at' => $user->updated_at,
                 'roles' => $user->getRoleNames(),
-                'permissions' => $user->getAllPermissions()->pluck('name'),
-                'estadisticas' => [
-                    'total_ventas' => $user->ventas()->count(),
-                    'total_gastado' => $user->ventas()->where('estado', 'completada')->sum('total'),
-                    'boletos_comprados' => $user->ventas()->where('estado', 'completada')->sum('cantidad_boletos'),
-                    'favoritos' => $user->favoritos()->count()
-                ]
+                'permissions' => $user->getAllPermissions()->pluck('name')
+            ];
+
+            // Estadísticas calculadas
+            $estadisticas = [
+                'total_boletos' => $user->total_boletos_comprados,
+                'rifas_ganadas' => $user->rifas_ganadas,
+                'favoritos' => $user->favoritos()->count(),
+                'total_gastado' => $user->total_gastado,
+                'total_ventas' => $user->ventas()->count(),
+                'total_gastado_ventas' => $user->ventas()->where('estado', 'completada')->sum('total'),
+                'boletos_comprados_ventas' => $user->ventas()->where('estado', 'completada')->sum('cantidad_boletos'),
+                'total_rifas_participadas' => $user->total_rifas_participadas
             ];
 
             return response()->json([
                 'success' => true,
-                'data' => $perfil,
+                'data' => [
+                    'user' => $perfil,
+                    'stats' => $estadisticas
+                ],
                 'message' => 'Perfil obtenido exitosamente'
             ]);
 
@@ -63,11 +102,23 @@ class UserController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'name' => 'sometimes|required|string|max:255',
-                'telefono' => 'sometimes|nullable|string|max:20',
-                'fecha_nacimiento' => 'sometimes|nullable|date|before:today',
-                'ciudad' => 'sometimes|nullable|string|max:100',
-                'password' => 'sometimes|nullable|string|min:8|confirmed',
+                'name' => 'sometimes|string|max:255',
+                'nombre' => 'sometimes|string|max:100',
+                'apellido' => 'sometimes|string|max:100',
+                'email' => 'sometimes|email|max:255|unique:users,email,' . Auth::id(),
+                'telefono' => 'sometimes|string|max:20|unique:users,telefono,' . Auth::id(),
+                'fecha_nacimiento' => 'sometimes|date|before:today',
+                'genero' => 'sometimes|in:masculino,femenino,otro,no_especificar',
+                'direccion' => 'sometimes|string|max:500',
+                'ciudad' => 'sometimes|string|max:100',
+                'departamento' => 'sometimes|string|max:100',
+                'codigo_postal' => 'sometimes|string|max:10',
+                'pais' => 'sometimes|string|max:3',
+                'avatar' => 'sometimes|string|max:255',
+                'zona_horaria' => 'sometimes|string|max:50',
+                'preferencias_notificacion' => 'sometimes|array',
+                'acepta_marketing' => 'sometimes|boolean',
+                'password' => 'sometimes|string|min:8|confirmed',
                 'password_actual' => 'required_with:password|string'
             ]);
 
@@ -91,7 +142,25 @@ class UserController extends Controller
             }
 
             // Preparar datos para actualizar
-            $updateData = $request->only(['name', 'telefono', 'fecha_nacimiento', 'ciudad']);
+            $updateData = $request->only([
+                'nombre', 'apellido', 'email', 'telefono', 'fecha_nacimiento', 'genero',
+                'direccion', 'ciudad', 'departamento', 'codigo_postal', 'pais',
+                'avatar', 'zona_horaria', 'preferencias_notificacion', 'acepta_marketing'
+            ]);
+
+            // Actualizar nombre completo si se proporcionan nombre y apellido
+            if ($request->has('nombre') || $request->has('apellido')) {
+                $nombre = $request->get('nombre', $user->nombre);
+                $apellido = $request->get('apellido', $user->apellido);
+                $updateData['name'] = trim($nombre . ' ' . $apellido);
+            } elseif ($request->has('name')) {
+                $updateData['name'] = $request->name;
+            }
+
+            // Actualizar fecha de aceptación de marketing si cambia
+            if ($request->has('acepta_marketing')) {
+                $updateData['fecha_aceptacion_marketing'] = $request->acepta_marketing ? now() : null;
+            }
             
             if ($request->password) {
                 $updateData['password'] = Hash::make($request->password);
@@ -99,9 +168,52 @@ class UserController extends Controller
 
             $user->update($updateData);
 
+            // Obtener datos completos actualizados
+            $userUpdated = $user->fresh();
+
             return response()->json([
                 'success' => true,
-                'data' => $user->fresh(),
+                'data' => [
+                    'user' => [
+                        'id' => $userUpdated->id,
+                        'name' => $userUpdated->name,
+                        'nombre' => $userUpdated->nombre,
+                        'apellido' => $userUpdated->apellido,
+                        'email' => $userUpdated->email,
+                        'telefono' => $userUpdated->telefono,
+                        'tipo_documento' => $userUpdated->tipo_documento,
+                        'numero_documento' => $userUpdated->numero_documento,
+                        'fecha_nacimiento' => $userUpdated->fecha_nacimiento,
+                        'genero' => $userUpdated->genero,
+                        'direccion' => $userUpdated->direccion,
+                        'ciudad' => $userUpdated->ciudad,
+                        'departamento' => $userUpdated->departamento,
+                        'codigo_postal' => $userUpdated->codigo_postal,
+                        'pais' => $userUpdated->pais,
+                        'avatar' => $userUpdated->avatar,
+                        'zona_horaria' => $userUpdated->zona_horaria,
+                        'preferencias_notificacion' => $userUpdated->preferencias_notificacion,
+                        'total_boletos_comprados' => $userUpdated->total_boletos_comprados,
+                        'total_gastado' => $userUpdated->total_gastado,
+                        'total_rifas_participadas' => $userUpdated->total_rifas_participadas,
+                        'rifas_ganadas' => $userUpdated->rifas_ganadas,
+                        'primera_compra' => $userUpdated->primera_compra,
+                        'ultima_compra' => $userUpdated->ultima_compra,
+                        'role' => $userUpdated->getRoleNames()->first(),
+                        'permissions' => $userUpdated->getAllPermissions()->pluck('name'),
+                        'activo' => $userUpdated->activo,
+                        'verificado' => $userUpdated->verificado,
+                        'ultimo_acceso' => $userUpdated->ultimo_acceso,
+                        'doble_autenticacion' => $userUpdated->doble_autenticacion,
+                        'acepta_terminos' => $userUpdated->acepta_terminos,
+                        'fecha_aceptacion_terminos' => $userUpdated->fecha_aceptacion_terminos,
+                        'acepta_marketing' => $userUpdated->acepta_marketing,
+                        'fecha_aceptacion_marketing' => $userUpdated->fecha_aceptacion_marketing,
+                        'email_verified_at' => $userUpdated->email_verified_at,
+                        'created_at' => $userUpdated->created_at,
+                        'updated_at' => $userUpdated->updated_at
+                    ]
+                ],
                 'message' => 'Perfil actualizado exitosamente'
             ]);
 
@@ -116,38 +228,170 @@ class UserController extends Controller
     /**
      * Obtener actividad del usuario
      */
-    public function activity()
+    public function activity(Request $request)
     {
         try {
             /** @var \App\Models\User $user */
             $user = Auth::user();
 
-            $actividad = [
-                'ventas_recientes' => $user->ventas()
-                    ->with(['rifa.categoria'])
-                    ->orderBy('created_at', 'desc')
-                    ->take(10)
-                    ->get(),
-                'boletos_recientes' => $user->boletos()
-                    ->with(['venta.rifa'])
-                    ->orderBy('created_at', 'desc')
-                    ->take(10)
-                    ->get(),
-                'comentarios_recientes' => $user->comentarios()
-                    ->with(['rifa'])
-                    ->orderBy('created_at', 'desc')
-                    ->take(5)
-                    ->get(),
-                'favoritos_recientes' => $user->favoritos()
-                    ->with(['rifa.categoria'])
-                    ->orderBy('created_at', 'desc')
-                    ->take(5)
-                    ->get()
-            ];
+            // Crear un timeline de actividad combinando diferentes tipos de eventos
+            $actividades = collect();
+
+            // Ventas
+            $ventas = $user->ventas()
+                ->with(['rifa.categoria'])
+                ->orderBy('created_at', 'desc')
+                ->take(20)
+                ->get();
+
+            foreach ($ventas as $venta) {
+                $actividades->push([
+                    'id' => 'venta_' . $venta->id,
+                    'tipo' => 'compra',
+                    'titulo' => 'Compra de boletos',
+                    'descripcion' => "Compraste {$venta->cantidad_boletos} boleto(s) para la rifa '{$venta->rifa->nombre}'",
+                    'metadata' => [
+                        'cantidad_boletos' => $venta->cantidad_boletos,
+                        'total' => 'S/ ' . $venta->total,
+                        'estado' => $venta->estado
+                    ],
+                    'created_at' => $venta->created_at
+                ]);
+            }
+
+            // Boletos ganadores
+            $boletosGanadores = $user->boletos()
+                ->whereHas('sorteoGanador')
+                ->with(['venta.rifa', 'sorteoGanador.premio'])
+                ->orderBy('created_at', 'desc')
+                ->take(10)
+                ->get();
+
+            foreach ($boletosGanadores as $boleto) {
+                $actividades->push([
+                    'id' => 'ganador_' . $boleto->id,
+                    'tipo' => 'ganador',
+                    'titulo' => '¡Felicidades! Ganaste un premio',
+                    'descripcion' => "Tu boleto #{$boleto->numero} ganó en la rifa '{$boleto->venta->rifa->nombre}'",
+                    'metadata' => [
+                        'boleto_numero' => $boleto->numero,
+                        'premio' => $boleto->sorteoGanador->premio->nombre ?? 'Premio'
+                    ],
+                    'created_at' => $boleto->sorteoGanador->created_at ?? $boleto->created_at
+                ]);
+            }
+
+            // Comentarios
+            $comentarios = $user->comentarios()
+                ->with(['rifa'])
+                ->orderBy('created_at', 'desc')
+                ->take(10)
+                ->get();
+
+            foreach ($comentarios as $comentario) {
+                $actividades->push([
+                    'id' => 'comentario_' . $comentario->id,
+                    'tipo' => 'comentario',
+                    'titulo' => 'Comentario en rifa',
+                    'descripcion' => "Comentaste en la rifa '{$comentario->rifa->nombre}'",
+                    'metadata' => [
+                        'comentario' => substr($comentario->contenido, 0, 100) . (strlen($comentario->contenido) > 100 ? '...' : '')
+                    ],
+                    'created_at' => $comentario->created_at
+                ]);
+            }
+
+            // Favoritos
+            $favoritos = $user->favoritos()
+                ->with(['rifa.categoria'])
+                ->orderBy('created_at', 'desc')
+                ->take(10)
+                ->get();
+
+            foreach ($favoritos as $favorito) {
+                $actividades->push([
+                    'id' => 'favorito_' . $favorito->id,
+                    'tipo' => 'favorito',
+                    'titulo' => 'Agregado a favoritos',
+                    'descripcion' => "Agregaste la rifa '{$favorito->rifa->nombre}' a tus favoritos",
+                    'metadata' => [
+                        'categoria' => $favorito->rifa->categoria->nombre ?? 'Sin categoría'
+                    ],
+                    'created_at' => $favorito->created_at
+                ]);
+            }
+
+            // Transferencias
+            $transferencias = $user->boletos()
+                ->where('transferido', true)
+                ->with(['venta.rifa'])
+                ->orderBy('transferido_at', 'desc')
+                ->take(10)
+                ->get();
+
+            foreach ($transferencias as $boleto) {
+                $actividades->push([
+                    'id' => 'transferencia_' . $boleto->id,
+                    'tipo' => 'transferencia',
+                    'titulo' => 'Boleto transferido',
+                    'descripcion' => "Transferiste el boleto #{$boleto->numero} de la rifa '{$boleto->venta->rifa->nombre}'",
+                    'metadata' => [
+                        'boleto_numero' => $boleto->numero
+                    ],
+                    'created_at' => $boleto->transferido_at
+                ]);
+            }
+
+            // Ordenar por fecha y paginar
+            $actividadesSorted = $actividades->sortByDesc('created_at')->values();
+
+            // Aplicar filtros si existen
+            if ($request->tipo) {
+                $actividadesSorted = $actividadesSorted->where('tipo', $request->tipo)->values();
+            }
+
+            if ($request->periodo) {
+                $fecha = null;
+                switch ($request->periodo) {
+                    case 'hoy':
+                        $fecha = today();
+                        break;
+                    case 'semana':
+                        $fecha = now()->startOfWeek();
+                        break;
+                    case 'mes':
+                        $fecha = now()->startOfMonth();
+                        break;
+                    case 'año':
+                        $fecha = now()->startOfYear();
+                        break;
+                }
+                if ($fecha) {
+                    $actividadesSorted = $actividadesSorted->filter(function($actividad) use ($fecha) {
+                        return \Carbon\Carbon::parse($actividad['created_at'])->gte($fecha);
+                    })->values();
+                }
+            }
+
+            // Paginación manual
+            $perPage = $request->per_page ?? 15;
+            $currentPage = $request->page ?? 1;
+            $total = $actividadesSorted->count();
+            $items = $actividadesSorted->forPage($currentPage, $perPage)->values();
 
             return response()->json([
                 'success' => true,
-                'data' => $actividad,
+                'data' => [
+                    'actividades' => $items,
+                    'pagination' => [
+                        'total' => $total,
+                        'current_page' => $currentPage,
+                        'per_page' => $perPage,
+                        'last_page' => ceil($total / $perPage),
+                        'from' => ($currentPage - 1) * $perPage + 1,
+                        'to' => min($currentPage * $perPage, $total)
+                    ]
+                ],
                 'message' => 'Actividad obtenida exitosamente'
             ]);
 

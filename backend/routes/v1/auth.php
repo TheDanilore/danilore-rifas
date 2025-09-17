@@ -29,6 +29,9 @@ Route::prefix('auth')->group(function () {
         // Actualizar perfil
         Route::put('/profile', [AuthController::class, 'updateProfile'])->name('auth.update-profile');
         
+        // Cambiar contraseña
+        Route::put('/change-password', [AuthController::class, 'changePassword'])->name('auth.change-password');
+        
         // Cerrar sesión (revocar token actual)
         Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
         
@@ -36,7 +39,7 @@ Route::prefix('auth')->group(function () {
         Route::post('/logout-all', [AuthController::class, 'logoutAll'])->name('auth.logout-all');
         
         // Obtener tokens del usuario autenticado
-        Route::get('/tokens', [AuthController::class, 'tokens'])->name('auth.tokens');
+        Route::get('/tokens', [AuthController::class, 'getTokens'])->name('auth.tokens');
         
         // Revocar un token específico
         Route::delete('/tokens/{tokenId}', [AuthController::class, 'revokeToken'])->name('auth.revoke-token');

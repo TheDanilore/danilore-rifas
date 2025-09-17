@@ -20,9 +20,29 @@ class BoletoController extends Controller
         try {
             $query = Boleto::whereHas('venta', function($q) {
                 $q->where('user_id', Auth::id());
-            })->with(['venta.rifa.categoria', 'venta.rifa.premios']);
+            })->with([
+                'venta.rifa.categoria', 
+                'venta.rifa.premios',
+                'venta.user',
+                'sorteoGanador.premio'
+            ]);
 
             // Filtros
+            if ($request->estado) {
+                if ($request->estado === 'ganador') {
+                    $query->whereHas('sorteoGanador');
+                } elseif ($request->estado === 'activo') {
+                    $query->whereDoesntHave('sorteoGanador')
+                          ->whereHas('venta.rifa', function($q) {
+                              $q->where('estado', 'activa');
+                          });
+                } elseif ($request->estado === 'pendiente') {
+                    $query->whereHas('venta.rifa', function($q) {
+                        $q->where('estado', 'pendiente');
+                    });
+                }
+            }
+
             if ($request->rifa_id) {
                 $query->whereHas('venta', function($q) use ($request) {
                     $q->where('rifa_id', $request->rifa_id);
@@ -35,12 +55,89 @@ class BoletoController extends Controller
                 });
             }
 
-            $boletos = $query->orderBy('created_at', 'desc')
-                           ->paginate(50);
+            // Ordenamiento
+            $sort = $request->sort ?? 'fecha_desc';
+            switch ($sort) {
+                case 'fecha_asc':
+                    $query->orderBy('created_at', 'asc');
+                    break;
+                case 'precio_desc':
+                    $query->orderBy('precio', 'desc');
+                    break;
+                case 'precio_asc':
+                    $query->orderBy('precio', 'asc');
+                    break;
+                case 'numero_desc':
+                    $query->orderBy('numero', 'desc');
+                    break;
+                case 'numero_asc':
+                    $query->orderBy('numero', 'asc');
+                    break;
+                default: // fecha_desc
+                    $query->orderBy('created_at', 'desc');
+                    break;
+            }
+
+            $perPage = $request->per_page ?? 12;
+            $boletos = $query->paginate($perPage);
+
+            // Formatear los boletos para el frontend
+            $boletosFormatted = $boletos->getCollection()->map(function($boleto) {
+                return [
+                    'id' => $boleto->id,
+                    'numero' => $boleto->numero,
+                    'precio' => $boleto->precio,
+                    'estado' => $boleto->sorteoGanador ? 'ganador' : 'activo',
+                    'transferido' => $boleto->transferido,
+                    'transferido_at' => $boleto->transferido_at,
+                    'created_at' => $boleto->created_at,
+                    'updated_at' => $boleto->updated_at,
+                    'rifa' => [
+                        'id' => $boleto->venta->rifa->id,
+                        'nombre' => $boleto->venta->rifa->nombre,
+                        'descripcion' => $boleto->venta->rifa->descripcion,
+                        'imagen' => $boleto->venta->rifa->imagen_url,
+                        'estado' => $boleto->venta->rifa->estado,
+                        'fecha_sorteo' => $boleto->venta->rifa->fecha_sorteo,
+                        'boletos_totales' => $boleto->venta->rifa->boletos_totales,
+                        'boletos_vendidos' => $boleto->venta->rifa->boletos_vendidos,
+                        'precio_boleto' => $boleto->venta->rifa->precio_boleto,
+                        'categoria' => $boleto->venta->rifa->categoria ? [
+                            'id' => $boleto->venta->rifa->categoria->id,
+                            'nombre' => $boleto->venta->rifa->categoria->nombre
+                        ] : null,
+                        'premios' => $boleto->venta->rifa->premios->map(function($premio) {
+                            return [
+                                'id' => $premio->id,
+                                'nombre' => $premio->nombre,
+                                'descripcion' => $premio->descripcion,
+                                'valor' => $premio->valor,
+                                'posicion' => $premio->posicion
+                            ];
+                        })
+                    ],
+                    'premio_ganado' => $boleto->sorteoGanador ? [
+                        'id' => $boleto->sorteoGanador->premio->id,
+                        'nombre' => $boleto->sorteoGanador->premio->nombre,
+                        'descripcion' => $boleto->sorteoGanador->premio->descripcion,
+                        'valor' => $boleto->sorteoGanador->premio->valor
+                    ] : null
+                ];
+            });
 
             return response()->json([
                 'success' => true,
-                'data' => $boletos,
+                'data' => [
+                    'boletos' => $boletosFormatted,
+                    'pagination' => [
+                        'total' => $boletos->total(),
+                        'current_page' => $boletos->currentPage(),
+                        'per_page' => $boletos->perPage(),
+                        'last_page' => $boletos->lastPage(),
+                        'from' => $boletos->firstItem(),
+                        'to' => $boletos->lastItem()
+                    ]
+                ],
                 'message' => 'Boletos obtenidos exitosamente'
             ]);
 

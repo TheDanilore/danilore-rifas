@@ -235,24 +235,138 @@ class VentaController extends Controller
      */
     public function misVentas(Request $request): JsonResponse
     {
-        /** @var User|null $user */
-        $user = Auth::user();
-        if (!$user) {
+        try {
+            /** @var User|null $user */
+            $user = Auth::user();
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado'
+                ], 401);
+            }
+
+            $query = Venta::with([
+                'rifa.categoria', 
+                'rifa.premios',
+                'boletos',
+                'pagos'
+            ])->where('user_id', $user->id);
+
+            // Filtros
+            if ($request->estado) {
+                $query->where('estado', $request->estado);
+            }
+
+            if ($request->metodo_pago) {
+                $query->where('metodo_pago', $request->metodo_pago);
+            }
+
+            if ($request->periodo) {
+                switch ($request->periodo) {
+                    case 'hoy':
+                        $query->whereDate('created_at', today());
+                        break;
+                    case 'semana':
+                        $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+                        break;
+                    case 'mes':
+                        $query->whereMonth('created_at', now()->month)
+                              ->whereYear('created_at', now()->year);
+                        break;
+                    case 'año':
+                        $query->whereYear('created_at', now()->year);
+                        break;
+                }
+            }
+
+            // Ordenamiento
+            $sort = $request->sort ?? 'fecha_desc';
+            switch ($sort) {
+                case 'fecha_asc':
+                    $query->orderBy('created_at', 'asc');
+                    break;
+                case 'monto_desc':
+                    $query->orderBy('total', 'desc');
+                    break;
+                case 'monto_asc':
+                    $query->orderBy('total', 'asc');
+                    break;
+                default: // fecha_desc
+                    $query->orderBy('created_at', 'desc');
+                    break;
+            }
+
+            $perPage = $request->per_page ?? 10;
+            $ventas = $query->paginate($perPage);
+
+            // Formatear ventas para el frontend
+            $ventasFormatted = $ventas->getCollection()->map(function($venta) {
+                return [
+                    'id' => $venta->id,
+                    'codigo' => $venta->codigo_venta,
+                    'estado' => $venta->estado,
+                    'cantidad_boletos' => $venta->cantidad_boletos,
+                    'total' => $venta->total,
+                    'metodo_pago' => $venta->metodo_pago,
+                    'fecha_pago' => $venta->fecha_pago,
+                    'created_at' => $venta->created_at,
+                    'updated_at' => $venta->updated_at,
+                    'rifa' => [
+                        'id' => $venta->rifa->id,
+                        'nombre' => $venta->rifa->nombre,
+                        'descripcion' => $venta->rifa->descripcion,
+                        'imagen' => $venta->rifa->imagen_url,
+                        'estado' => $venta->rifa->estado,
+                        'fecha_sorteo' => $venta->rifa->fecha_sorteo,
+                        'precio_boleto' => $venta->rifa->precio_boleto,
+                        'categoria' => $venta->rifa->categoria ? [
+                            'id' => $venta->rifa->categoria->id,
+                            'nombre' => $venta->rifa->categoria->nombre
+                        ] : null
+                    ],
+                    'boletos' => $venta->boletos->map(function($boleto) {
+                        return [
+                            'id' => $boleto->id,
+                            'numero' => $boleto->numero,
+                            'precio' => $boleto->precio_pagado,
+                            'estado' => $boleto->estado
+                        ];
+                    }),
+                    'pagos' => $venta->pagos->map(function($pago) {
+                        return [
+                            'id' => $pago->id,
+                            'referencia' => $pago->referencia,
+                            'monto' => $pago->monto,
+                            'estado' => $pago->estado,
+                            'metodo' => $pago->metodo_pago,
+                            'created_at' => $pago->created_at
+                        ];
+                    })
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'ventas' => $ventasFormatted,
+                    'pagination' => [
+                        'total' => $ventas->total(),
+                        'current_page' => $ventas->currentPage(),
+                        'per_page' => $ventas->perPage(),
+                        'last_page' => $ventas->lastPage(),
+                        'from' => $ventas->firstItem(),
+                        'to' => $ventas->lastItem()
+                    ]
+                ],
+                'message' => 'Ventas obtenidas exitosamente'
+            ]);
+
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Usuario no autenticado'
-            ], 401);
+                'message' => 'Error al obtener ventas: ' . $e->getMessage()
+            ], 500);
         }
-
-        $ventas = Venta::with(['rifa', 'boletos'])
-                      ->where('user_id', $user->id)
-                      ->orderBy('created_at', 'desc')
-                      ->paginate($request->get('per_page', 10));
-
-        return response()->json([
-            'success' => true,
-            'data' => $ventas
-        ]);
     }
 
     // ===============================

@@ -145,7 +145,7 @@
                   <div class="info-grid">
                     <div class="info-item">
                       <span class="info-label">Nombre Completo:</span>
-                      <span class="info-value">{{ user.nombres }} {{ user.apellidos }}</span>
+                      <span class="info-value">{{ (user.nombres || user.nombre || '') + ' ' + (user.apellidos || user.apellido || '') }}</span>
                     </div>
                     
                     <div class="info-item">
@@ -176,6 +176,26 @@
                     <div class="info-item">
                       <span class="info-label">Ciudad:</span>
                       <span class="info-value">{{ user.ciudad || 'No especificada' }}</span>
+                    </div>
+                    
+                    <div class="info-item">
+                      <span class="info-label">Departamento:</span>
+                      <span class="info-value">{{ user.departamento || 'No especificado' }}</span>
+                    </div>
+                    
+                    <div class="info-item">
+                      <span class="info-label">País:</span>
+                      <span class="info-value">{{ user.pais || 'No especificado' }}</span>
+                    </div>
+                    
+                    <div class="info-item">
+                      <span class="info-label">Tipo de Documento:</span>
+                      <span class="info-value">{{ user.tipo_documento?.toUpperCase() || 'No especificado' }}</span>
+                    </div>
+                    
+                    <div class="info-item">
+                      <span class="info-label">Número de Documento:</span>
+                      <span class="info-value">{{ user.numero_documento || 'No especificado' }}</span>
                     </div>
                     
                     <div class="info-item">
@@ -336,7 +356,7 @@
 import { ref, onMounted, reactive } from 'vue'
 import { useAuthStore } from '@/store/auth'
 import { userService } from '@/services/api/userService'
-import { formatDate, showNotification } from '@/utils/helpers'
+import { formatDate, showNotification, showConfirm } from '@/utils/helpers'
 
 export default {
   name: 'PerfilView',
@@ -376,17 +396,31 @@ export default {
         error.value = null
         
         const response = await userService.getProfile()
-        user.value = response.data.user
-        userStats.value = response.data.stats || {}
+        console.log('Respuesta del perfil:', response) // Debug
         
-        // Llenar el formulario de edición
-        Object.keys(editForm).forEach(key => {
-          editForm[key] = user.value[key] || ''
-        })
+        // El backend devuelve { user: {...}, stats: {...} }
+        if (response.user) {
+          user.value = response.user
+          userStats.value = response.stats || {}
+        } else {
+          // Si la respuesta es directamente el usuario
+          user.value = response
+          userStats.value = {}
+        }
+        
+        // Llenar el formulario de edición con los valores correctos
+        editForm.nombres = user.value.nombres || user.value.nombre || ''
+        editForm.apellidos = user.value.apellidos || user.value.apellido || ''
+        editForm.email = user.value.email || ''
+        editForm.telefono = user.value.telefono || ''
+        editForm.fecha_nacimiento = user.value.fecha_nacimiento || ''
+        editForm.genero = user.value.genero || ''
+        editForm.direccion = user.value.direccion || ''
+        editForm.ciudad = user.value.ciudad || ''
         
       } catch (err) {
         console.error('Error al cargar perfil:', err)
-        error.value = err.response?.data?.message || 'Error al cargar el perfil'
+        error.value = err.message || 'Error al cargar el perfil'
       } finally {
         loading.value = false
       }
@@ -395,9 +429,14 @@ export default {
     const toggleEdit = () => {
       if (editMode.value) {
         // Restaurar valores originales
-        Object.keys(editForm).forEach(key => {
-          editForm[key] = user.value[key] || ''
-        })
+        editForm.nombres = user.value.nombres || user.value.nombre || ''
+        editForm.apellidos = user.value.apellidos || user.value.apellido || ''
+        editForm.email = user.value.email || ''
+        editForm.telefono = user.value.telefono || ''
+        editForm.fecha_nacimiento = user.value.fecha_nacimiento || ''
+        editForm.genero = user.value.genero || ''
+        editForm.direccion = user.value.direccion || ''
+        editForm.ciudad = user.value.ciudad || ''
       }
       editMode.value = !editMode.value
     }
@@ -407,7 +446,14 @@ export default {
         updating.value = true
         
         const response = await userService.updateProfile(editForm)
-        user.value = response.data.user
+        console.log('Respuesta de actualización:', response) // Debug
+        
+        // El backend devuelve { user: {...} }
+        if (response.user) {
+          user.value = response.user
+        } else {
+          user.value = response
+        }
         
         showNotification('Perfil actualizado correctamente', 'success')
         editMode.value = false
@@ -415,7 +461,7 @@ export default {
       } catch (err) {
         console.error('Error al actualizar perfil:', err)
         showNotification(
-          err.response?.data?.message || 'Error al actualizar el perfil',
+          err.message || 'Error al actualizar el perfil',
           'error'
         )
       } finally {
@@ -432,8 +478,7 @@ export default {
       try {
         changingPassword.value = true
         
-        // Aquí necesitarías implementar el endpoint para cambiar contraseña
-        // await userService.changePassword(passwordForm)
+        await userService.changePassword(passwordForm)
         
         showNotification('Contraseña cambiada correctamente', 'success')
         showPasswordModal.value = false
@@ -446,7 +491,7 @@ export default {
       } catch (err) {
         console.error('Error al cambiar contraseña:', err)
         showNotification(
-          err.response?.data?.message || 'Error al cambiar la contraseña',
+          err.response?.data?.message || err.message || 'Error al cambiar la contraseña',
           'error'
         )
       } finally {
@@ -455,14 +500,37 @@ export default {
     }
 
     const loadTokens = async () => {
-      // Implementar gestión de tokens/dispositivos
-      showNotification('Función en desarrollo', 'info')
+      try {
+        const devices = await userService.getDevices()
+        console.log('Dispositivos:', devices)
+        // Aquí podrías abrir un modal con la lista de dispositivos
+        showNotification('Dispositivos cargados en consola', 'info')
+      } catch (err) {
+        console.error('Error al cargar dispositivos:', err)
+        showNotification('Error al cargar dispositivos', 'error')
+      }
     }
 
     const logoutAllDevices = async () => {
+      const confirmed = await showConfirm({
+        title: '¿Cerrar todas las sesiones?',
+        message: '¿Estás seguro de que deseas cerrar sesión en todos los dispositivos? Tendrás que volver a iniciar sesión.',
+        type: 'warning',
+        confirmText: 'Cerrar sesiones',
+        cancelText: 'Cancelar'
+      })
+      
+      if (!confirmed) {
+        return
+      }
+      
       try {
-        // await userService.logoutAllDevices()
+        await userService.logoutAllDevices()
         showNotification('Sesión cerrada en todos los dispositivos', 'success')
+        // Redirigir al login después de unos segundos
+        setTimeout(() => {
+          window.location.href = '/login'
+        }, 2000)
       } catch (err) {
         console.error('Error al cerrar sesiones:', err)
         showNotification('Error al cerrar las sesiones', 'error')
@@ -707,6 +775,7 @@ export default {
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--gray-800);
+  text-align: center;
 }
 
 .stat-label {
